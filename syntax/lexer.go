@@ -13,12 +13,19 @@ import (
 )
 
 const controlChars string = "'\"(){}[]+-=/<>!~@#$%^&*|,;:`"
+const operatorChars string = "+=-\\/<>;!@#$%^&*|~?"
 
 var controlCharsSet map[rune]bool
+var operatorCharsSet map[rune]bool
 
-func Init() {
+func init() {
+	controlCharsSet = make(map[rune]bool)
 	for _, char := range controlChars {
 		controlCharsSet[char] = true
+	}
+	operatorCharsSet = make(map[rune]bool)
+	for _, char := range operatorChars {
+		operatorCharsSet[char] = true
 	}
 }
 
@@ -109,10 +116,39 @@ func (l *Lexer) scanNextToken() token.Token {
 	case ch == '"' || ch == '\'':
 		tok.Typ = token.String
 		tok.Val = l.scanStringLit()
+	case isValidInOperator(ch):
+		val := l.scanOperator()
+		tok.Typ = token.LookupOperator(val)
+		tok.Val = val
 	default:
-		msg := fmt.Sprintf("unknown character %v", ch)
-		l.err(l.position, msg)
-		l.recover()
+		read_needed := true
+		switch ch {
+		case ':':
+			tok.Typ = token.Colon
+		case '(':
+			tok.Typ = token.LParen
+		case ')':
+			tok.Typ = token.RParen
+		case '[':
+			tok.Typ = token.LSquareParen
+		case ']':
+			tok.Typ = token.RSquareParen
+		case '{':
+			tok.Typ = token.LBracket
+		case '}':
+			tok.Typ = token.RBracket
+		case ',':
+			tok.Typ = token.Comma
+		default:
+			msg := fmt.Sprintf("unknown character %v", ch)
+			l.err(l.position, msg)
+			l.recover()
+			read_needed = false
+		}
+		if read_needed {
+			l.readRune()
+		}
+		tok.Val = token.IdToString(tok.Typ)
 	}
 	tok.Span.End = uint(l.offset - 1)
 	return tok
@@ -227,7 +263,6 @@ func (l *Lexer) scanStringLit() string {
 	quote := l.ch
 	ch := l.readRune()
 	for !l.eof && ch != quote && ch != '\n' {
-		log.Println("scanning", string(quote), string(ch), ch == quote)
 		b.WriteRune(ch)
 		ch = l.readRune()
 	}
@@ -237,6 +272,16 @@ func (l *Lexer) scanStringLit() string {
 		l.err(l.position, "unclosed string")
 	} else {
 		l.readRune()
+	}
+	return b.String()
+}
+
+func (l *Lexer) scanOperator() string {
+	var b strings.Builder
+	ch := l.ch
+	for isValidInOperator(ch) {
+		b.WriteRune(ch)
+		ch = l.readRune()
 	}
 	return b.String()
 }
@@ -257,4 +302,11 @@ func isControl(ch rune) bool {
 
 func isValidInIdentifier(ch rune) bool {
 	return unicode.IsLetter(ch) || ch == '_' || ch == '?' || unicode.IsNumber(ch)
+}
+
+func isValidInOperator(ch rune) bool {
+	_, ok := operatorCharsSet[ch]
+	log.Println("Can be part of operator?", string(ch), ok)
+	log.Println(operatorCharsSet)
+	return ok
 }

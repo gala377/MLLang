@@ -5,8 +5,6 @@ package token
 // It should be rewritten at some point.
 
 import (
-	"unicode"
-
 	"github.com/gala377/MLLang/syntax/span"
 )
 
@@ -25,7 +23,7 @@ const (
 	Float
 	String
 	Colon
-	Assignment
+	Comma
 	LParen
 	RParen
 	LBracket
@@ -34,6 +32,7 @@ const (
 	RSquareParen
 	Indent
 	NewLine
+	Operator
 
 	keywords_beg
 	Fn
@@ -46,8 +45,16 @@ const (
 	Macro
 	keywords_end
 
+	operators_beg
+	Assignment
+	operators_end
+
 	Eof
 )
+
+func IdToString(id Id) string {
+	return tokens[id]
+}
 
 var tokens = [...]string{
 	Unknown:      "UNKNOWN",
@@ -56,7 +63,7 @@ var tokens = [...]string{
 	Float:        "FLOAT",
 	String:       "STRING",
 	Colon:        ":",
-	Assignment:   "=",
+	Comma:        ",",
 	LParen:       "(",
 	RParen:       ")",
 	LBracket:     "{",
@@ -65,6 +72,7 @@ var tokens = [...]string{
 	RSquareParen: "]",
 	Indent:       "INDENT",
 	NewLine:      "NEWLINE",
+	Operator:     "OPERATOR",
 
 	Fn:    "fn",
 	Val:   "val",
@@ -74,14 +82,22 @@ var tokens = [...]string{
 	Match: "match",
 	Let:   "let",
 	Macro: "macro",
+
+	Assignment: "=",
 }
 
 var keywords map[string]Id
+
+var operators map[string]Id
 
 func init() {
 	keywords = make(map[string]Id)
 	for i := keywords_beg + 1; i < keywords_end; i++ {
 		keywords[tokens[i]] = i
+	}
+	operators = make(map[string]Id)
+	for i := operators_beg + 1; i < operators_end; i++ {
+		operators[tokens[i]] = i
 	}
 }
 
@@ -97,13 +113,11 @@ func Lookup(ident string) Id {
 	return Identifier
 }
 
-func IsValidIdentifier(ident string) bool {
-	for i, c := range ident {
-		if !unicode.IsLetter(c) && c != '_' && (i == 0 || !unicode.IsDigit(c)) {
-			return false
-		}
+func LookupOperator(op string) Id {
+	if tok, isop := operators[op]; isop {
+		return tok
 	}
-	return ident != "" && !IsKeyword(ident)
+	return Operator
 }
 
 func NewEof(offset int) Token {

@@ -75,6 +75,19 @@ func TestScanningIdent(t *testing.T) {
 				{"__myident2?", token.Identifier, 7, 18},
 			},
 		},
+		{
+			"fn val if else while match let macro",
+			[]it{
+				{"fn", token.Fn, 0, 2},
+				{"val", token.Val, 3, 6},
+				{"if", token.If, 7, 9},
+				{"else", token.Else, 10, 14},
+				{"while", token.While, 15, 20},
+				{"match", token.Match, 21, 26},
+				{"let", token.Let, 27, 30},
+				{"macro", token.Macro, 31, 36},
+			},
+		},
 	}
 	matchAllTestWithTable(t, &table)
 }
@@ -133,6 +146,31 @@ func TestStringScanning(t *testing.T) {
 	matchAllTestWithTable(t, &table)
 }
 
+func TestScanningOperators(t *testing.T) {
+	table := tablet{
+		{
+			"=",
+			[]it{
+				{"=", token.Assignment, 0, 1},
+			},
+		},
+		{
+			"- ==> <> <$> %^ *&^% ;|- ??",
+			[]it{
+				{"-", token.Operator, 0, 1},
+				{"==>", token.Operator, 2, 5},
+				{"<>", token.Operator, 6, 8},
+				{"<$>", token.Operator, 9, 12},
+				{"%^", token.Operator, 13, 15},
+				{"*&^%", token.Operator, 16, 20},
+				{";|-", token.Operator, 21, 24},
+				{"??", token.Operator, 25, 27},
+			},
+		},
+	}
+	matchAllTestWithTable(t, &table)
+}
+
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
@@ -156,3 +194,5 @@ func matchAllTestWithTable(t *testing.T, table *tablet) {
 
 // struct { errorregex, pos }
 // func matchErrorsWithTable
+// test operators
+// test special so : and parenthesis and all
