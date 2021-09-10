@@ -36,7 +36,7 @@ func TestScanningOneLetterIdent(t *testing.T) {
 			l := NewLexer(strings.NewReader(test.source))
 			for _, want := range test.toks {
 				got := l.Next()
-				wanttok := token.Token{want.T, want.N, span.Span{want.B, want.E}}
+				wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
 				if got != wanttok {
 					t.Errorf("Wrong token - want: %v got: %v", wanttok, got)
 				}
@@ -82,7 +82,7 @@ func TestIndentScanning(t *testing.T) {
 		l := NewLexer(strings.NewReader(test.source))
 		for _, want := range test.toks {
 			got := l.Next()
-			wanttok := token.Token{want.T, want.N, span.Span{want.B, want.E}}
+			wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
 			if got != wanttok {
 				t.Errorf("Source: %#v - Wrong token - want: %#v got: %#v, lpos: %v", test.source, wanttok, got, l.position)
 			}
@@ -98,12 +98,12 @@ func TestScanningIdent(t *testing.T) {
 	source := "ident1 __myident2"
 	l := NewLexer(strings.NewReader(source))
 	got := l.Next()
-	want := token.Token{token.Identifier, "ident1", span.Span{0, 6}}
+	want := token.Token{Typ: token.Identifier, Val: "ident1", Span: span.NewSpan(0, 6)}
 	if got != want {
 		t.Errorf("Wrong current token - want: %v got: %v", want, got)
 	}
 	got = l.Peek()
-	want = token.Token{token.Identifier, "__myident2", span.Span{7, 17}}
+	want = token.Token{Typ: token.Identifier, Val: "__myident2", Span: span.NewSpan(7, 17)}
 	if got != want {
 		t.Errorf("Wrong peek token - want: %v got: %v", want, got)
 	}
