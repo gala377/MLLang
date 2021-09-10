@@ -103,6 +103,36 @@ func TestScanningNumbers(t *testing.T) {
 	matchAllTestWithTable(t, &table)
 }
 
+func TestStringScanning(t *testing.T) {
+	table := tablet{
+		{
+			"\"simple string\"",
+			[]it{{"simple string", token.String, 0, 15}},
+		},
+		{
+			"'simple string'",
+			[]it{{"simple string", token.String, 0, 15}},
+		},
+		{
+			"'simple\" \"string'",
+			[]it{{"simple\" \"string", token.String, 0, 17}},
+		},
+		{
+			"\"simple' 'string\"",
+			[]it{{"simple' 'string", token.String, 0, 17}},
+		},
+		{
+			"'a' 'b' 'c'",
+			[]it{
+				{"a", token.String, 0, 3},
+				{"b", token.String, 4, 7},
+				{"c", token.String, 8, 11},
+			},
+		},
+	}
+	matchAllTestWithTable(t, &table)
+}
+
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {

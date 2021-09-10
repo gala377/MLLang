@@ -106,8 +106,13 @@ func (l *Lexer) scanNextToken() token.Token {
 		if float {
 			tok.Typ = token.Float
 		}
+	case ch == '"' || ch == '\'':
+		tok.Typ = token.String
+		tok.Val = l.scanStringLit()
 	default:
-		log.Fatalf("[%v:%v] Unknown character %v", l.position.Line, l.position.Column, ch)
+		msg := fmt.Sprintf("unknown character %v", ch)
+		l.err(l.position, msg)
+		l.recover()
 	}
 	tok.Span.End = uint(l.offset - 1)
 	return tok
@@ -202,7 +207,7 @@ func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) {
 	}
 	if unicode.IsLetter(ch) || ch == '.' {
 		b.WriteRune(ch)
-		msg := fmt.Sprintf("Expected a number but got: '%v' which is not a number", b.String())
+		msg := fmt.Sprintf("expected a number but got '%v'", b.String())
 		l.err(l.position, msg)
 		l.recover()
 	}
@@ -217,7 +222,24 @@ func (l *Lexer) scanIdentifier() string {
 	}
 	return b.String()
 }
-func (l *Lexer) scanStringLit() {}
+func (l *Lexer) scanStringLit() string {
+	var b strings.Builder
+	quote := l.ch
+	ch := l.readRune()
+	for !l.eof && ch != quote && ch != '\n' {
+		log.Println("scanning", string(quote), string(ch), ch == quote)
+		b.WriteRune(ch)
+		ch = l.readRune()
+	}
+	if l.eof {
+		l.err(l.position, "expected string closing quote but got eof")
+	} else if ch != quote {
+		l.err(l.position, "unclosed string")
+	} else {
+		l.readRune()
+	}
+	return b.String()
+}
 
 func (l *Lexer) recover() {
 	ch := l.ch
