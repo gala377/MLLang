@@ -1,4 +1,4 @@
-package syntax
+package token
 
 // A lot of this package was shamefully stolen from
 // https://cs.opensource.google/go/go/+/refs/tags/go1.17:src/go/token/token.go
@@ -6,14 +6,16 @@ package syntax
 
 import (
 	"unicode"
+
+	"github.com/gala377/MLLang/syntax/span"
 )
 
 type Id = int
 
 type Token struct {
-	typ  Id
-	val  string
-	span Span
+	Typ  Id
+	Val  string
+	Span span.Span
 }
 
 const (
@@ -104,11 +106,11 @@ func IsValidIdentifier(ident string) bool {
 	return ident != "" && !IsKeyword(ident)
 }
 
-func newEof(offset int) Token {
+func NewEof(offset int) Token {
 	return Token{
-		typ: Eof,
-		val: "",
-		span: Span{
+		Typ: Eof,
+		Val: "",
+		Span: span.Span{
 			Beg: uint(offset),
 			End: uint(offset),
 		},

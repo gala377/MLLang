@@ -1,4 +1,4 @@
-package syntax
+package span
 
 // Span is represents a fragment of source that the given
 // production is associated with. The fields correspond to

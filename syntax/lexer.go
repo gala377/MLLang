@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/gala377/MLLang/syntax/token"
 )
 
 type Position struct {
@@ -21,8 +23,8 @@ type Lexer struct {
 	ch       rune
 	eof      bool
 
-	curr Token
-	peek Token
+	curr token.Token
+	peek token.Token
 }
 
 func NewLexer(source io.Reader) Lexer {
@@ -39,17 +41,17 @@ func NewLexer(source io.Reader) Lexer {
 	return lexer
 }
 
-func (l *Lexer) Next() Token {
+func (l *Lexer) Next() token.Token {
 	l.curr = l.peek
 	l.moveToNextTok()
 	return l.curr
 }
 
-func (l *Lexer) Current() Token {
+func (l *Lexer) Current() token.Token {
 	return l.curr
 }
 
-func (l *Lexer) Peek() Token {
+func (l *Lexer) Peek() token.Token {
 	return l.peek
 }
 
@@ -58,34 +60,34 @@ func (l *Lexer) moveToNextTok() {
 		l.skipSpaces()
 	}
 	if l.eof {
-		l.peek = newEof(l.offset)
+		l.peek = token.NewEof(l.offset)
 		return
 	}
 	l.peek = l.scanNextToken()
 }
 
-func (l *Lexer) scanNextToken() Token {
-	var tok Token
-	tok.span.Beg = uint(l.offset - 1)
+func (l *Lexer) scanNextToken() token.Token {
+	var tok token.Token
+	tok.Span.Beg = uint(l.offset - 1)
 	ch := l.ch
 	switch {
 	case ch == '\n':
-		tok.typ = NewLine
-		tok.val = string(ch)
+		tok.Typ = token.NewLine
+		tok.Val = string(ch)
 		l.readRune()
 	case unicode.IsSpace(ch):
-		tok.typ = Indent
-		tok.val = l.scanIndent()
+		tok.Typ = token.Indent
+		tok.Val = l.scanIndent()
 	case unicode.IsLetter(ch) || ch == '_':
 		val := l.scanIdentifier()
-		tok.typ = Lookup(val)
-		tok.val = val
+		tok.Typ = token.Lookup(val)
+		tok.Val = val
 	case unicode.IsDigit(ch):
 		// scan digit
 	default:
 		log.Fatalf("[%v:%v] Unknown character %v", l.position.Line, l.position.Column, ch)
 	}
-	tok.span.End = uint(l.offset - 1)
+	tok.Span.End = uint(l.offset - 1)
 	return tok
 }
 
