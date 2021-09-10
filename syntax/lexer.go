@@ -2,6 +2,7 @@ package syntax
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"log"
 	"strconv"
@@ -11,28 +12,44 @@ import (
 	"github.com/gala377/MLLang/syntax/token"
 )
 
-type Position struct {
-	Line   uint
-	Column uint
+const controlChars string = "'\"(){}[]+-=/<>!~@#$%^&*|,;:`"
+
+var controlCharsSet map[rune]bool
+
+func Init() {
+	for _, char := range controlChars {
+		controlCharsSet[char] = true
+	}
 }
 
-type Lexer struct {
-	reader   *bytes.Reader
-	position Position
-	offset   int
-	ch       rune
-	eof      bool
+type (
+	Position struct {
+		Line   uint
+		Column uint
+	}
 
-	curr token.Token
-	peek token.Token
-}
+	Lexer struct {
+		reader   *bytes.Reader
+		err      ErrorHandler
+		position Position
+		offset   int
+		ch       rune
+		eof      bool
 
-func NewLexer(source io.Reader) Lexer {
+		curr token.Token
+		peek token.Token
+	}
+
+	ErrorHandler = func(pos Position, msg string)
+)
+
+func NewLexer(source io.Reader, report ErrorHandler) Lexer {
 	text, err := io.ReadAll(source)
 	if err != nil {
 		panic("panic")
 	}
 	var lexer Lexer
+	lexer.err = report
 	lexer.reader = bytes.NewReader(text)
 	// Populate peek so that the first Next call
 	// returns properly
@@ -83,7 +100,12 @@ func (l *Lexer) scanNextToken() token.Token {
 		tok.Typ = token.Lookup(val)
 		tok.Val = val
 	case unicode.IsDigit(ch):
-		// scan digit
+		val, float := l.scanNumber()
+		tok.Val = val
+		tok.Typ = token.Integer
+		if float {
+			tok.Typ = token.Float
+		}
 	default:
 		log.Fatalf("[%v:%v] Unknown character %v", l.position.Line, l.position.Column, ch)
 	}
@@ -101,6 +123,9 @@ func (l *Lexer) readRune() rune {
 			l.offset = int(l.reader.Size() + 1)
 			return -1
 		}
+		// We can assume that if we cannot decode the character
+		// then the scanned file can be assumed to be garbage so
+		// no need for reporting. Just abort.
 		log.Fatalf("[%v:%v] Could not decode character %v", l.position.Line, l.position.Column, err)
 	}
 	l.movePositionByRune(r)
@@ -133,14 +158,81 @@ func (l *Lexer) scanIndent() string {
 	}
 	return strconv.Itoa(count)
 }
-func (l *Lexer) scanNumber() {}
+func (l *Lexer) scanNumber() (val string, isfloat bool) {
+	var b strings.Builder
+	ch := l.ch
+	if ch == '0' {
+		b.WriteRune(ch)
+		switch ch = l.readRune(); {
+		case unicode.IsSpace(ch) || isControl(ch):
+			val = "0"
+		case ch == '.':
+			isfloat = true
+			b.WriteRune(ch)
+			l.readRune()
+			l.scanNumbersFractionPart(&b)
+			val = b.String()
+		}
+		return
+	}
+	for unicode.IsDigit(ch) {
+		b.WriteRune(ch)
+		ch = l.readRune()
+	}
+	if ch == '.' {
+		isfloat = true
+		b.WriteRune(ch)
+		l.readRune()
+		l.scanNumbersFractionPart(&b)
+	} else if unicode.IsLetter(ch) {
+		b.WriteRune(ch)
+		msg := fmt.Sprintf("Expected a number but got: '%v' which is not a number", b.String())
+		l.err(l.position, msg)
+		l.recover()
+	}
+	val = b.String()
+	return
+}
+
+func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) {
+	ch := l.ch
+	for unicode.IsNumber(ch) {
+		b.WriteRune(ch)
+		ch = l.readRune()
+	}
+	if unicode.IsLetter(ch) || ch == '.' {
+		b.WriteRune(ch)
+		msg := fmt.Sprintf("Expected a number but got: '%v' which is not a number", b.String())
+		l.err(l.position, msg)
+		l.recover()
+	}
+}
+
 func (l *Lexer) scanIdentifier() string {
 	var b strings.Builder
 	ch := l.ch
-	for !l.eof && (unicode.IsLetter(ch) || ch == '_' || unicode.IsNumber(ch)) {
+	for !l.eof && isValidInIdentifier(ch) {
 		b.WriteRune(ch)
 		ch = l.readRune()
 	}
 	return b.String()
 }
 func (l *Lexer) scanStringLit() {}
+
+func (l *Lexer) recover() {
+	ch := l.ch
+	cont := isControl(ch)
+	for !(unicode.IsSpace(ch) || cont) {
+		ch = l.readRune()
+		cont = isControl(ch)
+	}
+}
+
+func isControl(ch rune) bool {
+	_, ok := controlCharsSet[ch]
+	return ok
+}
+
+func isValidInIdentifier(ch rune) bool {
+	return unicode.IsLetter(ch) || ch == '_' || ch == '?' || unicode.IsNumber(ch)
+}

@@ -31,22 +31,7 @@ func TestScanningOneLetterIdent(t *testing.T) {
 			[]it{{"a", token.Identifier, 0, 1}, {"b", token.Identifier, 3, 4}, {"c", token.Identifier, 6, 7}},
 		},
 	}
-	for _, test := range table {
-		t.Run(test.source, func(t *testing.T) {
-			l := NewLexer(strings.NewReader(test.source))
-			for _, want := range test.toks {
-				got := l.Next()
-				wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
-				if got != wanttok {
-					t.Errorf("Wrong token - want: %v got: %v", wanttok, got)
-				}
-			}
-			eof := l.Next()
-			if eof.Typ != token.Eof {
-				t.Errorf("Expected EOF token, got: %v", eof)
-			}
-		})
-	}
+	matchAllTestWithTable(t, &table)
 }
 
 func TestIndentScanning(t *testing.T) {
@@ -78,33 +63,66 @@ func TestIndentScanning(t *testing.T) {
 			},
 		},
 	}
-	for _, test := range table {
-		l := NewLexer(strings.NewReader(test.source))
-		for _, want := range test.toks {
-			got := l.Next()
-			wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
-			if got != wanttok {
-				t.Errorf("Source: %#v - Wrong token - want: %#v got: %#v, lpos: %v", test.source, wanttok, got, l.position)
-			}
-		}
-		eof := l.Next()
-		if eof.Typ != token.Eof {
-			t.Errorf("Expected EOF token, got: %v", eof)
-		}
-	}
+	matchAllTestWithTable(t, &table)
 }
 
 func TestScanningIdent(t *testing.T) {
-	source := "ident1 __myident2"
-	l := NewLexer(strings.NewReader(source))
-	got := l.Next()
-	want := token.Token{Typ: token.Identifier, Val: "ident1", Span: span.NewSpan(0, 6)}
-	if got != want {
-		t.Errorf("Wrong current token - want: %v got: %v", want, got)
+	table := tablet{
+		{
+			"ident1 __myident2?",
+			[]it{
+				{"ident1", token.Identifier, 0, 6},
+				{"__myident2?", token.Identifier, 7, 18},
+			},
+		},
 	}
-	got = l.Peek()
-	want = token.Token{Typ: token.Identifier, Val: "__myident2", Span: span.NewSpan(7, 17)}
-	if got != want {
-		t.Errorf("Wrong peek token - want: %v got: %v", want, got)
+	matchAllTestWithTable(t, &table)
+}
+
+func TestScanningNumbers(t *testing.T) {
+	table := tablet{
+		{
+			"0 1 10",
+			[]it{
+				{"0", token.Integer, 0, 1},
+				{"1", token.Integer, 2, 3},
+				{"10", token.Integer, 4, 6},
+			},
+		},
+		{
+			"0.123 123.000 1234.1 1. 0.",
+			[]it{
+				{"0.123", token.Float, 0, 5},
+				{"123.000", token.Float, 6, 13},
+				{"1234.1", token.Float, 14, 20},
+				{"1.", token.Float, 21, 23},
+				{"0.", token.Float, 24, 26},
+			},
+		},
+	}
+	matchAllTestWithTable(t, &table)
+}
+
+func matchAllTestWithTable(t *testing.T, table *tablet) {
+	for _, test := range *table {
+		t.Run(test.source, func(t *testing.T) {
+			l := NewLexer(strings.NewReader(test.source), func(pos Position, msg string) {
+				t.Fatalf("Error on pos %v with msg %v", pos, msg)
+			})
+			for _, want := range test.toks {
+				got := l.Next()
+				wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
+				if got != wanttok {
+					t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
+				}
+			}
+			eof := l.Next()
+			if eof.Typ != token.Eof {
+				t.Errorf("Expected EOF token, got: %v", eof)
+			}
+		})
 	}
 }
+
+// struct { errorregex, pos }
+// func matchErrorsWithTable
