@@ -124,7 +124,7 @@ func (l *Lexer) scanNextToken() token.Token {
 		tok.Typ = token.LookupOperator(val)
 		tok.Val = val
 	default:
-		read_needed := true
+		known := true
 		switch ch {
 		case ':':
 			tok.Typ = token.Colon
@@ -144,12 +144,11 @@ func (l *Lexer) scanNextToken() token.Token {
 			tok.Typ = token.Comma
 		default:
 			err = fmt.Errorf("unknown character %s", string(ch))
-			read_needed = false
+			known = false
 		}
-		if read_needed {
-			l.readRune()
+		if known {
+			tok.Val = token.IdToString(tok.Typ)
 		}
-		tok.Val = token.IdToString(tok.Typ)
 	}
 	if err != nil {
 		tok.Typ = token.Error
