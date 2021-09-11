@@ -31,6 +31,7 @@ func init() {
 }
 
 type (
+	Mode  uint64
 	Lexer struct {
 		reader   *bytes.Reader
 		err      ErrorHandler
@@ -38,12 +39,17 @@ type (
 		offset   int
 		ch       rune
 		eof      bool
+		mode     Mode
 
 		curr token.Token
 		peek token.Token
 	}
 
-	ErrorHandler = func(pos span.Position, msg string)
+	ErrorHandler = func(beg, end span.Position, msg string)
+)
+
+const (
+	returnComments Mode = 1 << iota
 )
 
 func NewLexer(source io.Reader, report ErrorHandler) Lexer {
@@ -150,7 +156,7 @@ func (l *Lexer) scanNextToken() token.Token {
 	}
 	if err != nil {
 		tok.Typ = token.Error
-		l.err(bpos, err.Error())
+		l.err(bpos, l.position, err.Error())
 		recovered := l.recover()
 		tok.Val += recovered
 	}
@@ -291,7 +297,7 @@ func (l *Lexer) scanOperator() string {
 func (l *Lexer) scanComment() string {
 	var b strings.Builder
 	ch := l.readRune()
-	for ch != '\n' {
+	for !l.eof && ch != '\n' {
 		b.WriteRune(ch)
 		ch = l.readRune()
 	}
@@ -319,6 +325,18 @@ func (l *Lexer) newToken() token.Token {
 	span.Beg.Offset = uint(l.offset - 1)
 	t.Span = &span
 	return t
+}
+
+func (l *Lexer) SetMode(flag Mode) {
+	l.mode |= flag
+}
+
+func (l *Lexer) UnsetMode(flag Mode) {
+	l.mode &= ^flag
+}
+
+func (l *Lexer) GetMode(flag Mode) bool {
+	return (l.mode & flag) > 0
 }
 
 func isControl(ch rune) bool {

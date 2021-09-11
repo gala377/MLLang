@@ -155,7 +155,7 @@ func TestScanningOperators(t *testing.T) {
 			},
 		},
 		{
-			"- ==> <> <$> %^ *&^% ;|- ??",
+			"- ==> <> <$> %^ *&^% ^|- ??",
 			[]it{
 				{"-", token.Operator, 0, 1},
 				{"==>", token.Operator, 2, 5},
@@ -163,7 +163,7 @@ func TestScanningOperators(t *testing.T) {
 				{"<$>", token.Operator, 9, 12},
 				{"%^", token.Operator, 13, 15},
 				{"*&^%", token.Operator, 16, 20},
-				{";|-", token.Operator, 21, 24},
+				{"^|-", token.Operator, 21, 24},
 				{"??", token.Operator, 25, 27},
 			},
 		},
@@ -173,7 +173,7 @@ func TestScanningOperators(t *testing.T) {
 
 func TestErrorRecovery(t *testing.T) {
 	source := "123abcd345 hello \"aaa\nagain"
-	l := NewLexer(strings.NewReader(source), func(_ span.Position, _ string) {})
+	l := NewLexer(strings.NewReader(source), func(_, _ span.Position, _ string) {})
 	expect := []it{
 		{"123abcd345", token.Error, 0, 10},
 		{"hello", token.Identifier, 11, 16},
@@ -198,11 +198,41 @@ func TestErrorRecovery(t *testing.T) {
 	}
 }
 
+func TestLineComments(t *testing.T) {
+	source := "a;this is a line comment\nb;another line comment"
+	l := NewLexer(strings.NewReader(source), func(beg, end span.Position, msg string) {
+		t.Fatalf("Error on pos %v-%v with msg %v", beg, end, msg)
+	})
+	l.SetMode(returnComments)
+	expect := []it{
+		{"a", token.Identifier, 0, 1},
+		{"this is a line comment", token.Comment, 1, 24},
+		{"\n", token.NewLine, 24, 25},
+		{"b", token.Identifier, 25, 26},
+		{"another line comment", token.Comment, 26, 47},
+	}
+	for _, want := range expect {
+		got := l.Next()
+		wanttok := token.Token{
+			Typ:  want.T,
+			Val:  want.N,
+			Span: spanFromOffsets(want.B, want.E),
+		}
+		if tokensEqual(&got, &wanttok) {
+			t.Errorf("Wrong token - want: %#v got: %#v", wanttok, got)
+		}
+	}
+	eof := l.Next()
+	if eof.Typ != token.Eof {
+		t.Errorf("Expected EOF token, got: %v", eof)
+	}
+}
+
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
-			l := NewLexer(strings.NewReader(test.source), func(pos span.Position, msg string) {
-				t.Fatalf("Error on pos %v with msg %v", pos, msg)
+			l := NewLexer(strings.NewReader(test.source), func(beg, end span.Position, msg string) {
+				t.Fatalf("Error on pos %v-%v with msg %v", beg, end, msg)
 			})
 			for _, want := range test.toks {
 				got := l.Next()
