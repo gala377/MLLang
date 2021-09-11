@@ -94,6 +94,7 @@ func (l *Lexer) scanNextToken() token.Token {
 	var tok token.Token
 	tok.Span.Beg = uint(l.offset - 1)
 	ch := l.ch
+	var err error
 	switch {
 	case ch == '\n':
 		tok.Typ = token.NewLine
@@ -107,15 +108,16 @@ func (l *Lexer) scanNextToken() token.Token {
 		tok.Typ = token.Lookup(val)
 		tok.Val = val
 	case unicode.IsDigit(ch):
-		val, float := l.scanNumber()
+		val, float, serr := l.scanNumber()
 		tok.Val = val
 		tok.Typ = token.Integer
+		err = serr
 		if float {
 			tok.Typ = token.Float
 		}
 	case ch == '"' || ch == '\'':
 		tok.Typ = token.String
-		tok.Val = l.scanStringLit()
+		tok.Val, err = l.scanStringLit()
 	case isValidInOperator(ch):
 		val := l.scanOperator()
 		tok.Typ = token.LookupOperator(val)
@@ -140,9 +142,7 @@ func (l *Lexer) scanNextToken() token.Token {
 		case ',':
 			tok.Typ = token.Comma
 		default:
-			msg := fmt.Sprintf("unknown character %v", ch)
-			l.err(l.position, msg)
-			l.recover()
+			err = fmt.Errorf("unknown character %s", string(ch))
 			read_needed = false
 		}
 		if read_needed {
@@ -151,6 +151,11 @@ func (l *Lexer) scanNextToken() token.Token {
 		tok.Val = token.IdToString(tok.Typ)
 	}
 	tok.Span.End = uint(l.offset - 1)
+	if err != nil {
+		tok.Typ = token.Error
+		l.err(l.position, err.Error())
+		l.recover()
+	}
 	return tok
 }
 
@@ -199,7 +204,7 @@ func (l *Lexer) scanIndent() string {
 	}
 	return strconv.Itoa(count)
 }
-func (l *Lexer) scanNumber() (val string, isfloat bool) {
+func (l *Lexer) scanNumber() (val string, isfloat bool, err error) {
 	var b strings.Builder
 	ch := l.ch
 	if ch == '0' {
@@ -211,7 +216,7 @@ func (l *Lexer) scanNumber() (val string, isfloat bool) {
 			isfloat = true
 			b.WriteRune(ch)
 			l.readRune()
-			l.scanNumbersFractionPart(&b)
+			err = l.scanNumbersFractionPart(&b)
 			val = b.String()
 		}
 		return
@@ -224,18 +229,16 @@ func (l *Lexer) scanNumber() (val string, isfloat bool) {
 		isfloat = true
 		b.WriteRune(ch)
 		l.readRune()
-		l.scanNumbersFractionPart(&b)
+		err = l.scanNumbersFractionPart(&b)
 	} else if unicode.IsLetter(ch) {
 		b.WriteRune(ch)
-		msg := fmt.Sprintf("Expected a number but got: '%v' which is not a number", b.String())
-		l.err(l.position, msg)
-		l.recover()
+		err = fmt.Errorf("expected a number but got: '%v' which is not a number", b.String())
 	}
 	val = b.String()
 	return
 }
 
-func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) {
+func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) error {
 	ch := l.ch
 	for unicode.IsNumber(ch) {
 		b.WriteRune(ch)
@@ -243,10 +246,9 @@ func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) {
 	}
 	if unicode.IsLetter(ch) || ch == '.' {
 		b.WriteRune(ch)
-		msg := fmt.Sprintf("expected a number but got '%v'", b.String())
-		l.err(l.position, msg)
-		l.recover()
+		return fmt.Errorf("expected a number but got '%v'", b.String())
 	}
+	return nil
 }
 
 func (l *Lexer) scanIdentifier() string {
@@ -258,7 +260,7 @@ func (l *Lexer) scanIdentifier() string {
 	}
 	return b.String()
 }
-func (l *Lexer) scanStringLit() string {
+func (l *Lexer) scanStringLit() (string, error) {
 	var b strings.Builder
 	quote := l.ch
 	ch := l.readRune()
@@ -266,14 +268,15 @@ func (l *Lexer) scanStringLit() string {
 		b.WriteRune(ch)
 		ch = l.readRune()
 	}
+	var err error
 	if l.eof {
-		l.err(l.position, "expected string closing quote but got eof")
+		err = fmt.Errorf("expected string closing quote but got eof")
 	} else if ch != quote {
-		l.err(l.position, "unclosed string")
+		err = fmt.Errorf("unclosed string")
 	} else {
 		l.readRune()
 	}
-	return b.String()
+	return b.String(), err
 }
 
 func (l *Lexer) scanOperator() string {
@@ -306,7 +309,5 @@ func isValidInIdentifier(ch rune) bool {
 
 func isValidInOperator(ch rune) bool {
 	_, ok := operatorCharsSet[ch]
-	log.Println("Can be part of operator?", string(ch), ok)
-	log.Println(operatorCharsSet)
 	return ok
 }

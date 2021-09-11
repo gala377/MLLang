@@ -17,7 +17,7 @@ type Token struct {
 }
 
 const (
-	Unknown Id = iota
+	Error Id = iota
 	Identifier
 	Integer
 	Float
@@ -57,7 +57,7 @@ func IdToString(id Id) string {
 }
 
 var tokens = [...]string{
-	Unknown:      "UNKNOWN",
+	Error:        "ERROR",
 	Identifier:   "IDENT",
 	Integer:      "INT",
 	Float:        "FLOAT",
