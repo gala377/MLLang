@@ -11,7 +11,6 @@ type Position struct {
 	Column uint
 	Offset uint
 }
-
 type Span struct {
 	Beg Position
 	End Position
