@@ -173,7 +173,7 @@ func TestScanningOperators(t *testing.T) {
 
 func TestErrorRecovery(t *testing.T) {
 	source := "123abcd345 hello \"aaa\nagain"
-	l := NewLexer(strings.NewReader(source), func(_ Position, _ string) {})
+	l := NewLexer(strings.NewReader(source), func(_ span.Position, _ string) {})
 	expect := []it{
 		{"123abcd345", token.Error, 0, 10},
 		{"hello", token.Identifier, 11, 16},
@@ -183,8 +183,12 @@ func TestErrorRecovery(t *testing.T) {
 	}
 	for _, want := range expect {
 		got := l.Next()
-		wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
-		if got != wanttok {
+		span := span.NewSpan(span.Position{Line: 0, Column: 0, Offset: want.B}, span.Position{Line: 0, Column: 0, Offset: want.E})
+		wanttok := token.Token{Typ: want.T, Val: want.N, Span: &span}
+		equal := got.Typ != wanttok.Typ || got.Val != wanttok.Val
+		equal = equal || got.Span.Beg.Offset != wanttok.Span.Beg.Offset
+		equal = equal || got.Span.End.Offset != wanttok.Span.End.Offset
+		if equal {
 			t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
 		}
 	}
@@ -197,13 +201,17 @@ func TestErrorRecovery(t *testing.T) {
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
-			l := NewLexer(strings.NewReader(test.source), func(pos Position, msg string) {
+			l := NewLexer(strings.NewReader(test.source), func(pos span.Position, msg string) {
 				t.Fatalf("Error on pos %v with msg %v", pos, msg)
 			})
 			for _, want := range test.toks {
 				got := l.Next()
-				wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
-				if got != wanttok {
+				span := span.NewSpan(span.Position{Line: 0, Column: 0, Offset: want.B}, span.Position{Line: 0, Column: 0, Offset: want.E})
+				wanttok := token.Token{Typ: want.T, Val: want.N, Span: &span}
+				equal := got.Typ != wanttok.Typ || got.Val != wanttok.Val
+				equal = equal || got.Span.Beg.Offset != wanttok.Span.Beg.Offset
+				equal = equal || got.Span.End.Offset != wanttok.Span.End.Offset
+				if equal {
 					t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
 				}
 			}

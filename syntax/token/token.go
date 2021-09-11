@@ -13,7 +13,7 @@ type Id = int
 type Token struct {
 	Typ  Id
 	Val  string
-	Span span.Span
+	Span *span.Span
 }
 
 const (
@@ -120,13 +120,11 @@ func LookupOperator(op string) Id {
 	return Operator
 }
 
-func NewEof(offset int) Token {
+func NewEof(pos span.Position) Token {
+	span := span.NewSpan(pos, pos)
 	return Token{
-		Typ: Eof,
-		Val: "",
-		Span: span.Span{
-			Beg: uint(offset),
-			End: uint(offset),
-		},
+		Typ:  Eof,
+		Val:  "",
+		Span: &span,
 	}
 }

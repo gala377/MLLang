@@ -9,6 +9,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/gala377/MLLang/syntax/span"
 	"github.com/gala377/MLLang/syntax/token"
 )
 
@@ -30,15 +31,10 @@ func init() {
 }
 
 type (
-	Position struct {
-		Line   uint
-		Column uint
-	}
-
 	Lexer struct {
 		reader   *bytes.Reader
 		err      ErrorHandler
-		position Position
+		position span.Position
 		offset   int
 		ch       rune
 		eof      bool
@@ -47,7 +43,7 @@ type (
 		peek token.Token
 	}
 
-	ErrorHandler = func(pos Position, msg string)
+	ErrorHandler = func(pos span.Position, msg string)
 )
 
 func NewLexer(source io.Reader, report ErrorHandler) Lexer {
@@ -84,7 +80,7 @@ func (l *Lexer) moveToNextTok() {
 		l.skipSpaces()
 	}
 	if l.eof {
-		l.peek = token.NewEof(l.offset)
+		l.peek = token.NewEof(l.position)
 		return
 	}
 	l.peek = l.scanNextToken()
@@ -92,7 +88,8 @@ func (l *Lexer) moveToNextTok() {
 
 func (l *Lexer) scanNextToken() token.Token {
 	var tok token.Token
-	tok.Span.Beg = uint(l.offset - 1)
+	tok.Span.Beg = l.position
+	tok.Span.Beg.Offset = uint(l.offset - 1)
 	ch := l.ch
 	var err error
 	bpos := l.position
@@ -156,7 +153,8 @@ func (l *Lexer) scanNextToken() token.Token {
 		recovered := l.recover()
 		tok.Val += recovered
 	}
-	tok.Span.End = uint(l.offset - 1)
+	tok.Span.End = l.position
+	tok.Span.End.Offset = uint(l.offset - 1)
 	return tok
 }
 
@@ -175,18 +173,19 @@ func (l *Lexer) readRune() rune {
 		// no need for reporting. Just abort.
 		log.Fatalf("[%v:%v] Could not decode character %v", l.position.Line, l.position.Column, err)
 	}
-	l.movePositionByRune(r)
 	l.offset += size
+	l.movePositionByRune(r)
 	l.ch = r
 	return r
 }
 
 func (l *Lexer) movePositionByRune(current rune) {
 	if current == '\n' {
-		l.position = Position{Line: l.position.Line + 1, Column: 0}
+		l.position = span.Position{Line: l.position.Line + 1, Column: 0, Offset: 0}
 	} else {
 		l.position.Column += 1
 	}
+	l.position.Offset = uint(l.offset)
 }
 
 func (l *Lexer) skipSpaces() {
