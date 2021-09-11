@@ -127,6 +127,12 @@ func (l *Lexer) scanNextToken() token.Token {
 	case ch == ';':
 		tok.Val = l.scanComment()
 		tok.Typ = token.Comment
+		if !l.GetMode(returnComments) {
+			if l.eof {
+				return token.NewEof(l.position)
+			}
+			return l.scanNextToken()
+		}
 	default:
 		known := true
 		switch ch {

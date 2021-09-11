@@ -228,6 +228,33 @@ func TestLineComments(t *testing.T) {
 	}
 }
 
+func TestSkippingLineComments(t *testing.T) {
+	source := "a;this is a line comment\nb;another line comment"
+	l := NewLexer(strings.NewReader(source), func(beg, end span.Position, msg string) {
+		t.Fatalf("Error on pos %v-%v with msg %v", beg, end, msg)
+	})
+	expect := []it{
+		{"a", token.Identifier, 0, 1},
+		{"\n", token.NewLine, 24, 25},
+		{"b", token.Identifier, 25, 26},
+	}
+	for _, want := range expect {
+		got := l.Next()
+		wanttok := token.Token{
+			Typ:  want.T,
+			Val:  want.N,
+			Span: spanFromOffsets(want.B, want.E),
+		}
+		if tokensEqual(&got, &wanttok) {
+			t.Errorf("Wrong token - want: %#v got: %#v", wanttok, got)
+		}
+	}
+	eof := l.Next()
+	if eof.Typ != token.Eof {
+		t.Errorf("Expected EOF token, got: %v", eof)
+	}
+}
+
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
