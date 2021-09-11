@@ -183,12 +183,12 @@ func TestErrorRecovery(t *testing.T) {
 	}
 	for _, want := range expect {
 		got := l.Next()
-		span := span.NewSpan(span.Position{Line: 0, Column: 0, Offset: want.B}, span.Position{Line: 0, Column: 0, Offset: want.E})
-		wanttok := token.Token{Typ: want.T, Val: want.N, Span: &span}
-		equal := got.Typ != wanttok.Typ || got.Val != wanttok.Val
-		equal = equal || got.Span.Beg.Offset != wanttok.Span.Beg.Offset
-		equal = equal || got.Span.End.Offset != wanttok.Span.End.Offset
-		if equal {
+		wanttok := token.Token{
+			Typ:  want.T,
+			Val:  want.N,
+			Span: spanFromOffsets(want.B, want.E),
+		}
+		if tokensEqual(&got, &wanttok) {
 			t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
 		}
 	}
@@ -206,12 +206,12 @@ func matchAllTestWithTable(t *testing.T, table *tablet) {
 			})
 			for _, want := range test.toks {
 				got := l.Next()
-				span := span.NewSpan(span.Position{Line: 0, Column: 0, Offset: want.B}, span.Position{Line: 0, Column: 0, Offset: want.E})
-				wanttok := token.Token{Typ: want.T, Val: want.N, Span: &span}
-				equal := got.Typ != wanttok.Typ || got.Val != wanttok.Val
-				equal = equal || got.Span.Beg.Offset != wanttok.Span.Beg.Offset
-				equal = equal || got.Span.End.Offset != wanttok.Span.End.Offset
-				if equal {
+				wanttok := token.Token{
+					Typ:  want.T,
+					Val:  want.N,
+					Span: spanFromOffsets(want.B, want.E),
+				}
+				if tokensEqual(&got, &wanttok) {
 					t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
 				}
 			}
@@ -221,6 +221,28 @@ func matchAllTestWithTable(t *testing.T, table *tablet) {
 			}
 		})
 	}
+}
+
+func spanFromOffsets(beg, end uint) *span.Span {
+	span := span.NewSpan(
+		span.Position{
+			Line:   0,
+			Column: 0,
+			Offset: beg,
+		},
+		span.Position{
+			Line:   0,
+			Column: 0,
+			Offset: end,
+		})
+	return &span
+}
+
+func tokensEqual(t1 *token.Token, t2 *token.Token) bool {
+	equal := t1.Typ != t2.Typ || t1.Val != t2.Val
+	equal = equal || t1.Span.Beg.Offset != t2.Span.Beg.Offset
+	equal = equal || t1.Span.End.Offset != t2.Span.End.Offset
+	return equal
 }
 
 // struct { errorregex, pos }

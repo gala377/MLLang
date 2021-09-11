@@ -87,12 +87,10 @@ func (l *Lexer) moveToNextTok() {
 }
 
 func (l *Lexer) scanNextToken() token.Token {
-	var tok token.Token
-	tok.Span.Beg = l.position
-	tok.Span.Beg.Offset = uint(l.offset - 1)
+	tok := l.newToken()
 	ch := l.ch
-	var err error
 	bpos := l.position
+	var err error
 	switch {
 	case ch == '\n':
 		tok.Typ = token.NewLine
@@ -297,6 +295,17 @@ func (l *Lexer) recover() string {
 		cont = isControl(ch)
 	}
 	return b.String()
+}
+
+func (l *Lexer) newToken() token.Token {
+	var t token.Token
+	span := span.Span{
+		Beg: l.position,
+		End: l.position,
+	}
+	span.Beg.Offset = uint(l.offset - 1)
+	t.Span = &span
+	return t
 }
 
 func isControl(ch rune) bool {
