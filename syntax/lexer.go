@@ -14,7 +14,7 @@ import (
 )
 
 const controlChars string = "'\"(){}[]+-=/<>!~@#$%^&*|,;:`"
-const operatorChars string = "+=-\\/<>;!@#$%^&*|~?"
+const operatorChars string = "+=-\\/<>!@#$%^&*|~?"
 
 var controlCharsSet map[rune]bool
 var operatorCharsSet map[rune]bool
@@ -118,6 +118,9 @@ func (l *Lexer) scanNextToken() token.Token {
 		val := l.scanOperator()
 		tok.Typ = token.LookupOperator(val)
 		tok.Val = val
+	case ch == ';':
+		tok.Val = l.scanComment()
+		tok.Typ = token.Comment
 	default:
 		known := true
 		switch ch {
@@ -279,6 +282,16 @@ func (l *Lexer) scanOperator() string {
 	var b strings.Builder
 	ch := l.ch
 	for isValidInOperator(ch) {
+		b.WriteRune(ch)
+		ch = l.readRune()
+	}
+	return b.String()
+}
+
+func (l *Lexer) scanComment() string {
+	var b strings.Builder
+	ch := l.readRune()
+	for ch != '\n' {
 		b.WriteRune(ch)
 		ch = l.readRune()
 	}

@@ -9,4 +9,14 @@ type (
 		BegPos() span.Position
 		EndPos() span.Position
 	}
+
+	Decl interface {
+		Node
+		declNode()
+	}
+
+	Expr interface {
+		Node
+		exprNode()
+	}
 )

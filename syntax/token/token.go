@@ -33,6 +33,7 @@ const (
 	Indent
 	NewLine
 	Operator
+	Comment
 
 	keywords_beg
 	Fn
@@ -62,6 +63,7 @@ var tokens = [...]string{
 	Integer:      "INT",
 	Float:        "FLOAT",
 	String:       "STRING",
+	Comment:      "Comment",
 	Colon:        ":",
 	Comma:        ",",
 	LParen:       "(",
