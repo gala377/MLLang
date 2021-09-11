@@ -95,6 +95,7 @@ func (l *Lexer) scanNextToken() token.Token {
 	tok.Span.Beg = uint(l.offset - 1)
 	ch := l.ch
 	var err error
+	bpos := l.position
 	switch {
 	case ch == '\n':
 		tok.Typ = token.NewLine
@@ -150,12 +151,13 @@ func (l *Lexer) scanNextToken() token.Token {
 		}
 		tok.Val = token.IdToString(tok.Typ)
 	}
-	tok.Span.End = uint(l.offset - 1)
 	if err != nil {
 		tok.Typ = token.Error
-		l.err(l.position, err.Error())
-		l.recover()
+		l.err(bpos, err.Error())
+		recovered := l.recover()
+		tok.Val += recovered
 	}
+	tok.Span.End = uint(l.offset - 1)
 	return tok
 }
 
@@ -231,7 +233,6 @@ func (l *Lexer) scanNumber() (val string, isfloat bool, err error) {
 		l.readRune()
 		err = l.scanNumbersFractionPart(&b)
 	} else if unicode.IsLetter(ch) {
-		b.WriteRune(ch)
 		err = fmt.Errorf("expected a number but got: '%v' which is not a number", b.String())
 	}
 	val = b.String()
@@ -245,7 +246,6 @@ func (l *Lexer) scanNumbersFractionPart(b *strings.Builder) error {
 		ch = l.readRune()
 	}
 	if unicode.IsLetter(ch) || ch == '.' {
-		b.WriteRune(ch)
 		return fmt.Errorf("expected a number but got '%v'", b.String())
 	}
 	return nil
@@ -289,13 +289,16 @@ func (l *Lexer) scanOperator() string {
 	return b.String()
 }
 
-func (l *Lexer) recover() {
+func (l *Lexer) recover() string {
+	var b strings.Builder
 	ch := l.ch
 	cont := isControl(ch)
 	for !(unicode.IsSpace(ch) || cont) {
+		b.WriteRune(ch)
 		ch = l.readRune()
 		cont = isControl(ch)
 	}
+	return b.String()
 }
 
 func isControl(ch rune) bool {

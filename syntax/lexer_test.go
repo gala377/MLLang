@@ -171,6 +171,29 @@ func TestScanningOperators(t *testing.T) {
 	matchAllTestWithTable(t, &table)
 }
 
+func TestErrorRecovery(t *testing.T) {
+	source := "123abcd345 hello \"aaa\nagain"
+	l := NewLexer(strings.NewReader(source), func(_ Position, _ string) {})
+	expect := []it{
+		{"123abcd345", token.Error, 0, 10},
+		{"hello", token.Identifier, 11, 16},
+		{"aaa", token.Error, 17, 21},
+		{"\n", token.NewLine, 21, 22},
+		{"again", token.Identifier, 22, 27},
+	}
+	for _, want := range expect {
+		got := l.Next()
+		wanttok := token.Token{Typ: want.T, Val: want.N, Span: span.NewSpan(want.B, want.E)}
+		if got != wanttok {
+			t.Errorf("Wrong token - want: %#v got: %#v, lpos: %v", wanttok, got, l.position)
+		}
+	}
+	eof := l.Next()
+	if eof.Typ != token.Eof {
+		t.Errorf("Expected EOF token, got: %v", eof)
+	}
+}
+
 func matchAllTestWithTable(t *testing.T, table *tablet) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
