@@ -44,6 +44,8 @@ const (
 	Match
 	Let
 	Macro
+	True
+	False
 	keywords_end
 
 	operators_beg
@@ -63,7 +65,7 @@ var tokens = [...]string{
 	Integer:      "INT",
 	Float:        "FLOAT",
 	String:       "STRING",
-	Comment:      "Comment",
+	Comment:      "COMMENT",
 	Colon:        ":",
 	Comma:        ",",
 	LParen:       "(",
@@ -84,6 +86,8 @@ var tokens = [...]string{
 	Match: "match",
 	Let:   "let",
 	Macro: "macro",
+	True:  "true",
+	False: "false",
 
 	Assignment: "=",
 }
