@@ -1,6 +1,7 @@
 package syntax
 
 import (
+	"log"
 	"strings"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestTopLevelValDecl(t *testing.T) {
 			},
 		},
 		{
-			"\n\n\nval a = 1",
+			"\n\n\nval a = 1\n\n\n",
 			[]an{
 				&ast.GlobalValDecl{
 					Span: &dummySpan,
@@ -52,13 +53,52 @@ func TestTopLevelValDecl(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
-// func TestPrimaryExpressions(t *testing.T) {
-
-// }
+func TestPrimaryExpressions(t *testing.T) {
+	table := ptable{
+		{
+			"a",
+			[]an{
+				&ast.Identifier{
+					Span: &dummySpan,
+					Name: "a",
+				},
+			},
+		},
+		{
+			"1.123",
+			[]an{
+				&ast.FloatConst{
+					Span: &dummySpan,
+					Val:  1.123,
+				},
+			},
+		},
+		{
+			"(a)",
+			[]an{
+				&ast.Identifier{
+					Span: &dummySpan,
+					Name: "a",
+				},
+			},
+		},
+		{
+			"(1.123)",
+			[]an{
+				&ast.FloatConst{
+					Span: &dummySpan,
+					Val:  1.123,
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
 
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
+			log.Printf("SOURCE IS %v", test.source)
 			p := NewParser(strings.NewReader(test.source))
 			got := p.Parse()
 			if len(got) != len(test.expect) {

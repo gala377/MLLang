@@ -159,6 +159,7 @@ func (l *Lexer) scanNextToken() token.Token {
 		}
 		if known {
 			tok.Val = token.IdToString(tok.Typ)
+			l.readRune()
 		}
 	}
 	if err != nil {

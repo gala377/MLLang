@@ -147,7 +147,7 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 	case token.Integer:
 		p.bump()
 		var node ast.IntConst
-		node.Span = p.curr.Span
+		node.Span = tok.Span
 		val, err := strconv.Atoi(tok.Val)
 		if err != nil {
 			log.Panicf("unreachable: could not convert int token value to integer: %s", tok.Val)
@@ -157,7 +157,7 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 	case token.Float:
 		p.bump()
 		var node ast.FloatConst
-		node.Span = p.curr.Span
+		node.Span = tok.Span
 		val, err := strconv.ParseFloat(tok.Val, 64)
 		if err != nil {
 			log.Panicf("unreachable: could not convert float token value to float64: %s", tok.Val)
@@ -167,8 +167,14 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 	case token.String:
 		p.bump()
 		var node ast.StringConst
-		node.Span = p.curr.Span
+		node.Span = tok.Span
 		node.Val = tok.Val
+		return &node, true
+	case token.Identifier:
+		p.bump()
+		var node ast.Identifier
+		node.Span = tok.Span
+		node.Name = tok.Val
 		return &node, true
 	case token.LSquareParen, token.LBracket:
 		panic("not implemented")
@@ -222,7 +228,7 @@ func isRecoveryToken(t token.Token, rtt []token.Id) bool {
 }
 
 func (p *Parser) eof() bool {
-	return p.l.eof
+	return p.curr.Typ == token.Eof
 }
 
 func (p *Parser) position() span.Position {

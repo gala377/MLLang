@@ -2,6 +2,7 @@ package ast
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/gala377/MLLang/syntax/span"
 )
@@ -66,6 +67,10 @@ type (
 		Val string
 	}
 
+	Identifier struct {
+		*span.Span
+		Name string
+	}
 	RecordConst struct {
 		*span.Span
 		Fields map[string]Expr
@@ -113,6 +118,7 @@ func (t *TupleConst) exprNode()      {}
 func (i *IfExpr) exprNode()          {}
 func (w *WhileExpr) exprNode()       {}
 func (l *LetExpr) exprNode()         {}
+func (i *Identifier) exprNode()      {}
 
 func (g *GlobalValDecl) NodeSpan() *span.Span {
 	return g.Span
@@ -166,6 +172,10 @@ func (l *LetExpr) NodeSpan() *span.Span {
 	return l.Span
 }
 
+func (i *Identifier) NodeSpan() *span.Span {
+	return i.Span
+}
+
 func (g *GlobalValDecl) String() string {
 	return fmt.Sprintf(
 		`GlobalVar{
@@ -191,7 +201,7 @@ func (i *IntConst) String() string {
 }
 
 func (f *FloatConst) String() string {
-	return "Unsupported"
+	return strconv.FormatFloat(f.Val, 'e', -1, 64)
 }
 
 func (s *StringConst) String() string {
@@ -220,4 +230,8 @@ func (w *WhileExpr) String() string {
 
 func (l *LetExpr) String() string {
 	return "Unsupported"
+}
+
+func (i *Identifier) String() string {
+	return i.Name
 }

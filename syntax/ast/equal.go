@@ -166,3 +166,10 @@ func (l *LetExpr) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (i *Identifier) Equal(o Node) bool {
+	if oi, ok := o.(*Identifier); ok {
+		return i.Name == oi.Name
+	}
+	return false
+}
