@@ -50,6 +50,7 @@ type (
 
 const (
 	returnComments Mode = 1 << iota
+	skipErrorReporting
 )
 
 func NewLexer(source io.Reader, report ErrorHandler) Lexer {
@@ -162,7 +163,9 @@ func (l *Lexer) scanNextToken() token.Token {
 	}
 	if err != nil {
 		tok.Typ = token.Error
-		l.err(bpos, l.position, err.Error())
+		if !l.GetMode(skipErrorReporting) {
+			l.err(bpos, l.position, err.Error())
+		}
 		recovered := l.recover()
 		tok.Val += recovered
 	}
