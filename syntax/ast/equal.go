@@ -1,7 +1,5 @@
 package ast
 
-import "fmt"
-
 type NodeEqual interface {
 	Node
 	Equal(Node) bool
@@ -10,8 +8,9 @@ type NodeEqual interface {
 func AstEqual(n1 Node, n2 Node) bool {
 	cmp, ok := n1.(NodeEqual)
 	if !ok {
-		msg := fmt.Sprintf("Comparision unsupported for node: %#v", n1)
-		panic(msg)
+		// msg := fmt.Sprintf("Comparision unsupported for node: %#v", n1)
+		// panic(msg)
+		return false
 	}
 	return cmp.Equal(n2)
 }

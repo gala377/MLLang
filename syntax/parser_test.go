@@ -35,9 +35,26 @@ func TestTopLevelValDecl(t *testing.T) {
 				},
 			},
 		},
+		{
+			"\n\n\nval a = 1",
+			[]an{
+				&ast.GlobalValDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Rhs: &ast.IntConst{
+						Span: &dummySpan,
+						Val:  1,
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }
+
+// func TestPrimaryExpressions(t *testing.T) {
+
+// }
 
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
@@ -51,6 +68,9 @@ func matchAstWithTable(t *testing.T, table *ptable) {
 				if !ast.AstEqual(got[i], want) {
 					t.Errorf("Mismatched node at position %v\nwant: %v\n got: %v", i, want, got[i])
 				}
+			}
+			if len(p.errors) > 0 {
+				t.Fatalf("Parser had unexpected errors %v", p.errors)
 			}
 		})
 	}

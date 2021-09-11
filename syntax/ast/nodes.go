@@ -1,11 +1,14 @@
 package ast
 
 import (
+	"fmt"
+
 	"github.com/gala377/MLLang/syntax/span"
 )
 
 type (
 	Node interface {
+		fmt.Stringer
 		NodeSpan() *span.Span
 	}
 
@@ -161,4 +164,60 @@ func (w *WhileExpr) NodeSpan() *span.Span {
 
 func (l *LetExpr) NodeSpan() *span.Span {
 	return l.Span
+}
+
+func (g *GlobalValDecl) String() string {
+	return fmt.Sprintf(
+		`GlobalVar{
+	name=%s
+	rhs=%s
+}`, g.Name, g.Rhs.String())
+}
+
+func (f *FuncDecl) String() string {
+	return "Unsupported"
+}
+
+func (b *Block) String() string {
+	return "Unsupported"
+}
+
+func (f *FuncApplication) String() string {
+	return "Unsupported"
+}
+
+func (i *IntConst) String() string {
+	return fmt.Sprintf("IntConst{%v}", i.Val)
+}
+
+func (f *FloatConst) String() string {
+	return "Unsupported"
+}
+
+func (s *StringConst) String() string {
+	return "Unsupported"
+}
+
+func (r *RecordConst) String() string {
+	return "Unsupported"
+}
+
+func (l *ListConst) String() string {
+	return "Unsupported"
+}
+
+func (t *TupleConst) String() string {
+	return "Unsupported"
+}
+
+func (i *IfExpr) String() string {
+	return "Unsupported"
+}
+
+func (w *WhileExpr) String() string {
+	return "Unsupported"
+}
+
+func (l *LetExpr) String() string {
+	return "Unsupported"
 }

@@ -34,6 +34,7 @@ func NewParser(source io.Reader) Parser {
 	p.l = &l
 	p.curr = l.Next()
 	p.indents = []int{0}
+	p.errors = make([]SyntaxError, 0)
 	return p
 }
 
@@ -56,9 +57,19 @@ func (p *Parser) Parse() []ast.Node {
 			}
 			continue
 		}
-		bp := p.position()
-		p.recover()
-		p.error(bp, p.position(), "expected declaration or expression")
+		switch p.curr.Typ {
+		case token.Eof:
+			continue
+		case token.NewLine:
+			p.bump()
+		case token.Indent:
+			p.error(p.curr.Span.Beg, p.position(), "Unexpected indentantion at the top level")
+			p.recover()
+		default:
+			bp := p.position()
+			p.recover()
+			p.error(bp, p.position(), "expected declaration or expression")
+		}
 	}
 	return nodes
 }
@@ -110,7 +121,7 @@ func (p *Parser) parseTopLevelExpr() (ast.Expr, bool) {
 }
 
 func (p *Parser) parseExpr() (ast.Expr, bool) {
-	return nil, true
+	return p.parsePrimaryExpression()
 }
 
 func (p *Parser) parseFunctionApp() (*ast.FuncApplication, bool) {
@@ -198,7 +209,7 @@ func (p *Parser) recoverWithTokens(rtt []token.Id) {
 			break
 		}
 	}
-	p.curr = p.l.curr
+	p.bump()
 }
 
 func isRecoveryToken(t token.Token, rtt []token.Id) bool {
