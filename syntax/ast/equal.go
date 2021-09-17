@@ -60,7 +60,7 @@ func (b *Block) Equal(o Node) bool {
 
 func (f *FuncApplication) Equal(o Node) bool {
 	if of, ok := o.(*FuncApplication); ok {
-		if f.Callee != of.Callee {
+		if !AstEqual(f.Callee, of.Callee) {
 			return false
 		}
 		if len(f.Args) != len(of.Args) {

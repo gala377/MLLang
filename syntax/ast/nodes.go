@@ -48,7 +48,7 @@ type (
 
 	FuncApplication struct {
 		*span.Span
-		Callee string
+		Callee Expr
 		Args   []Expr
 	}
 
@@ -193,7 +193,12 @@ func (b *Block) String() string {
 }
 
 func (f *FuncApplication) String() string {
-	return "Unsupported"
+	callee := f.Callee.String()
+	args := []string{}
+	for _, a := range f.Args {
+		args = append(args, a.String())
+	}
+	return fmt.Sprintf("FnApp{callee:{%v}, args:{%v}}", callee, args)
 }
 
 func (i *IntConst) String() string {

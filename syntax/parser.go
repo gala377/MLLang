@@ -121,11 +121,38 @@ func (p *Parser) parseTopLevelExpr() (ast.Expr, bool) {
 }
 
 func (p *Parser) parseExpr() (ast.Expr, bool) {
-	return p.parsePrimaryExpression()
+	return p.parseFunctionApp()
 }
 
-func (p *Parser) parseFunctionApp() (*ast.FuncApplication, bool) {
-	return nil, true
+func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
+	beg := p.position()
+	fn, ok := p.parsePrimaryExpression()
+	if !ok {
+		return nil, false
+	}
+	arg, ok := p.parsePrimaryExpression()
+	if !ok {
+		return nil, false
+	}
+	if arg == nil {
+		// not a function call, just normal expression
+		return fn, true
+	}
+	args := []ast.Expr{}
+	for arg != nil {
+		args = append(args, arg)
+		arg, ok = p.parsePrimaryExpression()
+		if !ok {
+			return nil, false
+		}
+	}
+	span := span.NewSpan(beg, p.position())
+	node := ast.FuncApplication{
+		Span:   &span,
+		Callee: fn,
+		Args:   args,
+	}
+	return &node, true
 }
 
 func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {

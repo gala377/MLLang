@@ -95,6 +95,74 @@ func TestPrimaryExpressions(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestFuncApplication(t *testing.T) {
+	table := ptable{
+		{
+			"a b c",
+			[]an{
+				&ast.FuncApplication{
+					Span: &dummySpan,
+					Callee: &ast.Identifier{
+						Span: &dummySpan,
+						Name: "a",
+					},
+					Args: []ast.Expr{
+						&ast.Identifier{
+							Span: &dummySpan,
+							Name: "b",
+						},
+						&ast.Identifier{
+							Span: &dummySpan,
+							Name: "c",
+						},
+					},
+				},
+			},
+		},
+		{
+			"(a 1) b (c 1)",
+			[]an{
+				&ast.FuncApplication{
+					Span: &dummySpan,
+					Callee: &ast.FuncApplication{
+						Span: &dummySpan,
+						Callee: &ast.Identifier{
+							Span: &dummySpan,
+							Name: "a",
+						},
+						Args: []ast.Expr{
+							&ast.IntConst{
+								Span: &dummySpan,
+								Val:  1,
+							},
+						},
+					},
+					Args: []ast.Expr{
+						&ast.Identifier{
+							Span: &dummySpan,
+							Name: "b",
+						},
+						&ast.FuncApplication{
+							Span: &dummySpan,
+							Callee: &ast.Identifier{
+								Span: &dummySpan,
+								Name: "c",
+							},
+							Args: []ast.Expr{
+								&ast.IntConst{
+									Span: &dummySpan,
+									Val:  1,
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
