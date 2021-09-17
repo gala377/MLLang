@@ -33,7 +33,7 @@ type (
 		*span.Span
 		Name string
 		Args []FuncDeclArg
-		Body Block
+		Body Expr
 	}
 
 	FuncDeclArg struct {

@@ -38,7 +38,7 @@ func (f *FuncDecl) Equal(o Node) bool {
 				return false
 			}
 		}
-		return AstEqual(&f.Body, &of.Body)
+		return AstEqual(f.Body, of.Body)
 	}
 	return false
 }

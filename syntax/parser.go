@@ -87,7 +87,63 @@ func (p *Parser) parseTopLevelDecl() (ast.Decl, bool) {
 }
 
 func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
-	return nil, true
+	beg := p.position()
+	if t := p.match(token.Fn); t == nil {
+		return nil, true
+	}
+	name := p.parseIdentifier()
+	if name == nil {
+		p.error(beg, p.position(), "expected function name")
+		p.recover()
+		return nil, false
+	}
+	args := []*ast.Identifier{}
+	for arg := p.parseIdentifier(); arg != nil; arg = p.parseIdentifier() {
+		args = append(args, arg)
+	}
+	var fbody ast.Expr
+	if t := p.match(token.Colon); t != nil {
+		block, ok := p.parseBlock()
+		if !ok {
+			return nil, false
+		}
+		if block == nil {
+			p.error(beg, p.position(), "expected a block as a function body")
+			p.recover()
+			return nil, false
+		}
+		fbody = block
+	} else if t := p.match(token.Assignment); t != nil {
+		body, ok := p.parseExpr()
+		if !ok {
+			return nil, false
+		}
+		if body == nil {
+			p.error(beg, p.position(), "expected expression as a function body")
+			p.recover()
+			return nil, false
+		}
+		fbody = body
+	} else {
+		p.error(beg, p.position(), "expected colon or assignment in function definition")
+		p.recover()
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	fargs := []ast.FuncDeclArg{}
+	for _, arg := range args {
+		fargs = append(fargs, ast.FuncDeclArg{
+			Span: arg.Span,
+			Name: arg.Name,
+		})
+	}
+	fn := ast.FuncDecl{
+		Span: &span,
+		Name: name.Name,
+		Args: fargs,
+		Body: fbody,
+	}
+	return &fn, true
 }
 
 func (p *Parser) parseValDecl() (*ast.GlobalValDecl, bool) {
@@ -118,6 +174,10 @@ func (p *Parser) parseValDecl() (*ast.GlobalValDecl, bool) {
 
 func (p *Parser) parseTopLevelExpr() (ast.Expr, bool) {
 	return p.parseExpr()
+}
+
+func (p *Parser) parseBlock() (ast.Expr, bool) {
+	panic("Parse block not implemented")
 }
 
 func (p *Parser) parseExpr() (ast.Expr, bool) {
@@ -207,6 +267,17 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 		panic("not implemented")
 	default:
 		return nil, true
+	}
+}
+
+func (p *Parser) parseIdentifier() *ast.Identifier {
+	t := p.match(token.Identifier)
+	if t == nil {
+		return nil
+	}
+	return &ast.Identifier{
+		Span: t.Span,
+		Name: t.Val,
 	}
 }
 

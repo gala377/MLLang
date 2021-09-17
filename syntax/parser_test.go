@@ -163,6 +163,43 @@ func TestFuncApplication(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestFuncDeclaration(t *testing.T) {
+	table := ptable{
+		{
+			"fn a = 1",
+			[]an{
+				&ast.FuncDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.IntConst{
+						Span: &dummySpan,
+						Val:  1,
+					},
+				},
+			},
+		},
+		{
+			"fn a b c = (b)",
+			[]an{
+				&ast.FuncDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Args: []ast.FuncDeclArg{
+						{Span: &dummySpan, Name: "b"},
+						{Span: &dummySpan, Name: "c"},
+					},
+					Body: &ast.Identifier{
+						Span: &dummySpan,
+						Name: "b",
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
