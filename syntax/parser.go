@@ -12,19 +12,22 @@ import (
 	"github.com/gala377/MLLang/syntax/token"
 )
 
+type parseExprFn = func() (ast.Expr, bool)
 type SyntaxError struct {
 	pos span.Span
 	msg string
 }
 
 type Parser struct {
-	l       *Lexer
-	errors  []SyntaxError
-	curr    token.Token
-	indents []int
+	l          *Lexer
+	errors     []SyntaxError
+	curr       token.Token
+	indents    []int
+	statements [token.Eof]parseExprFn
 }
 
-func NewParser(source io.Reader) Parser {
+func NewParser(source io.Reader) *Parser {
+	log.Println("Creating new parser")
 	var p Parser
 	handler := func(beg, end span.Position, msg string) {
 		p.errors = append(p.errors, SyntaxError{
@@ -37,7 +40,10 @@ func NewParser(source io.Reader) Parser {
 	p.curr = l.Next()
 	p.indents = []int{0}
 	p.errors = make([]SyntaxError, 0)
-	return p
+	p.statements = [token.Eof]parseExprFn{
+		token.While: p.parseWhile,
+	}
+	return &p
 }
 
 func (p *Parser) Parse() []ast.Node {
@@ -108,26 +114,30 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 	for arg := p.parseIdentifier(); arg != nil; arg = p.parseIdentifier() {
 		args = append(args, arg)
 	}
-	fbody, ok := p.parseBlock()
+	var fbody ast.Expr
+	body, ok := p.parseBlock()
 	if !ok {
 		return nil, false
 	}
-	if fbody == nil {
+	if body == nil {
 		if t := p.match(token.Assignment); t == nil {
 			p.error(beg, p.position(), "expected colon or assignment in function definition")
 			p.recover()
 			return nil, false
 		} else {
-			fbody, ok = p.parseExpr()
+			ebody, ok := p.parseExpr()
 			if !ok {
 				return nil, false
 			}
-			if fbody == nil {
+			if ebody == nil {
 				p.error(beg, p.position(), "expected expression as a function body")
 				p.recover()
 				return nil, false
 			}
+			fbody = ebody
 		}
+	} else {
+		fbody = body
 	}
 	span := span.NewSpan(beg, p.position())
 	fargs := []ast.FuncDeclArg{}
@@ -178,7 +188,37 @@ func (p *Parser) parseTopLevelExpr() (ast.Expr, bool) {
 	return p.parseExpr()
 }
 
-func (p *Parser) parseBlock() (ast.Expr, bool) {
+func (p *Parser) parseExpr() (ast.Expr, bool) {
+	t := p.curr
+	parseStmt := p.statements[t.Typ]
+	if parseStmt == nil {
+		return p.parseFunctionApp()
+	}
+	res, ok := parseStmt()
+	if ok && res == nil {
+		log.Printf("Could not parse the stmt, tok is %s", token.IdToString(p.curr.Typ))
+		panic("chosen parse stmt function could not parse a stmt")
+	}
+	return res, ok
+}
+
+func (p *Parser) parseStmtExpression() (ast.Expr, bool) {
+	t := p.curr
+	parseStmt := p.statements[t.Typ]
+	if parseStmt == nil {
+		res, ok := p.parseFunctionApp()
+		p.match(token.NewLine)
+		return res, ok
+	}
+	res, ok := parseStmt()
+	if ok && res == nil {
+		log.Printf("Could not parse the stmt, tok is %s", token.IdToString(p.curr.Typ))
+		panic("chosen parse stmt function could not parse a stmt")
+	}
+	return res, ok
+}
+
+func (p *Parser) parseBlock() (*ast.Block, bool) {
 	log.Println("Parsing block")
 	beg := p.position()
 	if t := p.match(token.Colon); t == nil {
@@ -197,16 +237,11 @@ func (p *Parser) parseBlock() (ast.Expr, bool) {
 	}
 	defer p.popIndent(indent)
 	parseExpr := func() (ast.Expr, bool) {
-		log.Println("running wrapped parse")
+		log.Printf("%d running wrapped parse", indent)
 		if t := p.matchIndent(indent); !t {
 			return nil, true
 		}
-		beg := p.position()
-		res, ok := p.parseExpr()
-		if t := p.match(token.NewLine); t == nil && !p.eof() {
-			p.error(beg, p.position(), "expected new line or eof")
-		}
-		return res, ok
+		return p.parseStmtExpression()
 	}
 	exprs := []ast.Node{}
 	var e ast.Expr = nil
@@ -223,10 +258,6 @@ func (p *Parser) parseBlock() (ast.Expr, bool) {
 		Instr: exprs,
 	}
 	return &node, true
-}
-
-func (p *Parser) parseExpr() (ast.Expr, bool) {
-	return p.parseFunctionApp()
 }
 
 func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
@@ -318,6 +349,39 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 	}
 }
 
+func (p *Parser) parseWhile() (ast.Expr, bool) {
+	beg := p.position()
+	log.Printf("Parsing while, curr token is %s", token.IdToString(p.curr.Typ))
+	if t := p.match(token.While); t == nil {
+		return nil, true
+	}
+	cond, ok := p.parseExpr()
+	if !ok {
+		return nil, false
+	}
+	if cond == nil {
+		p.error(beg, p.position(), "while expects an expression as its condition")
+		p.recover()
+		return nil, false
+	}
+	body, ok := p.parseBlock()
+	if !ok {
+		return nil, false
+	}
+	if body == nil {
+		p.error(beg, p.position(), "while expects a block as its body")
+		p.recover()
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	node := ast.WhileExpr{
+		Span: &span,
+		Cond: cond,
+		Body: body,
+	}
+	return &node, true
+}
+
 func (p *Parser) parseIdentifier() *ast.Identifier {
 	t := p.match(token.Identifier)
 	if t == nil {
@@ -348,6 +412,7 @@ func (p *Parser) matchIndent(n int) bool {
 		log.Panicf("could not parse indentations value, %s", t.Val)
 	}
 	if val != n {
+		log.Printf("Indent not matching %d != %d", n, val)
 		return false
 	}
 	p.bump()

@@ -94,7 +94,7 @@ type (
 	WhileExpr struct {
 		*span.Span
 		Cond Expr
-		Body Block
+		Body *Block
 	}
 
 	LetExpr struct {
@@ -240,7 +240,7 @@ func (i *IfExpr) String() string {
 }
 
 func (w *WhileExpr) String() string {
-	return "Unsupported"
+	return fmt.Sprintf("While{%s} %s", w.Cond, w.Body)
 }
 
 func (l *LetExpr) String() string {

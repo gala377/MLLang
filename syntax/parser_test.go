@@ -199,6 +199,39 @@ func TestFuncDeclaration(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingWhile(t *testing.T) {
+	table := ptable{
+		{
+			"while a 1:\n" +
+				"  1\n" +
+				"  2",
+			[]an{
+				&ast.WhileExpr{
+					Span: &dummySpan,
+					Cond: &ast.FuncApplication{
+						Span: &dummySpan,
+						Callee: &ast.Identifier{
+							Span: &dummySpan,
+							Name: "a",
+						},
+						Args: []ast.Expr{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					Body: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Span: &dummySpan, Val: 2},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func TestParsingBlocks(t *testing.T) {
 	table := ptable{
 		{
@@ -215,6 +248,76 @@ func TestParsingBlocks(t *testing.T) {
 						Instr: []ast.Node{
 							&ast.IntConst{Span: &dummySpan, Val: 1},
 							&ast.IntConst{Span: &dummySpan, Val: 2},
+						},
+					},
+				},
+			},
+		},
+		{
+			"fn a:\n" +
+				"  1\n" +
+				"  while a:\n" +
+				"    2\n" +
+				"    3\n",
+			[]an{
+				&ast.FuncDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.WhileExpr{
+								Span: &dummySpan,
+								Cond: &ast.Identifier{
+									Span: &dummySpan,
+									Name: "a",
+								},
+								Body: &ast.Block{
+									Span: &dummySpan,
+									Instr: []ast.Node{
+										&ast.IntConst{Span: &dummySpan, Val: 2},
+										&ast.IntConst{Span: &dummySpan, Val: 3},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"fn a:\n" +
+				"  1\n" +
+				"  while a:\n" +
+				"    2\n" +
+				"    3\n" +
+				"  4",
+			[]an{
+				&ast.FuncDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.WhileExpr{
+								Span: &dummySpan,
+								Cond: &ast.Identifier{
+									Span: &dummySpan,
+									Name: "a",
+								},
+								Body: &ast.Block{
+									Span: &dummySpan,
+									Instr: []ast.Node{
+										&ast.IntConst{Span: &dummySpan, Val: 2},
+										&ast.IntConst{Span: &dummySpan, Val: 3},
+									},
+								},
+							},
+							&ast.IntConst{Span: &dummySpan, Val: 4},
 						},
 					},
 				},

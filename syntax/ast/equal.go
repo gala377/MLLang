@@ -155,7 +155,7 @@ func (i *IfExpr) Equal(o Node) bool {
 
 func (w *WhileExpr) Equal(o Node) bool {
 	if ow, ok := o.(*WhileExpr); ok {
-		return AstEqual(w.Cond, ow.Cond) && AstEqual(&w.Body, &ow.Body)
+		return AstEqual(w.Cond, ow.Cond) && AstEqual(w.Body, w.Body)
 	}
 	return false
 }
