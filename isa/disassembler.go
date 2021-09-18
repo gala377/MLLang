@@ -19,7 +19,7 @@ func PrintCode(code Code, name string) {
 
 func DisassembleCode(code Code) string {
 	var c strings.Builder
-	for i := 0; i < len(code); {
+	for i := 0; i < len(code.instrs); {
 		di, o := DisassembleInstr(code, i)
 		i += o
 		c.WriteString(di)
@@ -31,7 +31,7 @@ func DisassembleCode(code Code) string {
 func DisassembleInstr(code Code, offset int) (string, int) {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf("%04d ", offset))
-	op := code[offset]
+	op := code.instrs[offset]
 	if _, ok := simpleInst[op]; ok {
 		b.WriteString(instNames[op])
 		return b.String(), offset + 1
