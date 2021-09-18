@@ -11,9 +11,17 @@ var instNames = [...]string{
 	Constant: "CONSTANT",
 }
 
-var instArguments = [...]uint{
+const opCount = len(instNames)
+
+var instArguments = [opCount]int{
 	Return:   0,
 	Constant: 1,
+}
+
+type additionalInfoFunc = func(Code, []byte) string
+
+var instSpecificInfos = [opCount]additionalInfoFunc{
+	Constant: writeConstant,
 }
 
 func PrintCode(code Code, name string) {
@@ -43,6 +51,13 @@ func DisassembleInstr(code Code, offset int) (string, int) {
 			aa = append(aa, strconv.Itoa(int(a)))
 		}
 		b.WriteString(fmt.Sprintf("(%s)", strings.Join(aa, ",")))
+		if s := instSpecificInfos[op]; s != nil {
+			b.WriteString(s(code, code.instrs[offset+1:offset+args+1]))
+		}
 	}
-	return b.String(), int(1 + args)
+	return b.String(), 1 + args
+}
+
+func writeConstant(code Code, args []byte) string {
+	return fmt.Sprintf("%16s", code.consts[args[0]])
 }

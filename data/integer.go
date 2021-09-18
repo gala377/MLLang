@@ -6,6 +6,10 @@ type Int struct {
 	val int
 }
 
+func NewInt(v int) *Int {
+	return &Int{v}
+}
+
 func (i Int) String() string {
 	return strconv.Itoa(i.val)
 }

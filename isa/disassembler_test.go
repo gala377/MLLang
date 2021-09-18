@@ -1,6 +1,10 @@
 package isa
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/gala377/MLLang/data"
+)
 
 func TestDisassembling(t *testing.T) {
 	want := "0000 RETURN\n0001 RETURN\n"
@@ -14,9 +18,10 @@ func TestDisassembling(t *testing.T) {
 }
 
 func TestDisassemblingArgs(t *testing.T) {
-	want := "0000 CONSTANT(2)\n0002 RETURN\n"
+	want := "0000 CONSTANT(0)             123\n0002 RETURN\n"
 	c := Code{
-		instrs: []byte{Constant, 2, Return},
+		instrs: []byte{Constant, 0, Return},
+		consts: []data.Value{data.NewInt(123)},
 	}
 	got := DisassembleCode(c)
 	if want != got {
