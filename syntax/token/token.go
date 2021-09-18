@@ -90,6 +90,8 @@ var tokens = [...]string{
 	False: "false",
 
 	Assignment: "=",
+
+	Eof: "EOF",
 }
 
 var keywords map[string]Id

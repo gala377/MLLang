@@ -1,7 +1,6 @@
 package syntax
 
 import (
-	"log"
 	"strings"
 	"testing"
 
@@ -200,10 +199,35 @@ func TestFuncDeclaration(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingBlocks(t *testing.T) {
+	table := ptable{
+		{
+			"fn a:\n" +
+				"  1\n" +
+				"  2",
+			[]an{
+				&ast.FuncDecl{
+					Span: &dummySpan,
+					Name: "a",
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Span: &dummySpan, Val: 2},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
-			log.Printf("SOURCE IS %v", test.source)
+			t.Logf("SOURCE IS %v", test.source)
 			p := NewParser(strings.NewReader(test.source))
 			got := p.Parse()
 			if len(got) != len(test.expect) {

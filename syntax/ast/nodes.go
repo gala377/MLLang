@@ -185,11 +185,21 @@ func (g *GlobalValDecl) String() string {
 }
 
 func (f *FuncDecl) String() string {
-	return "Unsupported"
+	msg := "FnDecl{" + f.Name
+	for _, arg := range f.Args {
+		msg += " " + arg.Name
+	}
+	msg += "} "
+	msg += f.Body.String()
+	return msg
 }
 
 func (b *Block) String() string {
-	return "Unsupported"
+	msg := "Block:\n"
+	for _, instr := range b.Instr {
+		msg += fmt.Sprintf("\t%v\n", instr.String())
+	}
+	return msg
 }
 
 func (f *FuncApplication) String() string {
