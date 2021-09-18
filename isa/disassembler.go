@@ -14,7 +14,7 @@ var simpleInst = map[Op]struct{}{
 }
 
 func PrintCode(code Code, name string) {
-	fmt.Printf("%s:\n%s", name, DisassembleCode(code))
+	fmt.Printf("== %s ==\n%s", name, DisassembleCode(code))
 }
 
 func DisassembleCode(code Code) string {
