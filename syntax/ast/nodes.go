@@ -87,8 +87,8 @@ type (
 	IfExpr struct {
 		*span.Span
 		Cond       Expr
-		IfBranch   Block
-		ElseBranch Block
+		IfBranch   *Block
+		ElseBranch Expr
 	}
 
 	WhileExpr struct {
@@ -181,7 +181,7 @@ func (g *GlobalValDecl) String() string {
 		`GlobalVar{
 	name=%s
 	rhs=%s
-}`, g.Name, g.Rhs.String())
+}`, g.Name, g.Rhs)
 }
 
 func (f *FuncDecl) String() string {
@@ -197,7 +197,7 @@ func (f *FuncDecl) String() string {
 func (b *Block) String() string {
 	msg := "Block:\n"
 	for _, instr := range b.Instr {
-		msg += fmt.Sprintf("\t%v\n", instr.String())
+		msg += fmt.Sprintf("\t%v\n", instr)
 	}
 	return msg
 }
@@ -236,7 +236,11 @@ func (t *TupleConst) String() string {
 }
 
 func (i *IfExpr) String() string {
-	return "Unsupported"
+	msg := fmt.Sprintf("If{%s} %s", i.Cond, i.IfBranch)
+	if i.ElseBranch != nil {
+		msg += fmt.Sprintf("\nElse %s", i.ElseBranch)
+	}
+	return msg
 }
 
 func (w *WhileExpr) String() string {

@@ -6,10 +6,11 @@ type NodeEqual interface {
 }
 
 func AstEqual(n1 Node, n2 Node) bool {
+	if n1 == nil {
+		return n2 == nil
+	}
 	cmp, ok := n1.(NodeEqual)
 	if !ok {
-		// msg := fmt.Sprintf("Comparision unsupported for node: %#v", n1)
-		// panic(msg)
 		return false
 	}
 	return cmp.Equal(n2)
@@ -148,7 +149,7 @@ func (r *RecordConst) Equal(o Node) bool {
 
 func (i *IfExpr) Equal(o Node) bool {
 	if oi, ok := o.(*IfExpr); ok {
-		return AstEqual(i.Cond, oi.Cond) && AstEqual(&i.IfBranch, &oi.IfBranch) && AstEqual(&i.ElseBranch, &oi.ElseBranch)
+		return AstEqual(i.Cond, oi.Cond) && AstEqual(i.IfBranch, oi.IfBranch) && AstEqual(i.ElseBranch, oi.ElseBranch)
 	}
 	return false
 }

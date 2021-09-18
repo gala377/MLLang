@@ -199,6 +199,111 @@ func TestFuncDeclaration(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingIf(t *testing.T) {
+	table := ptable{
+		{
+			"if a 1:\n" +
+				"  1\n" +
+				"  2",
+			[]an{
+				&ast.IfExpr{
+					Span: &dummySpan,
+					Cond: &ast.FuncApplication{
+						Span: &dummySpan,
+						Callee: &ast.Identifier{
+							Span: &dummySpan,
+							Name: "a",
+						},
+						Args: []ast.Expr{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					IfBranch: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Span: &dummySpan, Val: 2},
+						},
+					},
+					ElseBranch: nil,
+				},
+			},
+		},
+		{
+			"if a 1:\n" +
+				"  1\n" +
+				"else:\n" +
+				"  2",
+			[]an{
+				&ast.IfExpr{
+					Span: &dummySpan,
+					Cond: &ast.FuncApplication{
+						Span: &dummySpan,
+						Callee: &ast.Identifier{
+							Span: &dummySpan,
+							Name: "a",
+						},
+						Args: []ast.Expr{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					IfBranch: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					ElseBranch: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 2},
+						},
+					},
+				},
+			},
+		},
+		{
+			"if a 1:\n" +
+				"  1\n" +
+				"else if b:\n" +
+				"  2",
+			[]an{
+				&ast.IfExpr{
+					Span: &dummySpan,
+					Cond: &ast.FuncApplication{
+						Span: &dummySpan,
+						Callee: &ast.Identifier{
+							Span: &dummySpan,
+							Name: "a",
+						},
+						Args: []ast.Expr{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					IfBranch: &ast.Block{
+						Span: &dummySpan,
+						Instr: []ast.Node{
+							&ast.IntConst{Span: &dummySpan, Val: 1},
+						},
+					},
+					ElseBranch: &ast.IfExpr{
+						Span: &dummySpan,
+						Cond: &ast.Identifier{Span: &dummySpan, Name: "b"},
+						IfBranch: &ast.Block{
+							Span: &dummySpan,
+							Instr: []ast.Node{
+								&ast.IntConst{Span: &dummySpan, Val: 2},
+							},
+						},
+						ElseBranch: nil,
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func TestParsingWhile(t *testing.T) {
 	table := ptable{
 		{

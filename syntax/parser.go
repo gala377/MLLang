@@ -42,6 +42,12 @@ func NewParser(source io.Reader) *Parser {
 	p.errors = make([]SyntaxError, 0)
 	p.statements = [token.Eof]parseExprFn{
 		token.While: p.parseWhile,
+		token.If:    p.parseIf,
+		token.Else: func() (ast.Expr, bool) {
+			p.error(p.position(), p.position(), "else expected only after while")
+			p.recover()
+			return nil, false
+		},
 	}
 	return &p
 }
@@ -380,6 +386,53 @@ func (p *Parser) parseWhile() (ast.Expr, bool) {
 		Body: body,
 	}
 	return &node, true
+}
+
+func (p *Parser) parseIf() (ast.Expr, bool) {
+	beg := p.position()
+	if t := p.match(token.If); t == nil {
+		return nil, true
+	}
+	cond, ok := p.parseExpr()
+	if !ok {
+		return nil, false
+	}
+	if cond == nil {
+		p.error(beg, p.position(), "if expects an expression as its condition")
+		p.recover()
+		return nil, false
+	}
+	body, ok := p.parseBlock()
+	if !ok {
+		return nil, false
+	}
+	if body == nil {
+		p.error(beg, p.position(), "if expects a block as its body")
+		p.recover()
+		return nil, false
+	}
+	elseb, ok := p.parseElse()
+	if !ok {
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	node := ast.IfExpr{
+		Span:       &span,
+		Cond:       cond,
+		IfBranch:   body,
+		ElseBranch: elseb,
+	}
+	return &node, true
+}
+
+func (p *Parser) parseElse() (ast.Expr, bool) {
+	if t := p.match(token.Else); t == nil {
+		return nil, true
+	}
+	if p.curr.Typ == token.If {
+		return p.parseIf()
+	}
+	return p.parseBlock()
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
