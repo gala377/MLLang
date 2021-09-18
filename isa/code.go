@@ -20,3 +20,8 @@ func NewCode() Code {
 func (c *Code) AddConstant(v data.Value) {
 	c.consts = append(c.consts, v)
 }
+
+func (c *Code) WriteByte(b byte, line int) {
+	c.instrs = append(c.instrs, b)
+	c.lines = append(c.lines, line)
+}

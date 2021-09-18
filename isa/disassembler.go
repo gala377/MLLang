@@ -18,20 +18,22 @@ var instArguments = [opCount]int{
 	Constant: 1,
 }
 
-type additionalInfoFunc = func(Code, []byte) string
+type additionalInfoFunc = func(*Code, []byte) string
 
 var instSpecificInfos = [opCount]additionalInfoFunc{
 	Constant: writeConstant,
 }
 
-func PrintCode(code Code, name string) {
+func PrintCode(code *Code, name string) {
 	fmt.Printf("== %s ==\n%s", name, DisassembleCode(code))
 }
 
-func DisassembleCode(code Code) string {
+func DisassembleCode(code *Code) string {
 	var c strings.Builder
+	line := -1
 	for i := 0; i < len(code.instrs); {
-		di, o := DisassembleInstr(code, i)
+		di, o := DisassembleInstr(code, i, line)
+		line = code.lines[i]
 		i += o
 		c.WriteString(di)
 		c.WriteRune('\n')
@@ -39,10 +41,14 @@ func DisassembleCode(code Code) string {
 	return c.String()
 }
 
-func DisassembleInstr(code Code, offset int) (string, int) {
+func DisassembleInstr(code *Code, offset int, lline int) (string, int) {
 	var b strings.Builder
 	op := code.instrs[offset]
-	b.WriteString(fmt.Sprintf("%04d %s", offset, instNames[op]))
+	line := "    |"
+	if lline != code.lines[offset] {
+		line = fmt.Sprintf("%5d", code.lines[offset])
+	}
+	b.WriteString(fmt.Sprintf("%04d %s %s", offset, line, instNames[op]))
 	args := instArguments[op]
 	if args > 0 {
 		aa := make([]string, 0, args)
@@ -58,6 +64,6 @@ func DisassembleInstr(code Code, offset int) (string, int) {
 	return b.String(), 1 + args
 }
 
-func writeConstant(code Code, args []byte) string {
+func writeConstant(code *Code, args []byte) string {
 	return fmt.Sprintf("%16s", code.consts[args[0]])
 }
