@@ -2,15 +2,18 @@ package isa
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
 var instNames = [...]string{
-	Return: "RETURN",
+	Return:   "RETURN",
+	Constant: "CONSTANT",
 }
 
-var simpleInst = map[Op]struct{}{
-	Return: {},
+var instArguments = [...]uint{
+	Return:   0,
+	Constant: 1,
 }
 
 func PrintCode(code Code, name string) {
@@ -30,12 +33,16 @@ func DisassembleCode(code Code) string {
 
 func DisassembleInstr(code Code, offset int) (string, int) {
 	var b strings.Builder
-	b.WriteString(fmt.Sprintf("%04d ", offset))
 	op := code.instrs[offset]
-	if _, ok := simpleInst[op]; ok {
-		b.WriteString(instNames[op])
-		return b.String(), offset + 1
+	b.WriteString(fmt.Sprintf("%04d %s", offset, instNames[op]))
+	args := instArguments[op]
+	if args > 0 {
+		aa := make([]string, 0, args)
+		for i := 1; i <= int(args); i++ {
+			a := code.instrs[offset+i]
+			aa = append(aa, strconv.Itoa(int(a)))
+		}
+		b.WriteString(fmt.Sprintf("(%s)", strings.Join(aa, ",")))
 	}
-	b.WriteString("UNKNOWN")
-	return b.String(), offset + 1
+	return b.String(), int(1 + args)
 }
