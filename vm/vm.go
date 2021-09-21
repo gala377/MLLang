@@ -2,10 +2,13 @@ package vm
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 )
+
+var Debug = true
 
 type Vm struct {
 	code *isa.Code
@@ -32,6 +35,11 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 		if vm.ip == vm.code.Len() {
 			break
 		}
+		if Debug {
+			fmt.Printf("Interpreter state for ip %d", vm.ip)
+			vm.printInstr()
+			vm.printStack()
+		}
 		i := vm.readByte()
 		switch i {
 		case isa.Return:
@@ -49,18 +57,30 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 
 func (vm *Vm) readByte() byte {
 	b := vm.code.ReadByte(vm.ip)
-	vm.ip += 1
+	vm.ip++
 	return b
 }
 
 func (vm *Vm) push(v data.Value) {
 	vm.stack = append(vm.stack, v)
-	vm.stackTop += 1
+	vm.stackTop++
 }
 
 func (vm *Vm) pop() data.Value {
 	v := vm.stack[len(vm.stack)-1]
-	vm.stackTop -= 1
+	vm.stackTop--
 	assert(vm.stackTop > -1, "Stack top should never be less than 0")
 	return v
+}
+
+func (vm *Vm) printStack() {
+	v := make([]string, 0, vm.stackTop)
+	for i := 0; i < vm.stackTop; i++ {
+		v = append(v, vm.stack[i].String())
+	}
+	fmt.Printf("[%s]", strings.Join(v, ","))
+}
+
+func (vm *Vm) printInstr() {
+	isa.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
 }
