@@ -31,9 +31,9 @@ func PrintCode(code *Code, name string) {
 func DisassembleCode(code *Code) string {
 	var c strings.Builder
 	line := -1
-	for i := 0; i < len(code.instrs); {
+	for i := 0; i < len(code.Instrs); {
 		di, o := DisassembleInstr(code, i, line)
-		line = code.lines[i]
+		line = code.Lines[i]
 		i += o
 		c.WriteString(di)
 		c.WriteRune('\n')
@@ -43,27 +43,27 @@ func DisassembleCode(code *Code) string {
 
 func DisassembleInstr(code *Code, offset int, lline int) (string, int) {
 	var b strings.Builder
-	op := code.instrs[offset]
+	op := code.Instrs[offset]
 	line := "    |"
-	if lline != code.lines[offset] {
-		line = fmt.Sprintf("%5d", code.lines[offset])
+	if lline != code.Lines[offset] {
+		line = fmt.Sprintf("%5d", code.Lines[offset])
 	}
 	b.WriteString(fmt.Sprintf("%04d %s %s", offset, line, instNames[op]))
 	args := instArguments[op]
 	if args > 0 {
 		aa := make([]string, 0, args)
 		for i := 1; i <= int(args); i++ {
-			a := code.instrs[offset+i]
+			a := code.Instrs[offset+i]
 			aa = append(aa, strconv.Itoa(int(a)))
 		}
 		b.WriteString(fmt.Sprintf("(%s)", strings.Join(aa, ",")))
 		if s := instSpecificInfos[op]; s != nil {
-			b.WriteString(s(code, code.instrs[offset+1:offset+args+1]))
+			b.WriteString(s(code, code.Instrs[offset+1:offset+args+1]))
 		}
 	}
 	return b.String(), 1 + args
 }
 
 func writeConstant(code *Code, args []byte) string {
-	return fmt.Sprintf("%16s", code.consts[args[0]])
+	return fmt.Sprintf("%16s", code.Consts[args[0]])
 }
