@@ -3,25 +3,38 @@ package isa
 import "github.com/gala377/MLLang/data"
 
 type Code struct {
-	instrs []byte
-	consts []data.Value
-	lines  []int
+	Instrs []byte
+	Consts []data.Value
+	// todo: change Lines to something like runing sum encoding or so.
+	Lines []int
 }
 
 func NewCode() Code {
 	c := Code{
-		instrs: make([]byte, 0),
-		consts: make([]data.Value, 0),
-		lines:  make([]int, 0),
+		Instrs: make([]byte, 0),
+		Consts: make([]data.Value, 0),
+		Lines:  make([]int, 0),
 	}
 	return c
 }
 
 func (c *Code) AddConstant(v data.Value) {
-	c.consts = append(c.consts, v)
+	c.Consts = append(c.Consts, v)
 }
 
 func (c *Code) WriteByte(b byte, line int) {
-	c.instrs = append(c.instrs, b)
-	c.lines = append(c.lines, line)
+	c.Instrs = append(c.Instrs, b)
+	c.Lines = append(c.Lines, line)
+}
+
+func (c *Code) ReadByte(offset int) byte {
+	return c.Instrs[offset]
+}
+
+func (c *Code) GetConstant(i byte) data.Value {
+	return c.Consts[i]
+}
+
+func (c *Code) Len() int {
+	return len(c.Instrs)
 }
