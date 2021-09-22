@@ -100,7 +100,7 @@ type (
 	LetExpr struct {
 		*span.Span
 		Decls Expr // Expected to be something that evaluates to a record
-		Body  Block
+		Body  *Block
 	}
 )
 

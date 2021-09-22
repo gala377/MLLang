@@ -163,7 +163,7 @@ func (w *WhileExpr) Equal(o Node) bool {
 
 func (l *LetExpr) Equal(o Node) bool {
 	if ol, ok := o.(*LetExpr); ok {
-		return AstEqual(l.Decls, ol.Decls) && AstEqual(&l.Body, &ol.Body)
+		return AstEqual(l.Decls, ol.Decls) && AstEqual(l.Body, ol.Body)
 	}
 	return false
 }
