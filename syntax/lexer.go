@@ -14,7 +14,7 @@ import (
 )
 
 const controlChars string = "'\"(){}[]+-=/<>!~@#$%^&*|,;:`"
-const operatorChars string = "+=-\\/<>!@#$%^&*|~?"
+const operatorChars string = "+=-\\/<>!@#$%^&*~?"
 
 var controlCharsSet map[rune]bool
 var operatorCharsSet map[rune]bool

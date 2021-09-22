@@ -140,3 +140,7 @@ func NewEof(pos span.Position) Token {
 		Span: &span,
 	}
 }
+
+func IsArrow(t *Token) bool {
+	return t.Val == "->"
+}

@@ -456,6 +456,81 @@ func TestTupleParsing(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingLambda(t *testing.T) {
+	table := ptable{
+		// {
+		// 	"do -> a b",
+		// 	[]an{
+		// 		&ast.LambdaExpr{
+		// 			Args: []ast.FuncDeclArg{},
+		// 			Body: &ast.FuncApplication{
+		// 				Callee: &ast.Identifier{Name: "a"},
+		// 				Args: []ast.Expr{
+		// 					&ast.Identifier{Name: "b"},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+		{
+			"do |a b c| -> a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []ast.FuncDeclArg{
+						{Name: "a"}, {Name: "b"}, {Name: "c"},
+					},
+					Body: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args: []ast.Expr{
+							&ast.Identifier{Name: "b"},
+						},
+					},
+				},
+			},
+		},
+		// {
+		// 	"do:\n  a b",
+		// 	[]an{
+		// 		&ast.LambdaExpr{
+		// 			Args: []ast.FuncDeclArg{},
+		// 			Body: &ast.Block{
+		// 				Instr: []ast.Node{
+		// 					&ast.FuncApplication{
+		// 						Callee: &ast.Identifier{Name: "a"},
+		// 						Args: []ast.Expr{
+		// 							&ast.Identifier{Name: "b"},
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+
+		// {
+		// 	"do |a b c|:\n  a b",
+		// 	[]an{
+		// 		&ast.LambdaExpr{
+		// 			Args: []ast.FuncDeclArg{
+		// 				{Name: "a"}, {Name: "b"}, {Name: "c"},
+		// 			},
+		// 			Body: &ast.Block{
+		// 				Instr: []ast.Node{
+		// 					&ast.FuncApplication{
+		// 						Callee: &ast.Identifier{Name: "a"},
+		// 						Args: []ast.Expr{
+		// 							&ast.Identifier{Name: "b"},
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// },
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
@@ -463,6 +538,7 @@ func matchAstWithTable(t *testing.T, table *ptable) {
 			p := NewParser(strings.NewReader(test.source))
 			got := p.Parse()
 			if len(got) != len(test.expect) {
+				t.Logf("Parser errors %v", p.errors)
 				t.Fatalf("The parse result has wrong len\nwant: %v\ngot: %v", test.expect, got)
 			}
 			for i, want := range test.expect {

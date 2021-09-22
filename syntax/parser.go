@@ -41,6 +41,7 @@ func NewParser(source io.Reader) *Parser {
 	p.indents = []int{0}
 	p.errors = make([]SyntaxError, 0)
 	p.statements = [token.Eof]parseExprFn{
+		token.Do:    p.parseLambda,
 		token.While: p.parseWhile,
 		token.If:    p.parseIf,
 		token.Else: func() (ast.Expr, bool) {
@@ -443,6 +444,70 @@ func (p *Parser) parseElse() (ast.Expr, bool) {
 		return p.parseIf()
 	}
 	return p.parseBlock()
+}
+
+func (p *Parser) parseLambda() (ast.Expr, bool) {
+	log.Println("Parsing lambda")
+	beg := p.position()
+	if t := p.match(token.Do); t == nil {
+		return nil, true
+	}
+	args := []ast.FuncDeclArg{}
+	if t := p.match(token.Pipe); t != nil {
+		log.Println("Parsing lambda arguments")
+		for pt := p.match(token.Pipe); pt == nil; pt = p.match(token.Pipe) {
+			arg := p.parseIdentifier()
+			if arg == nil {
+				p.error(beg, p.position(), "Lambda argument has to be an identifier")
+				p.recoverWithTokens(token.Pipe)
+				continue
+			}
+			a := ast.FuncDeclArg{
+				Span: arg.Span,
+				Name: arg.Name,
+			}
+			log.Printf("Parsed parameter %s", a.Name)
+			args = append(args, a)
+		}
+	}
+	log.Println("Parsed lambda arguments")
+	var body ast.Expr
+	if t := p.match(token.Colon); t != nil {
+		b, ok := p.parseBlock()
+		if !ok {
+			return nil, false
+		}
+		if b == nil {
+			p.error(beg, p.position(), "Expected block as a lambda body")
+			p.recover()
+			return nil, false
+		}
+		body = b
+	} else if t := p.match(token.Operator); t != nil && token.IsArrow(t) {
+		e, ok := p.parseExpr()
+		if !ok {
+			return nil, false
+		}
+		if e == nil {
+			p.error(beg, p.position(), "Expected expr as a lambda body")
+			p.recover()
+			return nil, false
+		}
+		body = e
+	} else {
+		log.Printf("Expected -> or block got: %s\n", p.curr.Val)
+		p.error(beg, p.position(), "Expected -> or a block following lambda argument list")
+		p.recover()
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	node := ast.LambdaExpr{
+		Span: &span,
+		Args: args,
+		Body: body,
+	}
+	return &node, true
+
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {

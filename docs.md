@@ -1,5 +1,8 @@
 # syntax docs
 
-Identifier syntax
+Document sytax
 
-standard for now? letters
+
+## TODO   
+
+We need to test recovery because right now its a mess that probably does not work at all
