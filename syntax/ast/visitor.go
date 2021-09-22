@@ -44,5 +44,7 @@ func Walk(v Visitor, n Node) {
 	case *LetExpr:
 		Walk(v, n.Decls)
 		Walk(v, n.Body)
+	case *LambdaExpr:
+		Walk(v, n.Body)
 	}
 }

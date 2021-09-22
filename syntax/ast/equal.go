@@ -72,7 +72,13 @@ func (f *FuncApplication) Equal(o Node) bool {
 				return false
 			}
 		}
-		return true
+		if f.Block != nil {
+			if of.Block == nil {
+				return false
+			}
+			return f.Block.Equal(of.Block)
+		}
+		return of.Block == nil
 	}
 	return false
 }
@@ -171,6 +177,21 @@ func (l *LetExpr) Equal(o Node) bool {
 func (i *Identifier) Equal(o Node) bool {
 	if oi, ok := o.(*Identifier); ok {
 		return i.Name == oi.Name
+	}
+	return false
+}
+
+func (l *LambdaExpr) Equal(o Node) bool {
+	if ol, ok := o.(*LambdaExpr); ok {
+		if len(l.Args) != len(ol.Args) {
+			return false
+		}
+		for i, arg := range l.Args {
+			if arg.Name != ol.Args[i].Name {
+				return false
+			}
+		}
+		return AstEqual(l.Body, ol.Body)
 	}
 	return false
 }

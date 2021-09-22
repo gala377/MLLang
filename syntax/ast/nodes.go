@@ -50,6 +50,7 @@ type (
 		*span.Span
 		Callee Expr
 		Args   []Expr
+		Block  *LambdaExpr
 	}
 
 	IntConst struct {
@@ -102,6 +103,12 @@ type (
 		Decls Expr // Expected to be something that evaluates to a record
 		Body  *Block
 	}
+
+	LambdaExpr struct {
+		*span.Span
+		Args []FuncDeclArg
+		Body Expr
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -119,6 +126,7 @@ func (i *IfExpr) exprNode()          {}
 func (w *WhileExpr) exprNode()       {}
 func (l *LetExpr) exprNode()         {}
 func (i *Identifier) exprNode()      {}
+func (l *LambdaExpr) exprNode()      {}
 
 func (g *GlobalValDecl) NodeSpan() *span.Span {
 	return g.Span
@@ -176,6 +184,10 @@ func (i *Identifier) NodeSpan() *span.Span {
 	return i.Span
 }
 
+func (l *LambdaExpr) NodeSpan() *span.Span {
+	return l.Span
+}
+
 func (g *GlobalValDecl) String() string {
 	return fmt.Sprintf(
 		`GlobalVar{
@@ -208,7 +220,11 @@ func (f *FuncApplication) String() string {
 	for _, a := range f.Args {
 		args = append(args, a.String())
 	}
-	return fmt.Sprintf("FnApp{callee:{%v}, args:{%v}}", callee, args)
+	block := ""
+	if f.Block != nil {
+		block = fmt.Sprintf(" Block %s", f.Block)
+	}
+	return fmt.Sprintf("FnApp{callee:{%v}, args:{%v}}%s", callee, args, block)
 }
 
 func (i *IntConst) String() string {
@@ -253,4 +269,14 @@ func (l *LetExpr) String() string {
 
 func (i *Identifier) String() string {
 	return i.Name
+}
+
+func (l *LambdaExpr) String() string {
+	msg := "Lambda{"
+	for _, arg := range l.Args {
+		msg += " " + arg.Name
+	}
+	msg += "} "
+	msg += l.Body.String()
+	return msg
 }
