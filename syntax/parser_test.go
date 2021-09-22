@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/gala377/MLLang/syntax/ast"
-	"github.com/gala377/MLLang/syntax/span"
 )
 
 type ptable []struct {
@@ -15,22 +14,15 @@ type ptable []struct {
 
 type an = ast.Node
 
-var dummySpan span.Span = span.NewSpan(
-	span.Position{Line: 0, Column: 0, Offset: 0},
-	span.Position{Line: 0, Column: 0, Offset: 0},
-)
-
 func TestTopLevelValDecl(t *testing.T) {
 	table := ptable{
 		{
 			"val a = 1",
 			[]an{
 				&ast.GlobalValDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Rhs: &ast.IntConst{
-						Span: &dummySpan,
-						Val:  1,
+						Val: 1,
 					},
 				},
 			},
@@ -39,11 +31,9 @@ func TestTopLevelValDecl(t *testing.T) {
 			"\n\n\nval a = 1\n\n\n",
 			[]an{
 				&ast.GlobalValDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Rhs: &ast.IntConst{
-						Span: &dummySpan,
-						Val:  1,
+						Val: 1,
 					},
 				},
 			},
@@ -58,7 +48,6 @@ func TestPrimaryExpressions(t *testing.T) {
 			"a",
 			[]an{
 				&ast.Identifier{
-					Span: &dummySpan,
 					Name: "a",
 				},
 			},
@@ -67,8 +56,7 @@ func TestPrimaryExpressions(t *testing.T) {
 			"1.123",
 			[]an{
 				&ast.FloatConst{
-					Span: &dummySpan,
-					Val:  1.123,
+					Val: 1.123,
 				},
 			},
 		},
@@ -76,7 +64,6 @@ func TestPrimaryExpressions(t *testing.T) {
 			"(a)",
 			[]an{
 				&ast.Identifier{
-					Span: &dummySpan,
 					Name: "a",
 				},
 			},
@@ -85,8 +72,7 @@ func TestPrimaryExpressions(t *testing.T) {
 			"(1.123)",
 			[]an{
 				&ast.FloatConst{
-					Span: &dummySpan,
-					Val:  1.123,
+					Val: 1.123,
 				},
 			},
 		},
@@ -100,18 +86,14 @@ func TestFuncApplication(t *testing.T) {
 			"a b c",
 			[]an{
 				&ast.FuncApplication{
-					Span: &dummySpan,
 					Callee: &ast.Identifier{
-						Span: &dummySpan,
 						Name: "a",
 					},
 					Args: []ast.Expr{
 						&ast.Identifier{
-							Span: &dummySpan,
 							Name: "b",
 						},
 						&ast.Identifier{
-							Span: &dummySpan,
 							Name: "c",
 						},
 					},
@@ -122,35 +104,27 @@ func TestFuncApplication(t *testing.T) {
 			"(a 1) b (c 1)",
 			[]an{
 				&ast.FuncApplication{
-					Span: &dummySpan,
 					Callee: &ast.FuncApplication{
-						Span: &dummySpan,
 						Callee: &ast.Identifier{
-							Span: &dummySpan,
 							Name: "a",
 						},
 						Args: []ast.Expr{
 							&ast.IntConst{
-								Span: &dummySpan,
-								Val:  1,
+								Val: 1,
 							},
 						},
 					},
 					Args: []ast.Expr{
 						&ast.Identifier{
-							Span: &dummySpan,
 							Name: "b",
 						},
 						&ast.FuncApplication{
-							Span: &dummySpan,
 							Callee: &ast.Identifier{
-								Span: &dummySpan,
 								Name: "c",
 							},
 							Args: []ast.Expr{
 								&ast.IntConst{
-									Span: &dummySpan,
-									Val:  1,
+									Val: 1,
 								},
 							},
 						},
@@ -168,12 +142,10 @@ func TestFuncDeclaration(t *testing.T) {
 			"fn a = 1",
 			[]an{
 				&ast.FuncDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.IntConst{
-						Span: &dummySpan,
-						Val:  1,
+						Val: 1,
 					},
 				},
 			},
@@ -182,14 +154,12 @@ func TestFuncDeclaration(t *testing.T) {
 			"fn a b c = (b)",
 			[]an{
 				&ast.FuncDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Args: []ast.FuncDeclArg{
-						{Span: &dummySpan, Name: "b"},
-						{Span: &dummySpan, Name: "c"},
+						{Name: "b"},
+						{Name: "c"},
 					},
 					Body: &ast.Identifier{
-						Span: &dummySpan,
 						Name: "b",
 					},
 				},
@@ -207,22 +177,18 @@ func TestParsingIf(t *testing.T) {
 				"  2",
 			[]an{
 				&ast.IfExpr{
-					Span: &dummySpan,
 					Cond: &ast.FuncApplication{
-						Span: &dummySpan,
 						Callee: &ast.Identifier{
-							Span: &dummySpan,
 							Name: "a",
 						},
 						Args: []ast.Expr{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					IfBranch: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
-							&ast.IntConst{Span: &dummySpan, Val: 2},
+							&ast.IntConst{Val: 1},
+							&ast.IntConst{Val: 2},
 						},
 					},
 					ElseBranch: nil,
@@ -236,27 +202,22 @@ func TestParsingIf(t *testing.T) {
 				"  2",
 			[]an{
 				&ast.IfExpr{
-					Span: &dummySpan,
 					Cond: &ast.FuncApplication{
-						Span: &dummySpan,
 						Callee: &ast.Identifier{
-							Span: &dummySpan,
 							Name: "a",
 						},
 						Args: []ast.Expr{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					IfBranch: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					ElseBranch: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 2},
+							&ast.IntConst{Val: 2},
 						},
 					},
 				},
@@ -269,30 +230,24 @@ func TestParsingIf(t *testing.T) {
 				"  2",
 			[]an{
 				&ast.IfExpr{
-					Span: &dummySpan,
 					Cond: &ast.FuncApplication{
-						Span: &dummySpan,
 						Callee: &ast.Identifier{
-							Span: &dummySpan,
 							Name: "a",
 						},
 						Args: []ast.Expr{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					IfBranch: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					ElseBranch: &ast.IfExpr{
-						Span: &dummySpan,
-						Cond: &ast.Identifier{Span: &dummySpan, Name: "b"},
+						Cond: &ast.Identifier{Name: "b"},
 						IfBranch: &ast.Block{
-							Span: &dummySpan,
 							Instr: []ast.Node{
-								&ast.IntConst{Span: &dummySpan, Val: 2},
+								&ast.IntConst{Val: 2},
 							},
 						},
 						ElseBranch: nil,
@@ -312,22 +267,18 @@ func TestParsingWhile(t *testing.T) {
 				"  2",
 			[]an{
 				&ast.WhileExpr{
-					Span: &dummySpan,
 					Cond: &ast.FuncApplication{
-						Span: &dummySpan,
 						Callee: &ast.Identifier{
-							Span: &dummySpan,
 							Name: "a",
 						},
 						Args: []ast.Expr{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 						},
 					},
 					Body: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
-							&ast.IntConst{Span: &dummySpan, Val: 2},
+							&ast.IntConst{Val: 1},
+							&ast.IntConst{Val: 2},
 						},
 					},
 				},
@@ -345,14 +296,12 @@ func TestParsingBlocks(t *testing.T) {
 				"  2",
 			[]an{
 				&ast.FuncDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
-							&ast.IntConst{Span: &dummySpan, Val: 2},
+							&ast.IntConst{Val: 1},
+							&ast.IntConst{Val: 2},
 						},
 					},
 				},
@@ -366,24 +315,19 @@ func TestParsingBlocks(t *testing.T) {
 				"    3\n",
 			[]an{
 				&ast.FuncDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 							&ast.WhileExpr{
-								Span: &dummySpan,
 								Cond: &ast.Identifier{
-									Span: &dummySpan,
 									Name: "a",
 								},
 								Body: &ast.Block{
-									Span: &dummySpan,
 									Instr: []ast.Node{
-										&ast.IntConst{Span: &dummySpan, Val: 2},
-										&ast.IntConst{Span: &dummySpan, Val: 3},
+										&ast.IntConst{Val: 2},
+										&ast.IntConst{Val: 3},
 									},
 								},
 							},
@@ -401,34 +345,114 @@ func TestParsingBlocks(t *testing.T) {
 				"  4",
 			[]an{
 				&ast.FuncDecl{
-					Span: &dummySpan,
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Span: &dummySpan,
 						Instr: []ast.Node{
-							&ast.IntConst{Span: &dummySpan, Val: 1},
+							&ast.IntConst{Val: 1},
 							&ast.WhileExpr{
-								Span: &dummySpan,
 								Cond: &ast.Identifier{
-									Span: &dummySpan,
 									Name: "a",
 								},
 								Body: &ast.Block{
-									Span: &dummySpan,
 									Instr: []ast.Node{
-										&ast.IntConst{Span: &dummySpan, Val: 2},
-										&ast.IntConst{Span: &dummySpan, Val: 3},
+										&ast.IntConst{Val: 2},
+										&ast.IntConst{Val: 3},
 									},
 								},
 							},
-							&ast.IntConst{Span: &dummySpan, Val: 4},
+							&ast.IntConst{Val: 4},
 						},
 					},
 				},
 			},
 		},
 	}
+	matchAstWithTable(t, &table)
+}
+
+func TestTupleParsing(t *testing.T) {
+	table := ptable{
+		{
+			"()",
+			[]an{
+				&ast.TupleConst{
+					Vals: []ast.Expr{},
+				},
+			},
+		},
+		{
+			"(a)",
+			[]an{
+				&ast.Identifier{
+					Name: "a",
+				},
+			},
+		},
+		{
+			"(a,)",
+			[]an{
+				&ast.TupleConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+					},
+				},
+			},
+		},
+		{
+			"(a, a b, 3)",
+			[]an{
+				&ast.TupleConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{
+								Name: "a",
+							},
+							Args: []ast.Expr{
+								&ast.Identifier{
+									Name: "b",
+								},
+							},
+						},
+						&ast.IntConst{
+							Val: 3,
+						},
+					},
+				},
+			},
+		},
+		{
+			"(a, a b, 3,)",
+			[]an{
+				&ast.TupleConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{
+								Name: "a",
+							},
+							Args: []ast.Expr{
+								&ast.Identifier{
+									Name: "b",
+								},
+							},
+						},
+						&ast.IntConst{
+							Val: 3,
+						},
+					},
+				},
+			},
+		},
+	}
+
 	matchAstWithTable(t, &table)
 }
 

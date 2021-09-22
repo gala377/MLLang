@@ -232,7 +232,7 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 	}
 	if t := p.match(token.NewLine); t == nil {
 		p.error(beg, p.position(), "expected new line for a block")
-		p.recoverWithTokens([]token.Id{token.NewLine})
+		p.recoverWithTokens(token.NewLine)
 		return nil, false
 	}
 	indent, err := p.pushNextIndent()
@@ -269,11 +269,11 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	log.Println("Parse fn app")
 	beg := p.position()
-	fn, ok := p.parsePrimaryExpression()
+	fn, ok := p.parsePrimaryExpr()
 	if !ok {
 		return nil, false
 	}
-	arg, ok := p.parsePrimaryExpression()
+	arg, ok := p.parsePrimaryExpr()
 	if !ok {
 		return nil, false
 	}
@@ -284,7 +284,7 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	args := []ast.Expr{}
 	for arg != nil {
 		args = append(args, arg)
-		arg, ok = p.parsePrimaryExpression()
+		arg, ok = p.parsePrimaryExpr()
 		if !ok {
 			return nil, false
 		}
@@ -298,21 +298,31 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	return &node, true
 }
 
-func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
+func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 	log.Println("Parse primary expression")
 	beg := p.position()
 	tok := p.curr
+	log.Printf("Token is %s\n", token.IdToString(tok.Typ))
 	switch tok.Typ {
 	case token.LParen:
 		p.bump()
 		node, ok := p.parseExpr()
-		t := p.match(token.RParen)
 		if !ok {
-			// todo: how could we recover from that?
 			return nil, false
 		}
+		t := p.match(token.RParen)
+		if node == nil && t != nil {
+			log.Println("Empty tuple")
+			return p.emptyTuple(beg), true
+		}
 		if t == nil {
-			p.error(beg, p.position(), "missing closing parenthesis ')'")
+			log.Println("Parsing tuple")
+			if t = p.match(token.Comma); t == nil {
+				p.error(beg, p.position(), "missing closing parenthesis ')'")
+			} else {
+				// parsing tuple constant
+				return p.parseTupleTail(beg, node)
+			}
 		}
 		return node, true
 	case token.Integer:
@@ -350,7 +360,7 @@ func (p *Parser) parsePrimaryExpression() (ast.Expr, bool) {
 	case token.LSquareParen, token.LBracket:
 		panic("not implemented")
 	default:
-		log.Printf("not primary, token type is %s", token.IdToString(tok.Typ))
+		log.Println("Not a primary")
 		return nil, true
 	}
 }
@@ -446,6 +456,46 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	}
 }
 
+func (p *Parser) parseTupleTail(beg span.Position, first ast.Expr) (*ast.TupleConst, bool) {
+	log.Println("Parsing tuple tail")
+	vals := []ast.Expr{first}
+	for {
+		log.Println("Parsing tuple val")
+		e, ok := p.parseExpr()
+		if e == nil {
+			if !ok {
+				p.error(beg, p.position(), "Expected expression in tuple constant")
+				p.recoverWithTokens(token.Comma, token.NewLine, token.RParen)
+				continue
+			}
+			break
+		}
+		log.Printf("Parsed tuple val %s\n", e.String())
+		vals = append(vals, e)
+		if t := p.match(token.Comma); t == nil {
+			break
+		}
+	}
+	log.Println("Endend tuple parsing")
+	if t := p.match(token.RParen); t == nil {
+		p.error(beg, p.position(), "Expected ) to close a tuple literal")
+	}
+	span := span.NewSpan(beg, p.position())
+	tuple := &ast.TupleConst{
+		Span: &span,
+		Vals: vals,
+	}
+	return tuple, true
+}
+
+func (p *Parser) emptyTuple(beg span.Position) *ast.TupleConst {
+	span := span.NewSpan(beg, p.position())
+	return &ast.TupleConst{
+		Span: &span,
+		Vals: []ast.Expr{},
+	}
+}
+
 func (p *Parser) match(typ token.Id) *token.Token {
 	if p.curr.Typ == typ {
 		tok := p.curr
@@ -509,10 +559,10 @@ func (p *Parser) error(beg, end span.Position, msg string) {
 }
 
 func (p *Parser) recover() {
-	p.recoverWithTokens([]token.Id{})
+	p.recoverWithTokens()
 }
 
-func (p *Parser) recoverWithTokens(rtt []token.Id) {
+func (p *Parser) recoverWithTokens(rtt ...token.Id) {
 	defer p.l.UnsetMode(skipErrorReporting)
 	p.l.SetMode(skipErrorReporting)
 	for t := p.l.curr; !p.eof() && !isRecoveryToken(t, rtt); t = p.l.Next() {

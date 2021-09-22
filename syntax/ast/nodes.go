@@ -3,6 +3,7 @@ package ast
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/gala377/MLLang/syntax/span"
 )
@@ -248,7 +249,12 @@ func (l *ListConst) String() string {
 }
 
 func (t *TupleConst) String() string {
-	return "Unsupported"
+	vals := make([]string, 0, len(t.Vals))
+	for _, val := range t.Vals {
+		vals = append(vals, val.String())
+	}
+	sv := strings.Join(vals, ", ")
+	return fmt.Sprintf("Tuple{%s}", sv)
 }
 
 func (i *IfExpr) String() string {
