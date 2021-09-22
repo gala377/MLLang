@@ -34,6 +34,7 @@ const (
 	NewLine
 	Operator
 	Comment
+	Pipe
 
 	keywords_beg
 	Fn
@@ -46,6 +47,7 @@ const (
 	Macro
 	True
 	False
+	Do
 	keywords_end
 
 	operators_beg
@@ -74,9 +76,11 @@ var tokens = [...]string{
 	RBracket:     "}",
 	LSquareParen: "[",
 	RSquareParen: "]",
+	Pipe:         "|",
 	Indent:       "INDENT",
 	NewLine:      "NEWLINE",
 	Operator:     "OPERATOR",
+	Do:           "do",
 
 	Fn:    "fn",
 	Val:   "val",

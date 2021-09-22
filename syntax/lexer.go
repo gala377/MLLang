@@ -153,6 +153,8 @@ func (l *Lexer) scanNextToken() token.Token {
 			tok.Typ = token.RBracket
 		case ',':
 			tok.Typ = token.Comma
+		case '|':
+			tok.Typ = token.Pipe
 		default:
 			err = fmt.Errorf("unknown character %s", string(ch))
 			known = false
