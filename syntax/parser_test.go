@@ -599,6 +599,30 @@ func TestFuncBlockApplication(t *testing.T) {
 				},
 			},
 		},
+		{
+			"(a 1 2):\n  1\n  2",
+			[]an{
+				&ast.FuncApplication{
+					Callee: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args: []ast.Expr{
+							&ast.IntConst{Val: 1},
+							&ast.IntConst{Val: 2},
+						},
+					},
+					Args: []ast.Expr{},
+					Block: &ast.LambdaExpr{
+						Args: []ast.FuncDeclArg{},
+						Body: &ast.Block{
+							Instr: []ast.Node{
+								&ast.IntConst{Val: 1},
+								&ast.IntConst{Val: 2},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }
