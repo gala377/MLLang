@@ -262,7 +262,7 @@ func TestParsingIf(t *testing.T) {
 func TestParsingWhile(t *testing.T) {
 	table := ptable{
 		{
-			"while a 1:\n" +
+			"while (a 1):\n" +
 				"  1\n" +
 				"  2",
 			[]an{
@@ -339,7 +339,7 @@ func TestParsingBlocks(t *testing.T) {
 		{
 			"fn a:\n" +
 				"  1\n" +
-				"  while a:\n" +
+				"  while(a):\n" +
 				"    2\n" +
 				"    3\n" +
 				"  4",
