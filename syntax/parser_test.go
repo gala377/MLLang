@@ -458,20 +458,20 @@ func TestTupleParsing(t *testing.T) {
 
 func TestParsingLambda(t *testing.T) {
 	table := ptable{
-		// {
-		// 	"do -> a b",
-		// 	[]an{
-		// 		&ast.LambdaExpr{
-		// 			Args: []ast.FuncDeclArg{},
-		// 			Body: &ast.FuncApplication{
-		// 				Callee: &ast.Identifier{Name: "a"},
-		// 				Args: []ast.Expr{
-		// 					&ast.Identifier{Name: "b"},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			"do -> a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args: []ast.Expr{
+							&ast.Identifier{Name: "b"},
+						},
+					},
+				},
+			},
+		},
 		{
 			"do |a b c| -> a b",
 			[]an{
@@ -488,45 +488,45 @@ func TestParsingLambda(t *testing.T) {
 				},
 			},
 		},
-		// {
-		// 	"do:\n  a b",
-		// 	[]an{
-		// 		&ast.LambdaExpr{
-		// 			Args: []ast.FuncDeclArg{},
-		// 			Body: &ast.Block{
-		// 				Instr: []ast.Node{
-		// 					&ast.FuncApplication{
-		// 						Callee: &ast.Identifier{Name: "a"},
-		// 						Args: []ast.Expr{
-		// 							&ast.Identifier{Name: "b"},
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			"do:\n  a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.Block{
+						Instr: []ast.Node{
+							&ast.FuncApplication{
+								Callee: &ast.Identifier{Name: "a"},
+								Args: []ast.Expr{
+									&ast.Identifier{Name: "b"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 
-		// {
-		// 	"do |a b c|:\n  a b",
-		// 	[]an{
-		// 		&ast.LambdaExpr{
-		// 			Args: []ast.FuncDeclArg{
-		// 				{Name: "a"}, {Name: "b"}, {Name: "c"},
-		// 			},
-		// 			Body: &ast.Block{
-		// 				Instr: []ast.Node{
-		// 					&ast.FuncApplication{
-		// 						Callee: &ast.Identifier{Name: "a"},
-		// 						Args: []ast.Expr{
-		// 							&ast.Identifier{Name: "b"},
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			"do |a b c|:\n  a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []ast.FuncDeclArg{
+						{Name: "a"}, {Name: "b"}, {Name: "c"},
+					},
+					Body: &ast.Block{
+						Instr: []ast.Node{
+							&ast.FuncApplication{
+								Callee: &ast.Identifier{Name: "a"},
+								Args: []ast.Expr{
+									&ast.Identifier{Name: "b"},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }

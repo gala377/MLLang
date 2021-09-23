@@ -518,8 +518,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 	}
 	log.Println("Parsed lambda arguments")
 	var body ast.Expr
-	if p.parseTrailingBlocks && p.curr.Typ == token.Colon {
-		p.bump()
+	if p.parseTrailingBlocks && p.check(token.Colon) != nil {
 		b, ok := p.parseBlock()
 		if !ok {
 			return nil, false
@@ -608,6 +607,14 @@ func (p *Parser) emptyTuple(beg span.Position) *ast.TupleConst {
 	}
 }
 
+func (p *Parser) check(typ token.Id) *token.Token {
+	if p.curr.Typ == typ {
+		tok := p.curr
+		return &tok
+	}
+	return nil
+}
+
 func (p *Parser) match(typ token.Id) *token.Token {
 	if p.curr.Typ == typ {
 		tok := p.curr
@@ -632,10 +639,6 @@ func (p *Parser) matchIndent(n int) bool {
 	}
 	p.bump()
 	return true
-}
-
-func (p *Parser) peek() *token.Token {
-	return &p.l.peek
 }
 
 func (p *Parser) bump() {
