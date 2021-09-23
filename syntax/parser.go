@@ -280,7 +280,9 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	if !ok {
 		return nil, false
 	}
-	if arg == nil {
+	potentialTrailing := p.check(token.Do) != nil || p.check(token.Colon) != nil
+	hasTrailingBlock := p.parseTrailingBlocks && potentialTrailing
+	if arg == nil && !hasTrailingBlock {
 		// todo: Could be a function with no arguments but a block
 		// not a function call, just normal expression
 		return fn, true
@@ -309,8 +311,7 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 
 func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
 	var block *ast.LambdaExpr = nil
-	if p.parseTrailingBlocks && p.curr.Typ == token.Colon {
-		p.bump()
+	if p.parseTrailingBlocks && p.check(token.Colon) != nil {
 		lbeg := p.position()
 		b, ok := p.parseBlock()
 		if !ok {
