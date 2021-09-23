@@ -283,7 +283,6 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	potentialTrailing := p.check(token.Do) != nil || p.check(token.Colon) != nil
 	hasTrailingBlock := p.parseTrailingBlocks && potentialTrailing
 	if arg == nil && !hasTrailingBlock {
-		// todo: Could be a function with no arguments but a block
 		// not a function call, just normal expression
 		return fn, true
 	}
