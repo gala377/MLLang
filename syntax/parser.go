@@ -484,7 +484,14 @@ func (p *Parser) parseIf() (ast.Expr, bool) {
 
 func (p *Parser) parseElse() (ast.Expr, bool) {
 	if t := p.match(token.Else); t == nil {
-		return nil, true
+		if !p.checkIndent(p.currentIndent()) {
+			return nil, true
+		}
+		if p.peek().Typ != token.Else {
+			return nil, true
+		}
+		p.bump()
+		p.bump()
 	}
 	if p.curr.Typ == token.If {
 		return p.parseIf()
@@ -607,6 +614,10 @@ func (p *Parser) emptyTuple(beg span.Position) *ast.TupleConst {
 	}
 }
 
+func (p *Parser) peek() *token.Token {
+	return &p.l.peek
+}
+
 func (p *Parser) check(typ token.Id) *token.Token {
 	if p.curr.Typ == typ {
 		tok := p.curr
@@ -624,7 +635,7 @@ func (p *Parser) match(typ token.Id) *token.Token {
 	return nil
 }
 
-func (p *Parser) matchIndent(n int) bool {
+func (p *Parser) checkIndent(n int) bool {
 	t := p.l.Current()
 	if t.Typ != token.Indent {
 		return false
@@ -637,12 +648,23 @@ func (p *Parser) matchIndent(n int) bool {
 		log.Printf("Indent not matching %d != %d", n, val)
 		return false
 	}
+	return true
+}
+
+func (p *Parser) matchIndent(n int) bool {
+	if !p.checkIndent(n) {
+		return false
+	}
 	p.bump()
 	return true
 }
 
 func (p *Parser) bump() {
 	p.curr = p.l.Next()
+}
+
+func (p *Parser) currentIndent() int {
+	return p.indents[len(p.indents)-1]
 }
 
 func (p *Parser) pushNextIndent() (int, error) {
