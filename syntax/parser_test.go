@@ -531,6 +531,78 @@ func TestParsingLambda(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestFuncBlockApplication(t *testing.T) {
+	table := ptable{
+		{
+			"a:\n  1\n  2",
+			[]an{
+				&ast.FuncApplication{
+					Callee: &ast.Identifier{
+						Name: "a",
+					},
+					Args: []ast.Expr{},
+					Block: &ast.LambdaExpr{
+						Args: []ast.FuncDeclArg{},
+						Body: &ast.Block{
+							Instr: []ast.Node{
+								&ast.IntConst{Val: 1},
+								&ast.IntConst{Val: 2},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"a b (c):\n  1\n  2",
+			[]an{
+				&ast.FuncApplication{
+					Callee: &ast.Identifier{
+						Name: "a",
+					},
+					Args: []ast.Expr{&ast.Identifier{Name: "b"}, &ast.Identifier{Name: "c"}},
+					Block: &ast.LambdaExpr{
+						Args: []ast.FuncDeclArg{},
+						Body: &ast.Block{
+							Instr: []ast.Node{
+								&ast.IntConst{Val: 1},
+								&ast.IntConst{Val: 2},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"a b (c 6):\n  1\n  2",
+			[]an{
+				&ast.FuncApplication{
+					Callee: &ast.Identifier{
+						Name: "a",
+					},
+					Args: []ast.Expr{
+						&ast.Identifier{Name: "b"},
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{Name: "c"},
+							Args:   []ast.Expr{&ast.IntConst{Val: 6}},
+						},
+					},
+					Block: &ast.LambdaExpr{
+						Args: []ast.FuncDeclArg{},
+						Body: &ast.Block{
+							Instr: []ast.Node{
+								&ast.IntConst{Val: 1},
+								&ast.IntConst{Val: 2},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
