@@ -19,11 +19,12 @@ type SyntaxError struct {
 }
 
 type Parser struct {
-	l          *Lexer
-	errors     []SyntaxError
-	curr       token.Token
-	indents    []int
-	statements [token.Eof]parseExprFn
+	l                   *Lexer
+	errors              []SyntaxError
+	curr                token.Token
+	indents             []int
+	statements          [token.Eof]parseExprFn
+	parseTrailingBlocks bool
 }
 
 func NewParser(source io.Reader) *Parser {
@@ -50,6 +51,7 @@ func NewParser(source io.Reader) *Parser {
 			return nil, false
 		},
 	}
+	p.parseTrailingBlocks = true
 	return &p
 }
 
@@ -279,6 +281,7 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 		return nil, false
 	}
 	if arg == nil {
+		// todo: Could be a function with no arguments but a block
 		// not a function call, just normal expression
 		return fn, true
 	}
@@ -290,13 +293,52 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 			return nil, false
 		}
 	}
+	block, ok := p.parseTrailingLambda()
+	if !ok {
+		return nil, ok
+	}
 	span := span.NewSpan(beg, p.position())
 	node := ast.FuncApplication{
 		Span:   &span,
 		Callee: fn,
 		Args:   args,
+		Block:  block,
 	}
 	return &node, true
+}
+
+func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
+	var block *ast.LambdaExpr = nil
+	if p.parseTrailingBlocks && p.curr.Typ == token.Colon {
+		p.bump()
+		lbeg := p.position()
+		b, ok := p.parseBlock()
+		if !ok {
+			return nil, false
+		}
+		if b == nil {
+			p.error(lbeg, p.position(), "expected anonymous block")
+			p.recover()
+		}
+		span := span.NewSpan(lbeg, p.position())
+		block = &ast.LambdaExpr{
+			Span: &span,
+			Args: []ast.FuncDeclArg{},
+			Body: b,
+		}
+	} else {
+		l, ok := p.parseLambda()
+		if !ok {
+			return nil, false
+		}
+		if l != nil {
+			block, ok = l.(*ast.LambdaExpr)
+			if !ok {
+				panic("unreachable")
+			}
+		}
+	}
+	return block, true
 }
 
 func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
@@ -372,7 +414,9 @@ func (p *Parser) parseWhile() (ast.Expr, bool) {
 	if t := p.match(token.While); t == nil {
 		return nil, true
 	}
+	p.disallowTrailingBlocks()
 	cond, ok := p.parseExpr()
+	p.allowTrailingBlocks()
 	if !ok {
 		return nil, false
 	}
@@ -404,7 +448,9 @@ func (p *Parser) parseIf() (ast.Expr, bool) {
 	if t := p.match(token.If); t == nil {
 		return nil, true
 	}
+	p.disallowTrailingBlocks()
 	cond, ok := p.parseExpr()
+	p.allowTrailingBlocks()
 	if !ok {
 		return nil, false
 	}
@@ -472,7 +518,8 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 	}
 	log.Println("Parsed lambda arguments")
 	var body ast.Expr
-	if t := p.match(token.Colon); t != nil {
+	if p.parseTrailingBlocks && p.curr.Typ == token.Colon {
+		p.bump()
 		b, ok := p.parseBlock()
 		if !ok {
 			return nil, false
@@ -587,6 +634,10 @@ func (p *Parser) matchIndent(n int) bool {
 	return true
 }
 
+func (p *Parser) peek() *token.Token {
+	return &p.l.peek
+}
+
 func (p *Parser) bump() {
 	p.curr = p.l.Next()
 }
@@ -653,4 +704,12 @@ func (p *Parser) eof() bool {
 
 func (p *Parser) position() span.Position {
 	return p.l.position
+}
+
+func (p *Parser) disallowTrailingBlocks() {
+	p.parseTrailingBlocks = false
+}
+
+func (p *Parser) allowTrailingBlocks() {
+	p.parseTrailingBlocks = true
 }

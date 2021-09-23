@@ -155,7 +155,7 @@ func TestScanningOperators(t *testing.T) {
 			},
 		},
 		{
-			"- ==> <> <$> %^ *&^% ^|- ??",
+			"- ==> <> <$> %^ *&^% ^- ??",
 			[]it{
 				{"-", token.Operator, 0, 1},
 				{"==>", token.Operator, 2, 5},
@@ -163,8 +163,8 @@ func TestScanningOperators(t *testing.T) {
 				{"<$>", token.Operator, 9, 12},
 				{"%^", token.Operator, 13, 15},
 				{"*&^%", token.Operator, 16, 20},
-				{"^|-", token.Operator, 21, 24},
-				{"??", token.Operator, 25, 27},
+				{"^-", token.Operator, 21, 23},
+				{"??", token.Operator, 24, 26},
 			},
 		},
 	}
