@@ -1,33 +1,38 @@
 package isa
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
 var instNames = [...]string{
-	Return:   "RETURN",
-	Constant: "CONSTANT",
-	Call:     "Call",
-	Jump:     "Jump",
-	JumpIf:   "JumpIf",
+	Return:      "RETURN",
+	Constant:    "CONSTANT",
+	Call:        "Call",
+	Jump:        "Jump",
+	JumpIfFalse: "JumpIfFalse",
 }
 
 const opCount = len(instNames)
 
 var instArguments = [opCount]int{
-	Return:   0,
-	Constant: 1,
-	Call:     1,
-	Jump:     1,
-	JumpIf:   1,
+	Return:      0,
+	Constant:    1,
+	Constant2:   2,
+	Call:        1,
+	Jump:        2,
+	JumpIfFalse: 2,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string
 
 var instSpecificInfos = [opCount]additionalInfoFunc{
-	Constant: writeConstant,
+	Constant:    writeConstant,
+	Constant2:   writeConstant2,
+	Jump:        writeJump,
+	JumpIfFalse: writeJump,
 }
 
 func PrintCode(code *Code, name string) {
@@ -72,4 +77,14 @@ func DisassembleInstr(code *Code, offset int, lline int) (string, int) {
 
 func writeConstant(code *Code, args []byte) string {
 	return fmt.Sprintf("%16s", code.Consts[args[0]])
+}
+
+func writeConstant2(code *Code, args []byte) string {
+	i := binary.BigEndian.Uint16(args)
+	return fmt.Sprintf("%16s", code.Consts[i])
+}
+
+func writeJump(code *Code, args []byte) string {
+	o := binary.BigEndian.Uint16(args)
+	return fmt.Sprintf("%04d", o)
 }

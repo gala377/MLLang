@@ -402,6 +402,18 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		return &node, true
 	case token.LSquareParen, token.LBracket:
 		panic("not implemented")
+	case token.True:
+		p.bump()
+		var node ast.BoolConst
+		node.Span = tok.Span
+		node.Val = true
+		return &node, true
+	case token.False:
+		p.bump()
+		var node ast.BoolConst
+		node.Span = tok.Span
+		node.Val = false
+		return &node, true
 	default:
 		log.Println("Not a primary")
 		return nil, true

@@ -195,3 +195,10 @@ func (l *LambdaExpr) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (b *BoolConst) Equal(o Node) bool {
+	if ob, ok := o.(*BoolConst); ok {
+		return ob.Val == b.Val
+	}
+	return false
+}

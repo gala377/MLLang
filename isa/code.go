@@ -18,8 +18,9 @@ func NewCode() Code {
 	return c
 }
 
-func (c *Code) AddConstant(v data.Value) {
+func (c *Code) AddConstant(v data.Value) int {
 	c.Consts = append(c.Consts, v)
+	return len(c.Consts) - 1
 }
 
 func (c *Code) WriteByte(b byte, line int) {

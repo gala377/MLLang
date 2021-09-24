@@ -5,7 +5,8 @@ type Op = byte
 const (
 	Return Op = iota
 	Constant
+	Constant2
 	Call
 	Jump
-	JumpIf
+	JumpIfFalse
 )

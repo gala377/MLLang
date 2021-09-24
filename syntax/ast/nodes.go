@@ -110,6 +110,11 @@ type (
 		Args []FuncDeclArg
 		Body Expr
 	}
+
+	BoolConst struct {
+		*span.Span
+		Val bool
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -128,6 +133,7 @@ func (w *WhileExpr) exprNode()       {}
 func (l *LetExpr) exprNode()         {}
 func (i *Identifier) exprNode()      {}
 func (l *LambdaExpr) exprNode()      {}
+func (b *BoolConst) exprNode()       {}
 
 func (g *GlobalValDecl) NodeSpan() *span.Span {
 	return g.Span
@@ -187,6 +193,10 @@ func (i *Identifier) NodeSpan() *span.Span {
 
 func (l *LambdaExpr) NodeSpan() *span.Span {
 	return l.Span
+}
+
+func (b *BoolConst) NodeSpan() *span.Span {
+	return b.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -285,4 +295,8 @@ func (l *LambdaExpr) String() string {
 	msg += "} "
 	msg += l.Body.String()
 	return msg
+}
+
+func (b *BoolConst) String() string {
+	return fmt.Sprintf("%v", b.Val)
 }
