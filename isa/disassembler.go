@@ -86,5 +86,5 @@ func writeConstant2(code *Code, args []byte) string {
 
 func writeJump(code *Code, args []byte) string {
 	o := binary.BigEndian.Uint16(args)
-	return fmt.Sprintf("%04d", o)
+	return fmt.Sprintf("%16d", o)
 }

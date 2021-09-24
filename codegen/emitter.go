@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"encoding/binary"
+	"log"
 	"math"
 
 	"github.com/gala377/MLLang/data"
@@ -23,8 +24,9 @@ func NewEmitter() *Emitter {
 	return &e
 }
 
-func (e *Emitter) Compile(n ast.Node) *isa.Code {
-	e.emitNode(n)
+func (e *Emitter) Compile(n []ast.Node) *isa.Code {
+	e.emitNode(n[0])
+	e.emitByte(isa.Return)
 	return e.result
 }
 
@@ -69,7 +71,10 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitIntConst(v)
 	case *ast.BoolConst:
 		e.emitBoolConst(v)
+	case *ast.Block:
+		e.emitBlock(v)
 	default:
+		log.Printf("Node is %v", node)
 		panic("Node cannot be emitted. Not supported")
 	}
 }
@@ -80,18 +85,18 @@ func (e *Emitter) emitIf(node *ast.IfExpr) {
 	e.emitBlock(node.IfBranch)
 	if node.ElseBranch != nil {
 		skipElse := e.emitJump()
-		off := e.result.Len() - ifpos - 1
+		off := e.result.Len() - ifpos
 		e.patchJump(ifpos, off)
 		e.emitExpr(node.ElseBranch)
-		off = e.result.Len() - skipElse - 1
+		off = e.result.Len() - skipElse
 		e.patchJump(skipElse, off)
 		return
 	}
 	skipNone := e.emitJump()
-	off := e.result.Len() - ifpos - 1
+	off := e.result.Len() - ifpos
 	e.patchJump(ifpos, off)
 	e.emitNone()
-	off = e.result.Len() - skipNone - 1
+	off = e.result.Len() - skipNone
 	e.patchJump(skipNone, off)
 }
 
