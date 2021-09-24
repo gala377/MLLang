@@ -50,6 +50,27 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			arg := vm.readByte()
 			v := vm.code.GetConstant(arg)
 			vm.push(v)
+		case isa.Call:
+			arity := int(vm.readByte())
+			args := make([]data.Value, 0, arity)
+			for i := 0; i < arity; i++ {
+				args = append(args, vm.pop())
+			}
+			callee := vm.pop()
+			fn, ok := callee.(data.Callable)
+			if !ok {
+				// todo exception?
+				panic("Trying to call something that is not callable")
+			}
+			switch {
+			case arity == fn.Arity():
+				vm.push(fn.Call(args...))
+			case arity < fn.Arity():
+				vm.push(data.NewPartialApp(fn, args...))
+			case arity > fn.Arity():
+				// todo exception?
+				panic("Supplied more arguments than function takes")
+			}
 		}
 	}
 	return data.None, nil
