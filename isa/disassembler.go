@@ -9,6 +9,9 @@ import (
 var instNames = [...]string{
 	Return:   "RETURN",
 	Constant: "CONSTANT",
+	Call:     "Call",
+	Jump:     "Jump",
+	JumpIf:   "JumpIf",
 }
 
 const opCount = len(instNames)
@@ -16,6 +19,9 @@ const opCount = len(instNames)
 var instArguments = [opCount]int{
 	Return:   0,
 	Constant: 1,
+	Call:     1,
+	Jump:     1,
+	JumpIf:   1,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string
