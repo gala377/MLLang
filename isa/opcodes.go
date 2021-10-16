@@ -9,4 +9,5 @@ const (
 	Call
 	Jump
 	JumpIfFalse
+	DynLookup
 )

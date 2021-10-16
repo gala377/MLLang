@@ -1,11 +1,17 @@
 package data
 
+type InternedString = *string
+
 type Symbol struct {
-	name string
+	name InternedString
+}
+
+func NewSymbol(s InternedString) Symbol {
+	return Symbol{s}
 }
 
 func (s Symbol) String() string {
-	return s.name
+	return *s.name
 }
 
 func (s Symbol) Equal(o Value) bool {
@@ -13,4 +19,12 @@ func (s Symbol) Equal(o Value) bool {
 		return s.name == os.name
 	}
 	return false
+}
+
+func (s Symbol) EqualSymbol(o Symbol) bool {
+	return s.name == o.name
+}
+
+func (s Symbol) EqualString(o InternedString) bool {
+	return s.name == o
 }

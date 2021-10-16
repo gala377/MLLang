@@ -35,6 +35,13 @@ func TestEmittingConstValues(t *testing.T) {
 				isa.Constant, 0, isa.Return,
 			}),
 		},
+		{
+			"a",
+			codeFromBytes(1, []byte{
+				isa.DynLookup, 0, 0,
+				isa.Return,
+			}),
+		},
 	}
 	matchResults(t, &test)
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func TestDisassembling(t *testing.T) {
-	want := "0000     1 RETURN\n0001     2 RETURN\n"
+	want := "0000     1 Return\n0001     2 Return\n"
 	c := &Code{
 		Instrs: []byte{Return, Return},
 		Lines:  []int{1, 2},
@@ -19,7 +19,7 @@ func TestDisassembling(t *testing.T) {
 }
 
 func TestDisassemblingArgs(t *testing.T) {
-	want := "0000     1 CONSTANT(0)             123\n0002     | RETURN\n"
+	want := "0000     1 Constant(0)             123\n0002     | Return\n"
 	c := &Code{
 		Instrs: []byte{Constant, 0, Return},
 		Consts: []data.Value{data.NewInt(123)},

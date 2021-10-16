@@ -11,15 +11,17 @@ import (
 )
 
 type Emitter struct {
-	result *isa.Code
-	line   int
+	result   *isa.Code
+	line     int
+	interner *Interner
 }
 
 func NewEmitter() *Emitter {
 	c := isa.NewCode()
 	e := Emitter{
-		result: &c,
-		line:   0,
+		result:   &c,
+		line:     0,
+		interner: NewInterner(),
 	}
 	return &e
 }
@@ -73,6 +75,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitBoolConst(v)
 	case *ast.Block:
 		e.emitBlock(v)
+	case *ast.Identifier:
+		e.emitLookup(v)
 	default:
 		log.Printf("Node is %v", node)
 		panic("Node cannot be emitted. Not supported")
@@ -141,4 +145,17 @@ func (e *Emitter) patchJump(i int, offset int) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(offset))
 	copy(e.result.Instrs[i+1:], args)
+}
+
+func (e *Emitter) emitLookup(node *ast.Identifier) {
+	s := e.interner.Intern(node.Name)
+	v := data.NewSymbol(s)
+	index := e.result.AddConstant(v)
+	if index > math.MaxUint16 {
+		panic("More constants that uint16 can hold. That is not supported.")
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.DynLookup)
+	e.emitBytes(args...)
 }

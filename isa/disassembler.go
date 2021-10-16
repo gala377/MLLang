@@ -8,11 +8,12 @@ import (
 )
 
 var instNames = [...]string{
-	Return:      "RETURN",
-	Constant:    "CONSTANT",
+	Return:      "Return",
+	Constant:    "Constant",
 	Call:        "Call",
 	Jump:        "Jump",
 	JumpIfFalse: "JumpIfFalse",
+	DynLookup:   "DynLookup",
 }
 
 const opCount = len(instNames)
@@ -24,6 +25,7 @@ var instArguments = [opCount]int{
 	Call:        1,
 	Jump:        2,
 	JumpIfFalse: 2,
+	DynLookup:   2,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string
@@ -33,6 +35,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	Constant2:   writeConstant2,
 	Jump:        writeJump,
 	JumpIfFalse: writeJump,
+	DynLookup:   writeDynLookup,
 }
 
 func PrintCode(code *Code, name string) {
@@ -87,4 +90,9 @@ func writeConstant2(code *Code, args []byte) string {
 func writeJump(code *Code, args []byte) string {
 	o := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16d", o)
+}
+
+func writeDynLookup(code *Code, args []byte) string {
+	i := binary.BigEndian.Uint16(args)
+	return fmt.Sprintf("%16s", code.Consts[i])
 }
