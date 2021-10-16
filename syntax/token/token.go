@@ -52,6 +52,7 @@ const (
 
 	operators_beg
 	Assignment
+	Exclamation
 	operators_end
 
 	Eof
@@ -93,7 +94,8 @@ var tokens = [...]string{
 	True:  "true",
 	False: "false",
 
-	Assignment: "=",
+	Assignment:  "=",
+	Exclamation: "!",
 
 	Eof: "EOF",
 }

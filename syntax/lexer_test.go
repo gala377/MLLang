@@ -149,9 +149,10 @@ func TestStringScanning(t *testing.T) {
 func TestScanningOperators(t *testing.T) {
 	table := tablet{
 		{
-			"=",
+			"= !",
 			[]it{
 				{"=", token.Assignment, 0, 1},
+				{"!", token.Exclamation, 2, 3},
 			},
 		},
 		{

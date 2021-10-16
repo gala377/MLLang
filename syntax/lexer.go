@@ -139,6 +139,8 @@ func (l *Lexer) scanNextToken() token.Token {
 		switch ch {
 		case ':':
 			tok.Typ = token.Colon
+			// todo: If identifier follows immediately then
+			// its a "middle" call
 		case '(':
 			tok.Typ = token.LParen
 		case ')':
@@ -223,6 +225,7 @@ func (l *Lexer) scanIndent() string {
 	}
 	return strconv.Itoa(count)
 }
+
 func (l *Lexer) scanNumber() (val string, isfloat bool, err error) {
 	var b strings.Builder
 	ch := l.ch
@@ -277,6 +280,7 @@ func (l *Lexer) scanIdentifier() string {
 	}
 	return b.String()
 }
+
 func (l *Lexer) scanStringLit() (string, error) {
 	var b strings.Builder
 	quote := l.ch
