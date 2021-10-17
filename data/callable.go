@@ -41,7 +41,7 @@ func (fn *NativeFunc) Call(vv ...Value) Value {
 }
 
 func (fn *NativeFunc) String() string {
-	return fmt.Sprintf("Native func %s", fn.name)
+	return fmt.Sprintf("<Native func %s>", fn.name)
 }
 
 func (fn *NativeFunc) Equal(o Value) bool {
@@ -79,7 +79,7 @@ func (f *PartialApp) String() string {
 	for _, arg := range f.args {
 		vals = append(vals, arg.String())
 	}
-	return fmt.Sprintf("Partial app %s %s", f.fn.String(), strings.Join(vals, " "))
+	return fmt.Sprintf("<Partial app %s %s>", f.fn.String(), strings.Join(vals, " "))
 }
 
 func (f *PartialApp) Equal(o Value) bool {
