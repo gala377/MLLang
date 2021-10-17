@@ -3,7 +3,7 @@ package data
 import "fmt"
 
 type String struct {
-	val string
+	Val string
 }
 
 func NewString(v string) String {
@@ -11,12 +11,12 @@ func NewString(v string) String {
 }
 
 func (s String) String() string {
-	return fmt.Sprintf("\"%s\"", s.val)
+	return fmt.Sprintf("\"%s\"", s.Val)
 }
 
 func (s String) Equal(o Value) bool {
 	if os, ok := o.(String); ok {
-		return s.val == os.val
+		return s.Val == os.Val
 	}
 	return false
 }

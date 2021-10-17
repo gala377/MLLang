@@ -12,6 +12,12 @@ func NewEnv() Env {
 	}
 }
 
+func EnvFromMap(m map[data.Symbol]data.Value) Env {
+	return Env{
+		vals: m,
+	}
+}
+
 func (e *Env) Lookup(s data.Symbol) data.Value {
 	return e.vals[s]
 }

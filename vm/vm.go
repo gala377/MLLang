@@ -103,9 +103,13 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			// now it only works for globals
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
-			fmt.Printf("Lookup fo value %s\n", s)
+			if Debug {
+				fmt.Printf("Lookup fo value %s\n", s)
+			}
 			if v := vm.globals.Lookup(s); v != nil {
-				fmt.Printf("Lookup successfull. Value is %s\n", v)
+				if Debug {
+					fmt.Printf("Lookup successfull. Value is %s\n", v)
+				}
 				vm.push(v)
 			} else {
 				panic(fmt.Sprintf("variable %s undefined", s))
@@ -130,7 +134,9 @@ func (vm *Vm) readShort() uint16 {
 func (vm *Vm) push(v data.Value) {
 	vm.stack = append(vm.stack, v)
 	vm.stackTop++
-	fmt.Printf("Pushing value %s\nStack top is %d\n", v, vm.stackTop)
+	if Debug {
+		fmt.Printf("Pushing value %s\nStack top is %d\n", v, vm.stackTop)
+	}
 }
 
 func (vm *Vm) pop() data.Value {
@@ -138,7 +144,9 @@ func (vm *Vm) pop() data.Value {
 	assert(vm.stackTop > -1, "Stack top should never be less than 0")
 	v := vm.stack[vm.stackTop]
 	vm.stack = vm.stack[:vm.stackTop]
-	fmt.Printf("Popping value %s\nStack top is %d\n", v, vm.stackTop)
+	if Debug {
+		fmt.Printf("Popping value %s\nStack top is %d\n", v, vm.stackTop)
+	}
 	return v
 }
 
