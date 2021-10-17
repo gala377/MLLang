@@ -10,15 +10,29 @@ import (
 
 var Debug = true
 
-type Vm struct {
-	code *isa.Code
-	// global instruction pointer or per function instruction pointer?
-	ip int
-	// modules []*module ? map[symbol]*module?
-	// thisModule *module
-	stack    []data.Value
-	stackTop int
-}
+type (
+	returnKind = byte
+
+	trampoline struct {
+		kind returnKind
+	}
+
+	Vm struct {
+		code *isa.Code
+		// global instruction pointer or per function instruction pointer?
+		ip int
+		// modules []*module ? map[symbol]*module?
+		// thisModule *module
+		stack    []data.Value
+		stackTop int
+	}
+)
+
+const (
+	Proceed returnKind = iota
+	NormalCall
+	TailCall
+)
 
 func NewVm() Vm {
 	return Vm{
@@ -50,6 +64,8 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			arg := vm.readByte()
 			v := vm.code.GetConstant(arg)
 			vm.push(v)
+		case isa.Pop:
+			vm.pop()
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -59,18 +75,9 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			callee := vm.pop()
 			fn, ok := callee.(data.Callable)
 			if !ok {
-				// todo exception?
 				panic("Trying to call something that is not callable")
 			}
-			switch {
-			case arity == fn.Arity():
-				vm.push(fn.Call(args...))
-			case arity < fn.Arity():
-				vm.push(data.NewPartialApp(fn, args...))
-			case arity > fn.Arity():
-				// todo exception?
-				panic("Supplied more arguments than function takes")
-			}
+			vm.applyFunc(fn, reverse(args))
 		}
 	}
 	return data.None, nil
@@ -104,4 +111,34 @@ func (vm *Vm) printStack() {
 
 func (vm *Vm) printInstr() {
 	isa.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
+}
+
+func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) trampoline {
+	arity := fn.Arity()
+	switch {
+	case arity == fn.Arity():
+		return vm.call(fn, args)
+	case arity < fn.Arity():
+		vm.push(data.NewPartialApp(fn, args...))
+		return trampoline{kind: Proceed}
+	case arity > fn.Arity():
+		panic("supplied more arguments than the function takes")
+	}
+	panic("unreachable")
+}
+
+func (vm *Vm) call(fn data.Callable, args []data.Value) trampoline {
+	switch c := fn.(type) {
+	case *data.NativeFunc:
+		vm.push(c.Call(args...))
+		return trampoline{kind: Proceed}
+	}
+	panic("Unreachable")
+}
+
+func reverse(s []data.Value) []data.Value {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
+	}
+	return s
 }
