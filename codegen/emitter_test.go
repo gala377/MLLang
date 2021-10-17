@@ -66,6 +66,20 @@ func TestEmittingIf(t *testing.T) {
 	matchResults(t, &test)
 }
 
+func TestEmittingMultipleStatements(t *testing.T) {
+	test := etest{
+		{
+			"true\nfalse\n",
+			codeFromBytes(2, []byte{
+				isa.Constant, 0,
+				isa.Constant, 1,
+				isa.Return,
+			}),
+		},
+	}
+	matchResults(t, &test)
+}
+
 func codeFromBytes(cc int, bb []byte) *isa.Code {
 	c := isa.NewCode()
 	c.Instrs = bb

@@ -26,8 +26,10 @@ func NewEmitter() *Emitter {
 	return &e
 }
 
-func (e *Emitter) Compile(n []ast.Node) *isa.Code {
-	e.emitNode(n[0])
+func (e *Emitter) Compile(nn []ast.Node) *isa.Code {
+	for _, n := range nn {
+		e.emitNode(n)
+	}
 	e.emitByte(isa.Return)
 	return e.result
 }
@@ -79,6 +81,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitBlock(v)
 	case *ast.Identifier:
 		e.emitLookup(v)
+	case *ast.FuncApplication:
+		e.emitApplication(v)
 	default:
 		log.Printf("Node is %v", node)
 		panic("Node cannot be emitted. Not supported")
@@ -165,4 +169,10 @@ func (e *Emitter) emitLookup(node *ast.Identifier) {
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DynLookup)
 	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitApplication(node *ast.FuncApplication) {
+	// todo:
+	// stack should be #bottom[narg, n-1arg, ... 2nd, 1st, CallableObj ]#top
+	// emit App; Arity
 }
