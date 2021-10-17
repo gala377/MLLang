@@ -73,6 +73,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitIntConst(v)
 	case *ast.BoolConst:
 		e.emitBoolConst(v)
+	case *ast.StringConst:
+		e.emitStringConst(v)
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
@@ -125,6 +127,11 @@ func (e *Emitter) emitIntConst(node *ast.IntConst) {
 
 func (e *Emitter) emitBoolConst(node *ast.BoolConst) {
 	v := data.NewBool(node.Val)
+	e.emitConstant(v)
+}
+
+func (e *Emitter) emitStringConst(node *ast.StringConst) {
+	v := data.NewString(node.Val)
 	e.emitConstant(v)
 }
 
