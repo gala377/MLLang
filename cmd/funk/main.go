@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,10 +14,14 @@ import (
 	"github.com/gala377/MLLang/vm"
 )
 
+var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virtual machine")
+
 func main() {
+	flag.Parse()
+	fmt.Printf("%v\n", flag.Args())
 	f := getFile()
 	log.SetOutput(ioutil.Discard)
-	vm.Debug = false
+	vm.Debug = *verboseFlag
 	evaluateBuffer(f)
 }
 
@@ -49,10 +54,13 @@ func vmWithStdEnv(i *codegen.Interner) *vm.Vm {
 }
 
 func getFile() []byte {
-	filename := os.Args[1]
+	if flag.NArg() == 0 {
+		panic("Expected one positional argument which is a file name")
+	}
+	filename := flag.Arg(0)
 	buffer, err := ioutil.ReadFile(filename)
 	if err != nil {
-		fmt.Println(fmt.Errorf("%s file not found", filename))
+		fmt.Println(fmt.Errorf("'%s' file not found", filename))
 		os.Exit(1)
 	}
 	return buffer
