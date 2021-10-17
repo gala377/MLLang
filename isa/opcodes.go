@@ -11,4 +11,5 @@ const (
 	JumpIfFalse
 	DynLookup
 	Pop
+	DefGlobal
 )

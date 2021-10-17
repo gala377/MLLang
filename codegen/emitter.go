@@ -38,6 +38,10 @@ func (e *Emitter) emitNode(n ast.Node) {
 		e.emitUnboundExpr(v)
 		return
 	}
+	if v, ok := n.(ast.Decl); ok {
+		e.emitDeclaration(v)
+		return
+	}
 	panic("Not yet supported")
 }
 
@@ -183,4 +187,27 @@ func (e *Emitter) emitApplication(node *ast.FuncApplication) {
 	// todo:
 	// stack should be #bottom[narg, n-1arg, ... 2nd, 1st, CallableObj ]#top
 	// emit App; Arity
+}
+
+func (e *Emitter) emitDeclaration(node ast.Decl) {
+	switch v := node.(type) {
+	case *ast.GlobalValDecl:
+		e.emitGlobalVariableDecl(v)
+	case *ast.FuncDecl:
+		panic("Function declarations not supported")
+	}
+}
+
+func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
+	e.emitExpr(node.Rhs)
+	s := e.interner.Intern(node.Name)
+	v := data.NewSymbol(s)
+	index := e.result.AddConstant(v)
+	if index > math.MaxUint16 {
+		panic("More constants that uint16 can hold. That is not supported.")
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.DefGlobal)
+	e.emitBytes(args...)
 }

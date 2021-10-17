@@ -36,6 +36,10 @@ func (c *Code) GetConstant(i byte) data.Value {
 	return c.Consts[i]
 }
 
+func (c *Code) GetConstant2(i uint16) data.Value {
+	return c.Consts[i]
+}
+
 func (c *Code) Len() int {
 	return len(c.Instrs)
 }

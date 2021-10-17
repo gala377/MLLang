@@ -1,6 +1,7 @@
 package vm
 
 import (
+	"encoding/binary"
 	"fmt"
 	"strings"
 
@@ -25,6 +26,7 @@ type (
 		// thisModule *module
 		stack    []data.Value
 		stackTop int
+		globals  Env
 	}
 )
 
@@ -40,6 +42,7 @@ func NewVm() Vm {
 		ip:       0,
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
+		globals:  NewEnv(),
 	}
 }
 
@@ -57,6 +60,7 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 		i := vm.readByte()
 		switch i {
 		case isa.Return:
+			// restore ip, code and who knows what else
 			v := vm.pop()
 			fmt.Print(v.String())
 			return v, nil
@@ -64,8 +68,16 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			arg := vm.readByte()
 			v := vm.code.GetConstant(arg)
 			vm.push(v)
+		case isa.Constant2:
+			arg := vm.readShort()
+			v := vm.code.GetConstant2(arg)
+			vm.push(v)
 		case isa.Pop:
 			vm.pop()
+		case isa.DefGlobal:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			vm.globals.Instert(s, vm.pop())
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -78,6 +90,16 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 				panic("Trying to call something that is not callable")
 			}
 			vm.applyFunc(fn, reverse(args))
+		case isa.DynLookup:
+			// todo: add more lookups
+			// now it only works for globals
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			if v := vm.globals.Lookup(s); v != nil {
+				vm.push(v)
+			} else {
+				panic(fmt.Sprintf("variable %s undefined", s))
+			}
 		}
 	}
 	return data.None, nil
@@ -87,6 +109,12 @@ func (vm *Vm) readByte() byte {
 	b := vm.code.ReadByte(vm.ip)
 	vm.ip++
 	return b
+}
+
+func (vm *Vm) readShort() uint16 {
+	args := []byte{vm.readByte(), vm.readByte()}
+	index := binary.BigEndian.Uint16(args)
+	return index
 }
 
 func (vm *Vm) push(v data.Value) {
@@ -134,6 +162,14 @@ func (vm *Vm) call(fn data.Callable, args []data.Value) trampoline {
 		return trampoline{kind: Proceed}
 	}
 	panic("Unreachable")
+}
+
+func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
+	s := vm.code.GetConstant2(i)
+	if as, ok := s.(data.Symbol); ok {
+		return as
+	}
+	panic("Expected constant to be a symbol")
 }
 
 func reverse(s []data.Value) []data.Value {

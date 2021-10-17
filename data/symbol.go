@@ -28,3 +28,7 @@ func (s Symbol) EqualSymbol(o Symbol) bool {
 func (s Symbol) EqualString(o InternedString) bool {
 	return s.name == o
 }
+
+func (s Symbol) Inner() InternedString {
+	return s.name
+}

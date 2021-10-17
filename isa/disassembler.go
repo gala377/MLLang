@@ -15,6 +15,7 @@ var instNames = [...]string{
 	JumpIfFalse: "JumpIfFalse",
 	DynLookup:   "DynLookup",
 	Pop:         "Pop",
+	DefGlobal:   "DefGlobal",
 }
 
 const opCount = len(instNames)
@@ -28,6 +29,7 @@ var instArguments = [opCount]int{
 	JumpIfFalse: 2,
 	DynLookup:   2,
 	Pop:         0,
+	DefGlobal:   2,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string
@@ -37,7 +39,8 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	Constant2:   writeConstant2,
 	Jump:        writeJump,
 	JumpIfFalse: writeJump,
-	DynLookup:   writeDynLookup,
+	DynLookup:   writeConstant2,
+	DefGlobal:   writeConstant2,
 }
 
 func PrintCode(code *Code, name string) {
@@ -92,9 +95,4 @@ func writeConstant2(code *Code, args []byte) string {
 func writeJump(code *Code, args []byte) string {
 	o := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16d", o)
-}
-
-func writeDynLookup(code *Code, args []byte) string {
-	i := binary.BigEndian.Uint16(args)
-	return fmt.Sprintf("%16s", code.Consts[i])
 }
