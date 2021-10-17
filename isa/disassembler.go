@@ -14,6 +14,7 @@ var instNames = [...]string{
 	Jump:        "Jump",
 	JumpIfFalse: "JumpIfFalse",
 	DynLookup:   "DynLookup",
+	Pop:         "Pop",
 }
 
 const opCount = len(instNames)
@@ -26,6 +27,7 @@ var instArguments = [opCount]int{
 	Jump:        2,
 	JumpIfFalse: 2,
 	DynLookup:   2,
+	Pop:         0,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string

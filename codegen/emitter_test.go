@@ -20,26 +20,26 @@ func TestEmittingConstValues(t *testing.T) {
 		{
 			"10",
 			codeFromBytes(1, []byte{
-				isa.Constant, 0, isa.Return,
+				isa.Constant, 0, isa.Pop,
 			}),
 		},
 		{
 			"true",
 			codeFromBytes(1, []byte{
-				isa.Constant, 0, isa.Return,
+				isa.Constant, 0, isa.Pop,
 			}),
 		},
 		{
 			"false",
 			codeFromBytes(1, []byte{
-				isa.Constant, 0, isa.Return,
+				isa.Constant, 0, isa.Pop,
 			}),
 		},
 		{
 			"a",
 			codeFromBytes(1, []byte{
 				isa.DynLookup, 0, 0,
-				isa.Return,
+				isa.Pop,
 			}),
 		},
 	}
@@ -59,7 +59,27 @@ func TestEmittingIf(t *testing.T) {
 				isa.Constant, 1,
 				isa.Jump, 0, 5,
 				isa.Constant, 2,
-				isa.Return,
+				isa.Pop,
+			}),
+		},
+		{
+			"if true:\n" +
+				"  1\n" +
+				"  1\n" +
+				"else:\n" +
+				"  2\n" +
+				"  2\n",
+			codeFromBytes(5, []byte{
+				isa.Constant, 0,
+				isa.JumpIfFalse, 0, 11,
+				isa.Constant, 1,
+				isa.Pop,
+				isa.Constant, 2,
+				isa.Jump, 0, 8,
+				isa.Constant, 3,
+				isa.Pop,
+				isa.Constant, 4,
+				isa.Pop,
 			}),
 		},
 	}
@@ -72,8 +92,9 @@ func TestEmittingMultipleStatements(t *testing.T) {
 			"true\nfalse\n",
 			codeFromBytes(2, []byte{
 				isa.Constant, 0,
+				isa.Pop,
 				isa.Constant, 1,
-				isa.Return,
+				isa.Pop,
 			}),
 		},
 	}

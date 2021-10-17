@@ -30,13 +30,12 @@ func (e *Emitter) Compile(nn []ast.Node) *isa.Code {
 	for _, n := range nn {
 		e.emitNode(n)
 	}
-	e.emitByte(isa.Return)
 	return e.result
 }
 
 func (e *Emitter) emitNode(n ast.Node) {
 	if v, ok := n.(ast.Expr); ok {
-		e.emitExpr(v)
+		e.emitUnboundExpr(v)
 		return
 	}
 	panic("Not yet supported")
@@ -89,6 +88,11 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	}
 }
 
+func (e *Emitter) emitUnboundExpr(node ast.Expr) {
+	e.emitExpr(node)
+	e.emitByte(isa.Pop)
+}
+
 func (e *Emitter) emitIf(node *ast.IfExpr) {
 	e.emitExpr(node.Cond)
 	ifpos := e.emitJumpIfFalse()
@@ -111,9 +115,13 @@ func (e *Emitter) emitIf(node *ast.IfExpr) {
 }
 
 func (e *Emitter) emitBlock(node *ast.Block) {
-	for _, instr := range node.Instr {
+	for i, instr := range node.Instr {
 		if v, ok := instr.(ast.Expr); ok {
-			e.emitExpr(v)
+			if i == (len(node.Instr) - 1) {
+				e.emitExpr(v)
+			} else {
+				e.emitUnboundExpr(v)
+			}
 		} else {
 			panic("Emitting node not yet supported")
 		}

@@ -10,4 +10,5 @@ const (
 	Jump
 	JumpIfFalse
 	DynLookup
+	Pop
 )
