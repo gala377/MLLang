@@ -6,10 +6,15 @@ import (
 )
 
 type (
+	ReturnKind = byte
+
+	Trampoline struct {
+		kind ReturnKind
+	}
 	Callable interface {
 		Value
 		Arity() int
-		Call(...Value) Value
+		Call(...Value) (Value, Trampoline)
 	}
 
 	NativeFunc struct {
@@ -24,6 +29,12 @@ type (
 	}
 )
 
+const (
+	Proceed ReturnKind = iota
+	NormalCall
+	TailCall
+)
+
 func NewNativeFunc(name string, arity int, fn func(...Value) Value) NativeFunc {
 	return NativeFunc{
 		name:  name,
@@ -36,8 +47,8 @@ func (fn *NativeFunc) Arity() int {
 	return fn.arity
 }
 
-func (fn *NativeFunc) Call(vv ...Value) Value {
-	return (fn.fn)(vv...)
+func (fn *NativeFunc) Call(vv ...Value) (Value, Trampoline) {
+	return (fn.fn)(vv...), ProceedTramp
 }
 
 func (fn *NativeFunc) String() string {
@@ -69,7 +80,7 @@ func (f *PartialApp) Arity() int {
 	return f.fn.Arity() - len(f.args)
 }
 
-func (f *PartialApp) Call(vv ...Value) Value {
+func (f *PartialApp) Call(vv ...Value) (Value, Trampoline) {
 	args := append(f.args, vv...)
 	return f.fn.Call(args...)
 }
@@ -88,3 +99,5 @@ func (f *PartialApp) Equal(o Value) bool {
 	}
 	return false
 }
+
+var ProceedTramp = Trampoline{kind: Proceed}

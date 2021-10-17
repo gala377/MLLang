@@ -12,12 +12,6 @@ import (
 var Debug = true
 
 type (
-	returnKind = byte
-
-	trampoline struct {
-		kind returnKind
-	}
-
 	Vm struct {
 		code *isa.Code
 		// global instruction pointer or per function instruction pointer?
@@ -28,12 +22,6 @@ type (
 		stackTop int
 		globals  Env
 	}
-)
-
-const (
-	Proceed returnKind = iota
-	NormalCall
-	TailCall
 )
 
 func NewVm() Vm {
@@ -96,6 +84,9 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			fn, ok := callee.(data.Callable)
 			if !ok {
 				panic("Trying to call something that is not callable")
+			}
+			if Debug {
+				fmt.Printf("Calling a function %s\n", fn.String())
 			}
 			vm.applyFunc(fn, reverse(args))
 		case isa.DynLookup:
@@ -163,25 +154,29 @@ func (vm *Vm) printInstr() {
 	fmt.Println(s)
 }
 
-func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) trampoline {
-	arity := fn.Arity()
+func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) data.Trampoline {
+	argc := len(args)
 	switch {
-	case arity == fn.Arity():
+	case argc == fn.Arity():
 		return vm.call(fn, args)
-	case arity < fn.Arity():
+	case argc < fn.Arity():
+		if Debug {
+			fmt.Printf("Parital application %d < %d", argc, fn.Arity())
+		}
 		vm.push(data.NewPartialApp(fn, args...))
-		return trampoline{kind: Proceed}
-	case arity > fn.Arity():
+		return data.ProceedTramp
+	case argc > fn.Arity():
 		panic("supplied more arguments than the function takes")
 	}
 	panic("unreachable")
 }
 
-func (vm *Vm) call(fn data.Callable, args []data.Value) trampoline {
+func (vm *Vm) call(fn data.Callable, args []data.Value) data.Trampoline {
 	switch c := fn.(type) {
-	case *data.NativeFunc:
-		vm.push(c.Call(args...))
-		return trampoline{kind: Proceed}
+	case *data.NativeFunc, *data.PartialApp:
+		v, t := c.Call(args...)
+		vm.push(v)
+		return t
 	}
 	panic("Unreachable")
 }
