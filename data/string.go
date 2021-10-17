@@ -1,5 +1,7 @@
 package data
 
+import "fmt"
+
 type String struct {
 	val string
 }
@@ -9,7 +11,7 @@ func NewString(v string) String {
 }
 
 func (s String) String() string {
-	return s.val
+	return fmt.Sprintf("\"%s\"", s.val)
 }
 
 func (s String) Equal(o Value) bool {
