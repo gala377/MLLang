@@ -1,6 +1,8 @@
 package data
 
-import "strconv"
+import (
+	"strconv"
+)
 
 type Int struct {
 	val int
@@ -15,7 +17,7 @@ func (i Int) String() string {
 }
 
 func (i Int) Equal(o Value) bool {
-	if oi, ok := o.(Int); ok {
+	if oi, ok := o.(*Int); ok {
 		return i.val == oi.val
 	}
 	return false

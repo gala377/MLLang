@@ -55,6 +55,10 @@ func NewParser(source io.Reader) *Parser {
 	return &p
 }
 
+func (p *Parser) Errors() []SyntaxError {
+	return p.errors
+}
+
 func (p *Parser) Parse() []ast.Node {
 	log.Println("Parse")
 	nodes := make([]ast.Node, 0)

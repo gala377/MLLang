@@ -33,6 +33,10 @@ func (e *Emitter) Compile(nn []ast.Node) *isa.Code {
 	return e.result
 }
 
+func (e *Emitter) Interner() *Interner {
+	return e.interner
+}
+
 func (e *Emitter) emitNode(n ast.Node) {
 	if v, ok := n.(ast.Expr); ok {
 		e.emitUnboundExpr(v)
@@ -184,9 +188,15 @@ func (e *Emitter) emitLookup(node *ast.Identifier) {
 }
 
 func (e *Emitter) emitApplication(node *ast.FuncApplication) {
-	// todo:
-	// stack should be #bottom[narg, n-1arg, ... 2nd, 1st, CallableObj ]#top
-	// emit App; Arity
+	e.emitExpr(node.Callee)
+	for _, a := range node.Args {
+		e.emitExpr(a)
+	}
+	if len(node.Args) > 255 {
+		panic("Function application with more than 255 arguments is not supported")
+	}
+	as := byte(len(node.Args))
+	e.emitBytes(isa.Call, as)
 }
 
 func (e *Emitter) emitDeclaration(node ast.Decl) {
