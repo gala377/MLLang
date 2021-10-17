@@ -10,15 +10,16 @@ import (
 
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
+	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax"
 	"github.com/gala377/MLLang/vm"
 )
 
 var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virtual machine")
+var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
 
 func main() {
 	flag.Parse()
-	fmt.Printf("%v\n", flag.Args())
 	f := getFile()
 	log.SetOutput(ioutil.Discard)
 	vm.Debug = *verboseFlag
@@ -37,6 +38,10 @@ func evaluateBuffer(buff []byte) {
 	}
 	e := codegen.NewEmitter()
 	c := e.Compile(ast)
+	if *showCode {
+		fmt.Println(isa.DisassembleCode(c))
+		os.Exit(0)
+	}
 	vm := vmWithStdEnv(e.Interner())
 	vm.Interpret(c)
 }
