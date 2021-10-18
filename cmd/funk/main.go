@@ -30,9 +30,9 @@ func evaluateBuffer(buff []byte) {
 	p := syntax.NewParser(bytes.NewReader(buff))
 	ast := p.Parse()
 	if len(p.Errors()) > 0 {
-		log.Printf("Parsing error:")
+		fmt.Print("Parsing error:")
 		for _, e := range p.Errors() {
-			log.Print(e)
+			fmt.Print(e)
 		}
 		os.Exit(1)
 	}

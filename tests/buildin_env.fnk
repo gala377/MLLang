@@ -1,3 +1,9 @@
+@EXPECTED
+Hello
+Hello "Anne"
+Add result 2
+
+@SOURCE
 print "Hello"
-printf "Hello %v" "Anne"
+printf "Hello %s" "Anne"
 printf "Add result %v" (add 1 1)

@@ -1,10 +1,14 @@
 import os
+from posixpath import expanduser, join
 import sys
 import subprocess
 import glob
 import tempfile
+import pdb
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional, Union
 
 """
 Build fnk binary somewhere
@@ -51,18 +55,65 @@ def build_fnk(root: Path, out: Path) -> Path:
     finally:
         os.chdir(last_dir)
 
+@dataclass
+class TestFailed(Exception):
+    test: Path
+    msg: str
+
 def run_tests(binary: Path, tests: list[Path]):
     failed = []
     for test in tests:
         print(f"Running test {strip_tests_dir(test)}... ", end='')
+        test_path, expected = parse_test_file(test)
+        test_output = expected is not None
+        if test_output:
+            test_file = test_path
+            test_path = test_file.name
         try:
-            subprocess.run([binary, test], check=True, capture_output=True)
+            proc = subprocess.run([binary, test_path], check=True, capture_output=True)
+            if test_output:
+                output = proc.stdout.splitlines()
+                output = list(map(lambda s: s.decode("utf-8"), output))
+                fail_msg = (
+                    "STDOUT DOES NOT MATCH:\nExpected: ==========\n\n" +
+                    "\n".join(expected) +
+                    "\nGOT: ===========\n\n" +
+                    "\n".join(output))
+                if len(expected) != len(output):
+                    raise TestFailed(test, fail_msg)
+                for e_line, a_line in zip(expected, output):
+                    if e_line != a_line:
+                        raise TestFailed(test, fail_msg)
         except subprocess.CalledProcessError as e:
-            failed.append((test, e.stdout, e.stderr))
+            failed.append((
+                test,
+                e.stdout.decode("utf-8"),
+                e.stderr.decode("utf-8")))
+            print("Failed")
+        except TestFailed as e:
+            failed.append((test, e.msg, ""))
             print("Failed")
         else:
             print("Passed")
+        finally:
+            if test_output:
+                test_file.close()
     print_stats(failed, tests)
+
+def parse_test_file(test: Path):
+    with test.open() as tf:
+        if (l := tf.readline()) != "@EXPECTED\n":
+            return test, None
+        expected = []
+        source = tf.readlines()
+        while (line := source.pop(0)) != "@SOURCE\n":
+            expected.append(line)
+        test_source = tempfile.NamedTemporaryFile()
+        test_source.writelines(map(lambda x: bytes(x, 'utf-8'), source))
+        test_source.seek(0)
+        test_source.flush()
+        expected = list(filter(bool, map(str.rstrip, expected)))
+        return test_source, expected
 
 def print_stats(failed: list[tuple[Path, bytes, bytes]], all: list[Path]):
     print("="*70)
@@ -70,8 +121,8 @@ def print_stats(failed: list[tuple[Path, bytes, bytes]], all: list[Path]):
     print("="*70)
     for (path, stdout, stderr) in failed:
         print(f"FAILED TEST {strip_tests_dir(path)}")
-        print(stdout.decode("utf-8"))
-        print(stderr.decode("utf-8"))
+        print(stdout)
+        print(stderr)
         print("\n")
 
     print(f"Passed {len(all)-len(failed)}/{len(all)}.")

@@ -1,4 +1,9 @@
+@EXPECTED
+Hello "Frank"
+Hello "Ann"
+Hello "George"
 
+@SOURCE
 
 val printer = printf "Hello %v"
 
