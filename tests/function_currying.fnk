@@ -3,6 +3,8 @@
 Hello "Frank"
 Hello "Ann"
 Hello "George"
+1
+11
 
 @SOURCE
 
@@ -11,3 +13,9 @@ val printer = printf "Hello %v"
 printer "Frank"
 printer "Ann"
 printer "George"
+
+val print = printf "%v"
+
+val inc = add 1
+print (inc 0)
+print (inc 10)
