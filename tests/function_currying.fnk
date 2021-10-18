@@ -1,0 +1,7 @@
+
+
+val printer = printf "Hello %v"
+
+printer "Frank"
+printer "Ann"
+printer "George"

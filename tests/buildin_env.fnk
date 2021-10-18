@@ -1,0 +1,3 @@
+print "Hello"
+printf "Hello %v" "Anne"
+printf "Add result %v" (add 1 1)
