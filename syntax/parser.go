@@ -13,6 +13,7 @@ import (
 )
 
 type parseExprFn = func() (ast.Expr, bool)
+type parseStmtFn = func() (ast.Stmt, bool)
 type SyntaxError struct {
 	pos span.Span
 	msg string
@@ -31,12 +32,13 @@ type Parser struct {
 	errors              []SyntaxError
 	curr                token.Token
 	indents             []int
-	statements          [token.Eof]parseExprFn
+	stmtSpecialForms    [token.Eof]parseStmtFn
+	exprSpecialForms    [token.Eof]parseExprFn
 	parseTrailingBlocks bool
 }
 
 func NewParser(source io.Reader) *Parser {
-	log.Println("Creating new parser")
+	log.Println("==============Creating new parser===============")
 	var p Parser
 	handler := func(beg, end span.Position, msg string) {
 		p.errors = append(p.errors, SyntaxError{
@@ -49,15 +51,18 @@ func NewParser(source io.Reader) *Parser {
 	p.curr = l.Next()
 	p.indents = []int{0}
 	p.errors = make([]SyntaxError, 0)
-	p.statements = [token.Eof]parseExprFn{
-		token.Do:    p.parseLambda,
-		token.While: p.parseWhile,
-		token.If:    p.parseIf,
+	p.exprSpecialForms = [token.Eof]parseExprFn{
+		token.Do: p.parseLambda,
+		token.If: p.parseIf,
 		token.Else: func() (ast.Expr, bool) {
 			p.error(p.position(), p.position(), "else expected only after while")
 			p.recover()
 			return nil, false
 		},
+	}
+	p.stmtSpecialForms = [token.Eof]parseStmtFn{
+		token.While: p.parseWhile,
+		// token.Val:   p.parseValDec,
 	}
 	p.parseTrailingBlocks = true
 	return &p
@@ -81,7 +86,7 @@ func (p *Parser) Parse() []ast.Node {
 			}
 			continue
 		}
-		n, ok = p.parseTopLevelExpr()
+		n, ok = p.parseTopLevelStmt()
 		if n != nil || !ok {
 			if n != nil {
 				nodes = append(nodes, n)
@@ -112,7 +117,7 @@ func (p *Parser) parseTopLevelDecl() (ast.Decl, bool) {
 	if fnode != nil || !ok {
 		return fnode, ok
 	}
-	vnode, ok := p.parseValDecl()
+	vnode, ok := p.parseGlobalValDecl()
 	if vnode != nil || !ok {
 		return vnode, ok
 	}
@@ -177,7 +182,7 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 	return &fn, true
 }
 
-func (p *Parser) parseValDecl() (*ast.GlobalValDecl, bool) {
+func (p *Parser) parseGlobalValDecl() (*ast.GlobalValDecl, bool) {
 	log.Println("Parsing val decl")
 	beg := p.position()
 	if t := p.match(token.Val); t == nil {
@@ -204,18 +209,23 @@ func (p *Parser) parseValDecl() (*ast.GlobalValDecl, bool) {
 	return &node, ok
 }
 
-func (p *Parser) parseTopLevelExpr() (ast.Expr, bool) {
+func (p *Parser) parseTopLevelStmt() (ast.Stmt, bool) {
 	log.Println("Parse top level expr")
-	return p.parseExpr()
+	return p.parseStmt()
 }
 
-func (p *Parser) parseExpr() (ast.Expr, bool) {
+func (p *Parser) parseStmt() (ast.Stmt, bool) {
 	t := p.curr
-	parseStmt := p.statements[t.Typ]
-	if parseStmt == nil {
-		return p.parseFunctionApp()
+	parseSpecialForm := p.stmtSpecialForms[t.Typ]
+	if parseSpecialForm == nil {
+		res, ok := p.parseExpr()
+		if res == nil {
+			return nil, ok
+		}
+		p.match(token.NewLine)
+		return &ast.StmtExpr{Expr: res}, ok
 	}
-	res, ok := parseStmt()
+	res, ok := parseSpecialForm()
 	if ok && res == nil {
 		log.Printf("Could not parse the stmt, tok is %s", token.IdToString(p.curr.Typ))
 		panic("chosen parse stmt function could not parse a stmt")
@@ -223,18 +233,16 @@ func (p *Parser) parseExpr() (ast.Expr, bool) {
 	return res, ok
 }
 
-func (p *Parser) parseStmtExpression() (ast.Expr, bool) {
+func (p *Parser) parseExpr() (ast.Expr, bool) {
 	t := p.curr
-	parseStmt := p.statements[t.Typ]
-	if parseStmt == nil {
-		res, ok := p.parseFunctionApp()
-		p.match(token.NewLine)
-		return res, ok
+	parseSpecialForm := p.exprSpecialForms[t.Typ]
+	if parseSpecialForm == nil {
+		return p.parseFunctionApp()
 	}
-	res, ok := parseStmt()
+	res, ok := parseSpecialForm()
 	if ok && res == nil {
-		log.Printf("Could not parse the stmt, tok is %s", token.IdToString(p.curr.Typ))
-		panic("chosen parse stmt function could not parse a stmt")
+		log.Printf("Could not parse the expr, tok is %s", token.IdToString(p.curr.Typ))
+		panic("chosen parse expr function could not parse an expr")
 	}
 	return res, ok
 }
@@ -257,17 +265,17 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 		return nil, false
 	}
 	defer p.popIndent(indent)
-	parseExpr := func() (ast.Expr, bool) {
+	parseStmt := func() (ast.Stmt, bool) {
 		log.Printf("%d running wrapped parse", indent)
 		if t := p.matchIndent(indent); !t {
 			return nil, true
 		}
-		return p.parseStmtExpression()
+		return p.parseStmt()
 	}
-	exprs := []ast.Node{}
-	var e ast.Expr = nil
+	exprs := []ast.Stmt{}
+	var e ast.Stmt = nil
 	ok := true
-	for e, ok = parseExpr(); e != nil && ok; e, ok = parseExpr() {
+	for e, ok = parseStmt(); e != nil && ok; e, ok = parseStmt() {
 		exprs = append(exprs, e)
 	}
 	if !ok {
@@ -443,7 +451,7 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 	}
 }
 
-func (p *Parser) parseWhile() (ast.Expr, bool) {
+func (p *Parser) parseWhile() (ast.Stmt, bool) {
 	beg := p.position()
 	log.Printf("Parsing while, curr token is %s", token.IdToString(p.curr.Typ))
 	if t := p.match(token.While); t == nil {
@@ -470,7 +478,7 @@ func (p *Parser) parseWhile() (ast.Expr, bool) {
 		return nil, false
 	}
 	span := span.NewSpan(beg, p.position())
-	node := ast.WhileExpr{
+	node := ast.WhileStmt{
 		Span: &span,
 		Cond: cond,
 		Body: body,
@@ -596,6 +604,33 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 	}
 	return &node, true
 
+}
+
+func (p *Parser) parseValDecl() (ast.Stmt, bool) {
+	log.Println("Parsing val decl")
+	beg := p.position()
+	if t := p.match(token.Val); t == nil {
+		return nil, true
+	}
+	name := p.match(token.Identifier)
+	if name == nil {
+		p.error(beg, p.position(), "expected identifier in variable declaration")
+		p.recover()
+		return nil, false
+	}
+	if t := p.match(token.Assignment); t == nil {
+		p.error(beg, p.position(), "expected '=' operator in variable declaration")
+		p.recover()
+		return nil, false
+	}
+	expr, ok := p.parseExpr()
+	span := span.NewSpan(beg, p.position())
+	node := ast.ValDecl{
+		Span: &span,
+		Name: name.Val,
+		Rhs:  expr,
+	}
+	return &node, ok
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {

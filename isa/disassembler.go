@@ -14,6 +14,7 @@ var instNames = [...]string{
 	Jump:        "Jump",
 	JumpIfFalse: "JumpIfFalse",
 	DynLookup:   "DynLookup",
+	LocalLookup: "LocalLookup",
 	Pop:         "Pop",
 	DefGlobal:   "DefGlobal",
 }
@@ -28,6 +29,7 @@ var instArguments = [opCount]int{
 	Jump:        2,
 	JumpIfFalse: 2,
 	DynLookup:   2,
+	LocalLookup: 2,
 	Pop:         0,
 	DefGlobal:   2,
 }
@@ -40,6 +42,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	Jump:        writeJump,
 	JumpIfFalse: writeJump,
 	DynLookup:   writeConstant2,
+	LocalLookup: writeConstant2,
 	DefGlobal:   writeConstant2,
 }
 

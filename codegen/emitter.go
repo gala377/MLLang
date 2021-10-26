@@ -29,6 +29,7 @@ type Emitter struct {
 	line     int
 	interner *Interner
 	errors   []CompilationError
+	scope    *Scope
 }
 
 func NewEmitter(i *Interner) *Emitter {
@@ -38,6 +39,7 @@ func NewEmitter(i *Interner) *Emitter {
 		line:     0,
 		interner: i,
 		errors:   make([]CompilationError, 0),
+		scope:    NewScope(nil),
 	}
 	return &e
 }
@@ -115,7 +117,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
-		e.emitLookup(v)
+		e.emitGlobalLookup(v)
 	case *ast.FuncApplication:
 		e.emitApplication(v)
 	default:
@@ -202,7 +204,15 @@ func (e *Emitter) patchJump(i int, offset int) {
 	copy(e.result.Instrs[i+1:], args)
 }
 
-func (e *Emitter) emitLookup(node *ast.Identifier) {
+func (e *Emitter) emitGlobalLookup(node *ast.Identifier) {
+	e.emitLookup(isa.DynLookup, node)
+}
+
+func (e *Emitter) emitLocalLookup(node *ast.Identifier) {
+	e.emitLookup(isa.LocalLookup, node)
+}
+
+func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
 	s := e.interner.Intern(node.Name)
 	v := data.NewSymbol(s)
 	index := e.result.AddConstant(v)
@@ -212,7 +222,7 @@ func (e *Emitter) emitLookup(node *ast.Identifier) {
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
-	e.emitByte(isa.DynLookup)
+	e.emitByte(kind)
 	e.emitBytes(args...)
 }
 

@@ -24,6 +24,7 @@ type (
 		stack    []data.Value
 		stackTop int
 		globals  Env
+		locals   Env
 		source   *bytes.Reader
 	}
 )
@@ -35,6 +36,7 @@ func NewVm(source *bytes.Reader) Vm {
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
 		globals:  NewEnv(),
+		locals:   NewEnv(),
 		source:   source,
 	}
 }

@@ -10,6 +10,7 @@ const (
 	Jump
 	JumpIfFalse
 	DynLookup
+	LocalLookup
 	Pop
 	DefGlobal
 )

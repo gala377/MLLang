@@ -218,9 +218,9 @@ func TestParsingIf(t *testing.T) {
 						},
 					},
 					IfBranch: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
-							&ast.IntConst{Val: 2},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{&ast.IntConst{Val: 2}},
 						},
 					},
 					ElseBranch: nil,
@@ -243,13 +243,13 @@ func TestParsingIf(t *testing.T) {
 						},
 					},
 					IfBranch: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
 						},
 					},
 					ElseBranch: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 2},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -271,15 +271,15 @@ func TestParsingIf(t *testing.T) {
 						},
 					},
 					IfBranch: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
 						},
 					},
 					ElseBranch: &ast.IfExpr{
 						Cond: &ast.Identifier{Name: "b"},
 						IfBranch: &ast.Block{
-							Instr: []ast.Node{
-								&ast.IntConst{Val: 2},
+							Instr: []ast.Stmt{
+								&ast.StmtExpr{&ast.IntConst{Val: 2}},
 							},
 						},
 						ElseBranch: nil,
@@ -298,8 +298,8 @@ func TestParsingIf(t *testing.T) {
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IfExpr{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IfExpr{
 								Cond: &ast.FuncApplication{
 									Callee: &ast.Identifier{
 										Name: "a",
@@ -309,16 +309,16 @@ func TestParsingIf(t *testing.T) {
 									},
 								},
 								IfBranch: &ast.Block{
-									Instr: []ast.Node{
-										&ast.IntConst{Val: 1},
+									Instr: []ast.Stmt{
+										&ast.StmtExpr{&ast.IntConst{Val: 1}},
 									},
 								},
 								ElseBranch: &ast.Block{
-									Instr: []ast.Node{
-										&ast.IntConst{Val: 2},
+									Instr: []ast.Stmt{
+										&ast.StmtExpr{&ast.IntConst{Val: 2}},
 									},
 								},
-							},
+							}},
 						},
 					},
 				},
@@ -335,7 +335,7 @@ func TestParsingWhile(t *testing.T) {
 				"  1\n" +
 				"  2",
 			[]an{
-				&ast.WhileExpr{
+				&ast.WhileStmt{
 					Cond: &ast.FuncApplication{
 						Callee: &ast.Identifier{
 							Name: "a",
@@ -345,9 +345,9 @@ func TestParsingWhile(t *testing.T) {
 						},
 					},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
-							&ast.IntConst{Val: 2},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{&ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -368,9 +368,9 @@ func TestParsingBlocks(t *testing.T) {
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
-							&ast.IntConst{Val: 2},
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{&ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -387,16 +387,16 @@ func TestParsingBlocks(t *testing.T) {
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
-							&ast.WhileExpr{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.WhileStmt{
 								Cond: &ast.Identifier{
 									Name: "a",
 								},
 								Body: &ast.Block{
-									Instr: []ast.Node{
-										&ast.IntConst{Val: 2},
-										&ast.IntConst{Val: 3},
+									Instr: []ast.Stmt{
+										&ast.StmtExpr{&ast.IntConst{Val: 2}},
+										&ast.StmtExpr{&ast.IntConst{Val: 3}},
 									},
 								},
 							},
@@ -417,20 +417,20 @@ func TestParsingBlocks(t *testing.T) {
 					Name: "a",
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.IntConst{Val: 1},
-							&ast.WhileExpr{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.WhileStmt{
 								Cond: &ast.Identifier{
 									Name: "a",
 								},
 								Body: &ast.Block{
-									Instr: []ast.Node{
-										&ast.IntConst{Val: 2},
-										&ast.IntConst{Val: 3},
+									Instr: []ast.Stmt{
+										&ast.StmtExpr{&ast.IntConst{Val: 2}},
+										&ast.StmtExpr{&ast.IntConst{Val: 3}},
 									},
 								},
 							},
-							&ast.IntConst{Val: 4},
+							&ast.StmtExpr{&ast.IntConst{Val: 4}},
 						},
 					},
 				},
@@ -563,13 +563,13 @@ func TestParsingLambda(t *testing.T) {
 				&ast.LambdaExpr{
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.FuncApplication{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.FuncApplication{
 								Callee: &ast.Identifier{Name: "a"},
 								Args: []ast.Expr{
 									&ast.Identifier{Name: "b"},
 								},
-							},
+							}},
 						},
 					},
 				},
@@ -584,13 +584,13 @@ func TestParsingLambda(t *testing.T) {
 						{Name: "a"}, {Name: "b"}, {Name: "c"},
 					},
 					Body: &ast.Block{
-						Instr: []ast.Node{
-							&ast.FuncApplication{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{&ast.FuncApplication{
 								Callee: &ast.Identifier{Name: "a"},
 								Args: []ast.Expr{
 									&ast.Identifier{Name: "b"},
 								},
-							},
+							}},
 						},
 					},
 				},
@@ -613,9 +613,9 @@ func TestFuncBlockApplication(t *testing.T) {
 					Block: &ast.LambdaExpr{
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
-							Instr: []ast.Node{
-								&ast.IntConst{Val: 1},
-								&ast.IntConst{Val: 2},
+							Instr: []ast.Stmt{
+								&ast.StmtExpr{&ast.IntConst{Val: 1}},
+								&ast.StmtExpr{&ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -633,9 +633,9 @@ func TestFuncBlockApplication(t *testing.T) {
 					Block: &ast.LambdaExpr{
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
-							Instr: []ast.Node{
-								&ast.IntConst{Val: 1},
-								&ast.IntConst{Val: 2},
+							Instr: []ast.Stmt{
+								&ast.StmtExpr{&ast.IntConst{Val: 1}},
+								&ast.StmtExpr{&ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -659,9 +659,9 @@ func TestFuncBlockApplication(t *testing.T) {
 					Block: &ast.LambdaExpr{
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
-							Instr: []ast.Node{
-								&ast.IntConst{Val: 1},
-								&ast.IntConst{Val: 2},
+							Instr: []ast.Stmt{
+								&ast.StmtExpr{&ast.IntConst{Val: 1}},
+								&ast.StmtExpr{&ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -683,9 +683,9 @@ func TestFuncBlockApplication(t *testing.T) {
 					Block: &ast.LambdaExpr{
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
-							Instr: []ast.Node{
-								&ast.IntConst{Val: 1},
-								&ast.IntConst{Val: 2},
+							Instr: []ast.Stmt{
+								&ast.StmtExpr{&ast.IntConst{Val: 1}},
+								&ast.StmtExpr{&ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -707,7 +707,11 @@ func matchAstWithTable(t *testing.T, table *ptable) {
 				t.Fatalf("The parse result has wrong len\nwant: %v\ngot: %v", test.expect, got)
 			}
 			for i, want := range test.expect {
-				if !ast.AstEqual(got[i], want) {
+				wantstmt := want
+				if v, ok := want.(ast.Expr); ok {
+					wantstmt = &ast.StmtExpr{Expr: v}
+				}
+				if !ast.AstEqual(got[i], wantstmt) {
 					t.Errorf("Mismatched node at position %v\nwant: %v\n got: %v", i, want, got[i])
 				}
 			}

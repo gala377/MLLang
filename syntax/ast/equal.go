@@ -44,6 +44,23 @@ func (f *FuncDecl) Equal(o Node) bool {
 	return false
 }
 
+func (v *ValDecl) Equal(o Node) bool {
+	if ov, ok := o.(*ValDecl); ok {
+		if ov.Name != v.Name {
+			return false
+		}
+		return AstEqual(v.Rhs, ov.Rhs)
+	}
+	return false
+}
+
+func (s *StmtExpr) Equal(o Node) bool {
+	if os, ok := o.(*StmtExpr); ok {
+		return AstEqual(s.Expr, os.Expr)
+	}
+	return false
+}
+
 func (b *Block) Equal(o Node) bool {
 	if ob, ok := o.(*Block); ok {
 		if len(b.Instr) != len(ob.Instr) {
@@ -160,8 +177,8 @@ func (i *IfExpr) Equal(o Node) bool {
 	return false
 }
 
-func (w *WhileExpr) Equal(o Node) bool {
-	if ow, ok := o.(*WhileExpr); ok {
+func (w *WhileStmt) Equal(o Node) bool {
+	if ow, ok := o.(*WhileStmt); ok {
 		return AstEqual(w.Cond, ow.Cond) && AstEqual(w.Body, w.Body)
 	}
 	return false

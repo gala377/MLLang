@@ -24,10 +24,25 @@ type (
 		exprNode()
 	}
 
+	Stmt interface {
+		Node
+		stmtNode()
+	}
+
 	GlobalValDecl struct {
 		*span.Span
 		Name string
 		Rhs  Expr
+	}
+
+	ValDecl struct {
+		*span.Span
+		Name string
+		Rhs  Expr
+	}
+
+	StmtExpr struct {
+		Expr
 	}
 
 	FuncDecl struct {
@@ -44,7 +59,7 @@ type (
 
 	Block struct {
 		*span.Span
-		Instr []Node
+		Instr []Stmt
 	}
 
 	FuncApplication struct {
@@ -93,7 +108,7 @@ type (
 		ElseBranch Expr
 	}
 
-	WhileExpr struct {
+	WhileStmt struct {
 		*span.Span
 		Cond Expr
 		Body *Block
@@ -120,6 +135,10 @@ type (
 func (g *GlobalValDecl) declNode() {}
 func (f *FuncDecl) declNode()      {}
 
+func (v *ValDecl) stmtNode()   {}
+func (w *WhileStmt) stmtNode() {}
+func (s *StmtExpr) stmtNode()  {}
+
 func (b *Block) exprNode()           {}
 func (f *FuncApplication) exprNode() {}
 func (i *IntConst) exprNode()        {}
@@ -129,7 +148,6 @@ func (r *RecordConst) exprNode()     {}
 func (l *ListConst) exprNode()       {}
 func (t *TupleConst) exprNode()      {}
 func (i *IfExpr) exprNode()          {}
-func (w *WhileExpr) exprNode()       {}
 func (l *LetExpr) exprNode()         {}
 func (i *Identifier) exprNode()      {}
 func (l *LambdaExpr) exprNode()      {}
@@ -141,6 +159,14 @@ func (g *GlobalValDecl) NodeSpan() *span.Span {
 
 func (f *FuncDecl) NodeSpan() *span.Span {
 	return f.Span
+}
+
+func (v *ValDecl) NodeSpan() *span.Span {
+	return v.Span
+}
+
+func (s *StmtExpr) NodeSpan() *span.Span {
+	return s.Expr.NodeSpan()
 }
 
 func (b *Block) NodeSpan() *span.Span {
@@ -179,7 +205,7 @@ func (i *IfExpr) NodeSpan() *span.Span {
 	return i.Span
 }
 
-func (w *WhileExpr) NodeSpan() *span.Span {
+func (w *WhileStmt) NodeSpan() *span.Span {
 	return w.Span
 }
 
@@ -223,6 +249,18 @@ func (b *Block) String() string {
 		msg += fmt.Sprintf("\t%v\n", instr)
 	}
 	return msg
+}
+
+func (g *ValDecl) String() string {
+	return fmt.Sprintf(
+		`Var{
+	name=%s
+	rhs=%s
+}`, g.Name, g.Rhs)
+}
+
+func (s *StmtExpr) String() string {
+	return fmt.Sprintf("Stmt{%s}", s.Expr)
 }
 
 func (f *FuncApplication) String() string {
@@ -275,7 +313,7 @@ func (i *IfExpr) String() string {
 	return msg
 }
 
-func (w *WhileExpr) String() string {
+func (w *WhileStmt) String() string {
 	return fmt.Sprintf("While{%s} %s", w.Cond, w.Body)
 }
 

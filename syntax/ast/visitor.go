@@ -38,7 +38,7 @@ func Walk(v Visitor, n Node) {
 		Walk(v, n.Cond)
 		Walk(v, n.IfBranch)
 		Walk(v, n.ElseBranch)
-	case *WhileExpr:
+	case *WhileStmt:
 		Walk(v, n.Cond)
 		Walk(v, n.Body)
 	case *LetExpr:
