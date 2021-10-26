@@ -62,7 +62,7 @@ func NewParser(source io.Reader) *Parser {
 	}
 	p.stmtSpecialForms = [token.Eof]parseStmtFn{
 		token.While: p.parseWhile,
-		// token.Val:   p.parseValDec,
+		token.Val:   p.parseValDecl,
 	}
 	p.parseTrailingBlocks = true
 	return &p
@@ -268,8 +268,10 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 	parseStmt := func() (ast.Stmt, bool) {
 		log.Printf("%d running wrapped parse", indent)
 		if t := p.matchIndent(indent); !t {
+			log.Println("Indentation does not match")
 			return nil, true
 		}
+		log.Println("Parse stmt for block")
 		return p.parseStmt()
 	}
 	exprs := []ast.Stmt{}
@@ -607,7 +609,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 }
 
 func (p *Parser) parseValDecl() (ast.Stmt, bool) {
-	log.Println("Parsing val decl")
+	log.Println("Parsing local val decl")
 	beg := p.position()
 	if t := p.match(token.Val); t == nil {
 		return nil, true
@@ -624,6 +626,7 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 		return nil, false
 	}
 	expr, ok := p.parseExpr()
+	p.match(token.NewLine)
 	span := span.NewSpan(beg, p.position())
 	node := ast.ValDecl{
 		Span: &span,
@@ -708,6 +711,7 @@ func (p *Parser) match(typ token.Id) *token.Token {
 func (p *Parser) checkIndent(n int) bool {
 	t := p.l.Current()
 	if t.Typ != token.Indent {
+		log.Printf("token is not an indentation %s\n", token.IdToString(t.Typ))
 		return false
 	}
 	val, err := strconv.Atoi(t.Val)

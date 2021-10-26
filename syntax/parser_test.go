@@ -696,6 +696,36 @@ func TestFuncBlockApplication(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestLocalVariableDecl(t *testing.T) {
+	table := ptable{
+		{
+			"fn a:\n  val a = 2\n  val a = b\nval c = 1",
+			[]an{
+				&ast.FuncDecl{
+					Name: "a",
+					Args: []ast.FuncDeclArg{},
+					Body: &ast.Block{
+						Instr: []ast.Stmt{
+							&ast.ValDecl{
+								Name: "a",
+								Rhs:  &ast.IntConst{Val: 2},
+							},
+							&ast.ValDecl{
+								Name: "a",
+								Rhs:  &ast.Identifier{Name: "b"}},
+						},
+					},
+				},
+				&ast.GlobalValDecl{
+					Name: "c",
+					Rhs:  &ast.IntConst{Val: 1},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
