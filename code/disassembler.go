@@ -21,6 +21,7 @@ var instNames = [...]string{
 	isa.Pop:         "Pop",
 	isa.DefGlobal:   "DefGlobal",
 	isa.DefLocal:    "DefLocal",
+	isa.Lambda:      "Lambda",
 }
 
 const opCount = len(instNames)
@@ -37,6 +38,7 @@ var instArguments = [opCount]int{
 	isa.Pop:         0,
 	isa.DefGlobal:   2,
 	isa.DefLocal:    2,
+	isa.Lambda:      2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
@@ -50,6 +52,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	isa.LocalLookup: writeConstant2,
 	isa.DefGlobal:   writeConstant2,
 	isa.DefLocal:    writeConstant2,
+	isa.Lambda:      writeConstant2,
 }
 
 func PrintCode(code *data.Code, name string) {

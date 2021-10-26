@@ -150,6 +150,15 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail(fmt.Sprintf("variable %s undefined", s))
 			}
 			vm.push(v)
+		case isa.Lambda:
+			arg := vm.readShort()
+			l := vm.getFunctionAt(arg)
+			lenv := data.NewEnv()
+			for key, val := range vm.locals.Vals {
+				lenv.Vals[key] = val
+			}
+			l = data.NewLambda(&lenv, l.Args, l.Body)
+			vm.push(l)
 		}
 	}
 	return data.None, nil
@@ -234,6 +243,15 @@ func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
 	}
 	vm.bail("expected constant to be a symbol")
 	return data.Symbol{}
+}
+
+func (vm *Vm) getFunctionAt(i uint16) *data.Function {
+	s := vm.code.GetConstant2(i)
+	if as, ok := s.(*data.Function); ok {
+		return as
+	}
+	vm.bail("expected constant to be a function")
+	return &data.Function{}
 }
 
 func (vm *Vm) bail(msg string) {

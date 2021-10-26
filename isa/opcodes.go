@@ -14,4 +14,5 @@ const (
 	Pop
 	DefGlobal
 	DefLocal
+	Lambda
 )

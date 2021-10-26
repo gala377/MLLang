@@ -125,6 +125,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		}
 	case *ast.FuncApplication:
 		e.emitApplication(v)
+	case *ast.LambdaExpr:
+		e.emitLambda(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -313,5 +315,32 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefLocal)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
+	le := NewEmitter(e.interner)
+	le.scope = e.scope.Derive()
+	fargs := make([]data.Symbol, 0, len(node.Args))
+	for _, arg := range node.Args {
+		le.scope.Insert(arg.Name)
+		s := e.interner.Intern(arg.Name)
+		fargs = append(fargs, data.NewSymbol(s))
+	}
+	le.emitExpr(node.Body)
+	// todo: implicit return might not always be needed but then
+	// we will never get there if there is an explicit one
+	le.emitByte(isa.Return)
+	e.errors = append(e.errors, le.errors...)
+	code := le.result
+	l := data.NewLambda(nil, fargs, code)
+	index := e.result.AddConstant(l)
+	if index > math.MaxUint16 {
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.Lambda)
 	e.emitBytes(args...)
 }

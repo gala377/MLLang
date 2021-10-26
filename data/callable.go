@@ -31,10 +31,10 @@ type (
 	}
 
 	Function struct {
-		args []Symbol
-		name string
-		env  *Env
-		body *Code
+		Args []Symbol
+		Name string
+		Env  *Env
+		Body *Code
 	}
 )
 
@@ -112,45 +112,45 @@ func (f *PartialApp) Equal(o Value) bool {
 func NewFunction(name string, args []Symbol, body *Code) *Function {
 	env := NewEnv()
 	return &Function{
-		name: name,
-		args: args,
-		body: body,
-		env:  &env,
+		Name: name,
+		Args: args,
+		Body: body,
+		Env:  &env,
 	}
 }
 
 func NewLambda(env *Env, args []Symbol, body *Code) *Function {
 	return &Function{
-		name: "",
-		args: args,
-		body: body,
-		env:  env,
+		Name: "",
+		Args: args,
+		Body: body,
+		Env:  env,
 	}
 }
 
 func (f *Function) Arity() int {
-	return len(f.args)
+	return len(f.Args)
 }
 
 func (f *Function) Call(vv ...Value) (Value, Trampoline) {
 	callenv := make(map[Symbol]Value)
-	for k, v := range f.env.Vals {
+	for k, v := range f.Env.Vals {
 		callenv[k] = v
 	}
-	for i, arg := range f.args {
+	for i, arg := range f.Args {
 		callenv[arg] = vv[i]
 	}
 	env := EnvFromMap(callenv)
 	t := Trampoline{
 		Kind: Call,
-		Code: f.body,
+		Code: f.Body,
 		Env:  &env,
 	}
 	return None, t
 }
 
 func (f *Function) String() string {
-	name := f.name
+	name := f.Name
 	if name == "" {
 		name = "lambda"
 	}
