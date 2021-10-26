@@ -67,8 +67,8 @@ func (e *Emitter) Interner() *Interner {
 
 func (e *Emitter) emitNode(n ast.Node) {
 	e.line = int(n.NodeSpan().Beg.Line)
-	if v, ok := n.(ast.Expr); ok {
-		e.emitUnboundExpr(v)
+	if v, ok := n.(ast.Stmt); ok {
+		e.emitStmt(v)
 		return
 	}
 	if v, ok := n.(ast.Decl); ok {
@@ -126,6 +126,18 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	}
 }
 
+func (e *Emitter) emitStmt(node ast.Stmt) {
+	e.line = int(node.NodeSpan().Beg.Line)
+	switch v := node.(type) {
+	case *ast.StmtExpr:
+		log.Printf("Got StmtExpression")
+		e.emitUnboundExpr(v.Expr)
+	default:
+		log.Printf("Stmt node is %v", node)
+		e.error(node.NodeSpan(), "Stmt node cannot be emitted. Not supported")
+	}
+}
+
 func (e *Emitter) emitUnboundExpr(node ast.Expr) {
 	e.emitExpr(node)
 	e.emitByte(isa.Pop)
@@ -154,14 +166,16 @@ func (e *Emitter) emitIf(node *ast.IfExpr) {
 
 func (e *Emitter) emitBlock(node *ast.Block) {
 	for i, instr := range node.Instr {
-		if v, ok := instr.(ast.Expr); ok {
-			if i == (len(node.Instr) - 1) {
-				e.emitExpr(v)
-			} else {
-				e.emitUnboundExpr(v)
+		if i == (len(node.Instr) - 1) {
+			// last in a block
+			if v, ok := instr.(*ast.StmtExpr); ok {
+				e.emitExpr(v.Expr)
+				return
 			}
+			// todo: if it's a stmt then we should emit it and then push unit
+			e.error(node.NodeSpan(), "last instruction in a block should be an expression")
 		} else {
-			e.error(instr.NodeSpan(), "emitting node not yet supported")
+			e.emitStmt(instr)
 		}
 	}
 }
