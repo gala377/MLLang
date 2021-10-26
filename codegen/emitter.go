@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"encoding/binary"
+	"fmt"
 	"log"
 	"math"
 
@@ -136,6 +137,8 @@ func (e *Emitter) emitStmt(node ast.Stmt) {
 	case *ast.StmtExpr:
 		log.Printf("Got StmtExpression")
 		e.emitUnboundExpr(v.Expr)
+	case *ast.ValDecl:
+		e.emitVariableDecl(v)
 	default:
 		log.Printf("Stmt node is %v", node)
 		e.error(node.NodeSpan(), "Stmt node cannot be emitted. Not supported")
@@ -268,6 +271,14 @@ func (e *Emitter) emitDeclaration(node ast.Decl) {
 }
 
 func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
+	if !e.scope.IsGlobal() {
+		panic("ICE: trying to emit global variable declation not in global scope")
+	}
+	if e.scope.Lookup(node.Name) {
+		e.error(node.Span, fmt.Sprintf("redeclaration of name %s", node.Name))
+		return
+	}
+	e.scope.Insert(node.Name)
 	e.emitExpr(node.Rhs)
 	s := e.interner.Intern(node.Name)
 	v := data.NewSymbol(s)
@@ -279,5 +290,28 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefGlobal)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
+	if e.scope.IsGlobal() {
+		panic("ICE: trying to emit local val declaration in global scope")
+	}
+	if e.scope.LookupLocal(node.Name) {
+		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of local name %s", node.Name))
+		return
+	}
+	e.scope.Insert(node.Name)
+	e.emitExpr(node.Rhs)
+	s := e.interner.Intern(node.Name)
+	v := data.NewSymbol(s)
+	index := e.result.AddConstant(v)
+	if index > math.MaxUint16 {
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.DefLocal)
 	e.emitBytes(args...)
 }

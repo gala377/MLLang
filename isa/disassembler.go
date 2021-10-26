@@ -17,6 +17,7 @@ var instNames = [...]string{
 	LocalLookup: "LocalLookup",
 	Pop:         "Pop",
 	DefGlobal:   "DefGlobal",
+	DefLocal:    "DefLocal",
 }
 
 const opCount = len(instNames)
@@ -32,6 +33,7 @@ var instArguments = [opCount]int{
 	LocalLookup: 2,
 	Pop:         0,
 	DefGlobal:   2,
+	DefLocal:    2,
 }
 
 type additionalInfoFunc = func(*Code, []byte) string
@@ -44,6 +46,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	DynLookup:   writeConstant2,
 	LocalLookup: writeConstant2,
 	DefGlobal:   writeConstant2,
+	DefLocal:    writeConstant2,
 }
 
 func PrintCode(code *Code, name string) {

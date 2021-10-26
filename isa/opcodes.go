@@ -13,4 +13,5 @@ const (
 	LocalLookup
 	Pop
 	DefGlobal
+	DefLocal
 )
