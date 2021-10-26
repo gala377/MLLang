@@ -30,7 +30,7 @@ type (
 )
 
 const (
-	Proceed ReturnKind = iota
+	Returned ReturnKind = iota
 	NormalCall
 	TailCall
 )
@@ -100,4 +100,4 @@ func (f *PartialApp) Equal(o Value) bool {
 	return false
 }
 
-var ProceedTramp = Trampoline{kind: Proceed}
+var ProceedTramp = Trampoline{kind: Returned}
