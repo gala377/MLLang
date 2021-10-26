@@ -53,7 +53,10 @@ func (e *Emitter) Compile(nn []ast.Node) (*isa.Code, []CompilationError) {
 }
 
 func (e *Emitter) error(loc *span.Span, msg string) {
-	panic("Unimplemented")
+	e.errors = append(e.errors, CompilationError{
+		Location: loc,
+		Message:  msg,
+	})
 }
 
 func (e *Emitter) Interner() *Interner {
@@ -69,7 +72,7 @@ func (e *Emitter) emitNode(n ast.Node) {
 		e.emitDeclaration(v)
 		return
 	}
-	panic("Not yet supported")
+	e.error(n.NodeSpan(), "Compiling this node is not supported")
 }
 
 func (e *Emitter) emitByte(b byte) {
@@ -85,6 +88,7 @@ func (e *Emitter) emitConstant(v data.Value) {
 	index := e.result.AddConstant(v)
 	if index > 255 {
 		if index > math.MaxUint16 {
+			// rare panic but that is the best we can do honestly
 			panic("More constants that uint16 can hold. That is not supported.")
 		}
 		e.emitByte(isa.Constant2)
@@ -115,7 +119,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitApplication(v)
 	default:
 		log.Printf("Node is %v", node)
-		panic("Node cannot be emitted. Not supported")
+		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
 	}
 }
 
@@ -154,7 +158,7 @@ func (e *Emitter) emitBlock(node *ast.Block) {
 				e.emitUnboundExpr(v)
 			}
 		} else {
-			panic("Emitting node not yet supported")
+			e.error(instr.NodeSpan(), "emitting node not yet supported")
 		}
 	}
 }
@@ -202,7 +206,8 @@ func (e *Emitter) emitLookup(node *ast.Identifier) {
 	v := data.NewSymbol(s)
 	index := e.result.AddConstant(v)
 	if index > math.MaxUint16 {
-		panic("More constants that uint16 can hold. That is not supported.")
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
@@ -216,7 +221,9 @@ func (e *Emitter) emitApplication(node *ast.FuncApplication) {
 		e.emitExpr(a)
 	}
 	if len(node.Args) > 255 {
-		panic("Function application with more than 255 arguments is not supported")
+		e.error(node.NodeSpan(), "Function application with more than 255 arguments is not supported")
+		e.emitBytes(isa.Call, byte(255))
+		return
 	}
 	as := byte(len(node.Args))
 	e.emitBytes(isa.Call, as)
@@ -227,7 +234,7 @@ func (e *Emitter) emitDeclaration(node ast.Decl) {
 	case *ast.GlobalValDecl:
 		e.emitGlobalVariableDecl(v)
 	case *ast.FuncDecl:
-		panic("Function declarations not supported")
+		e.error(node.NodeSpan(), "Function declarations not supported")
 	}
 }
 
@@ -237,7 +244,8 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 	v := data.NewSymbol(s)
 	index := e.result.AddConstant(v)
 	if index > math.MaxUint16 {
-		panic("More constants that uint16 can hold. That is not supported.")
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))

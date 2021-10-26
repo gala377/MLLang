@@ -22,8 +22,8 @@ func Compile(source []byte, interner *Interner) (*isa.Code, error) {
 	e := NewEmitter(interner)
 	c, errs := e.Compile(ast)
 	if len(errs) > 0 {
-		fmt.Print("Compilation errors:")
-		for _, e := range p.Errors() {
+		fmt.Print("Compilation errors:\n")
+		for _, e := range errs {
 			PrintWithSource(sr, e)
 		}
 		return nil, fmt.Errorf("compilation errors")

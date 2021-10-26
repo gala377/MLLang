@@ -763,7 +763,7 @@ func (p *Parser) eof() bool {
 }
 
 func (p *Parser) position() span.Position {
-	return p.l.position
+	return p.l.curr.Span.Beg
 }
 
 func (p *Parser) disallowTrailingBlocks() {
