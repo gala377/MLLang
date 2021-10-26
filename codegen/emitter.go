@@ -117,7 +117,11 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
-		e.emitGlobalLookup(v)
+		if e.scope.LookupLocal(v.Name) {
+			e.emitLocalLookup(v)
+		} else {
+			e.emitGlobalLookup(v)
+		}
 	case *ast.FuncApplication:
 		e.emitApplication(v)
 	default:
