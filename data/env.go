@@ -20,6 +20,14 @@ func (e *Env) Lookup(s Symbol) Value {
 	return e.Vals[s]
 }
 
-func (e *Env) Instert(s Symbol, v Value) {
+func (e *Env) Insert(s Symbol, v Value) {
 	e.Vals[s] = v
+}
+
+func (e *Env) String() string {
+	return "runtime environment"
+}
+
+func (e *Env) Equal(o Value) bool {
+	panic("environment values should never be compared")
 }

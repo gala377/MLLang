@@ -24,27 +24,29 @@ type (
 		// thisModule *module
 		stack    []data.Value
 		stackTop int
-		globals  data.Env
-		locals   data.Env
+		globals  *data.Env
+		locals   *data.Env
 		source   *bytes.Reader
 	}
 )
 
 func NewVm(source *bytes.Reader) Vm {
+	globals := data.NewEnv()
+	locals := data.NewEnv()
 	return Vm{
 		code:     nil,
 		ip:       0,
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
-		globals:  data.NewEnv(),
-		locals:   data.NewEnv(),
+		globals:  &globals,
+		locals:   &locals,
 		source:   source,
 	}
 }
 
 func VmWithEnv(source *bytes.Reader, env data.Env) Vm {
 	vm := NewVm(source)
-	vm.globals = env
+	vm.globals = &env
 	return vm
 }
 
@@ -64,10 +66,23 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 		i := vm.readByte()
 		switch i {
 		case isa.Return:
-			// restore ip, code and who knows what else
 			v := vm.pop()
-			fmt.Print(v.String())
-			return v, nil
+			env, ok := vm.pop().(*data.Env)
+			if !ok {
+				panic("ICE: on return popped value is not an env")
+			}
+			code, ok := vm.pop().(*data.Code)
+			if !ok {
+				panic("ICE: on return popped value is not a code")
+			}
+			ip, ok := vm.pop().(*data.Int)
+			if !ok {
+				panic("ICE: on return popped value is not an ip")
+			}
+			vm.locals = env
+			vm.code = code
+			vm.ip = ip.Val
+			vm.push(v)
 		case isa.Constant:
 			arg := vm.readByte()
 			v := vm.code.GetConstant(arg)
@@ -81,11 +96,11 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 		case isa.DefGlobal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
-			vm.globals.Instert(s, vm.pop())
+			vm.globals.Insert(s, vm.pop())
 		case isa.DefLocal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
-			vm.locals.Instert(s, vm.pop())
+			vm.locals.Insert(s, vm.pop())
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -100,10 +115,17 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if Debug {
 				fmt.Printf("Calling a function %s\n", fn.String())
 			}
-			vm.applyFunc(fn, reverse(args))
+			t := vm.applyFunc(fn, reverse(args))
+			switch t.Kind {
+			case data.Call:
+				vm.push(data.Int{Val: vm.ip})
+				vm.push(vm.code)
+				vm.push(vm.locals)
+				vm.ip = 0
+				vm.code = t.Code
+				vm.locals = t.Env
+			}
 		case isa.DynLookup:
-			// todo: add more lookups
-			// now it only works for globals
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			if Debug {

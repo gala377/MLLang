@@ -41,3 +41,11 @@ func (c *Code) GetConstant2(i uint16) Value {
 func (c *Code) Len() int {
 	return len(c.Instrs)
 }
+
+func (c *Code) String() string {
+	return "<code object>"
+}
+
+func (c *Code) Equal(o Value) bool {
+	panic("code values should never be compared")
+}
