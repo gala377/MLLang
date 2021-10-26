@@ -8,24 +8,25 @@ import (
 	"github.com/gala377/MLLang/syntax"
 )
 
-func Compile(source []byte) (*isa.Code, error) {
-	p := syntax.NewParser(bytes.NewReader(source))
+func Compile(source []byte, interner *Interner) (*isa.Code, error) {
+	sr := bytes.NewReader(source)
+	p := syntax.NewParser(sr)
 	ast := p.Parse()
 	if len(p.Errors()) > 0 {
 		fmt.Print("Parsing error:")
 		for _, e := range p.Errors() {
-			fmt.Print(e)
+			PrintWithSource(sr, e)
 		}
-		return nil, fmt.Errorf("Syntax errors")
+		return nil, fmt.Errorf("syntax errors")
 	}
-	e := NewEmitter()
+	e := NewEmitter(interner)
 	c, errs := e.Compile(ast)
 	if len(errs) > 0 {
 		fmt.Print("Compilation errors:")
 		for _, e := range p.Errors() {
-			fmt.Print(e)
+			PrintWithSource(sr, e)
 		}
-		return nil, fmt.Errorf("Compilation errors")
+		return nil, fmt.Errorf("compilation errors")
 	}
 	return c, nil
 }

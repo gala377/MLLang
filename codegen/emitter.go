@@ -15,6 +15,15 @@ type CompilationError struct {
 	Location *span.Span
 	Message  string
 }
+
+func (c CompilationError) Error() string {
+	return c.Message
+}
+
+func (c CompilationError) SourceLoc() span.Span {
+	return *c.Location
+}
+
 type Emitter struct {
 	result   *isa.Code
 	line     int
@@ -22,12 +31,12 @@ type Emitter struct {
 	errors   []CompilationError
 }
 
-func NewEmitter() *Emitter {
+func NewEmitter(i *Interner) *Emitter {
 	c := isa.NewCode()
 	e := Emitter{
 		result:   &c,
 		line:     0,
-		interner: NewInterner(),
+		interner: i,
 		errors:   make([]CompilationError, 0),
 	}
 	return &e
@@ -44,7 +53,7 @@ func (e *Emitter) Compile(nn []ast.Node) (*isa.Code, []CompilationError) {
 }
 
 func (e *Emitter) error(loc *span.Span, msg string) {
-
+	panic("Unimplemented")
 }
 
 func (e *Emitter) Interner() *Interner {

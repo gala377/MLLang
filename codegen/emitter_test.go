@@ -119,7 +119,7 @@ func matchResults(t *testing.T, table *etest) {
 			t.Logf("SOURCE IS %v", test.source)
 			p := syntax.NewParser(strings.NewReader(test.source))
 			c := p.Parse()
-			e := NewEmitter()
+			e := NewEmitter(NewInterner())
 			got, errs := e.Compile(c)
 			if len(errs) > 0 {
 				t.Errorf("Unexpected compilation errors %v", errs)

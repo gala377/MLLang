@@ -27,7 +27,7 @@ func NewSpan(beg, end Position) Span {
 	return Span{beg, end}
 }
 
-func (s *Span) Extract(source io.ReaderAt) ([]byte, error) {
+func (s Span) Extract(source io.ReaderAt) ([]byte, error) {
 	begoff := s.Beg.Offset
 	readbytes := s.End.Offset - s.Beg.Offset
 	out := make([]byte, readbytes)

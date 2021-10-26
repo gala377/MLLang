@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -11,7 +10,6 @@ import (
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
-	"github.com/gala377/MLLang/syntax"
 	"github.com/gala377/MLLang/vm"
 )
 
@@ -27,25 +25,17 @@ func main() {
 }
 
 func evaluateBuffer(buff []byte) {
-	p := syntax.NewParser(bytes.NewReader(buff))
-	ast := p.Parse()
-	if len(p.Errors()) > 0 {
-		fmt.Print("Parsing error:")
-		for _, e := range p.Errors() {
-			fmt.Print(e)
-		}
+	i := codegen.NewInterner()
+	c, err := codegen.Compile(buff, i)
+	if err != nil {
+		fmt.Print(err)
 		os.Exit(1)
-	}
-	e := codegen.NewEmitter()
-	c, errs := e.Compile(ast)
-	if len(errs) > 0 {
-		panic("Compilation erros")
 	}
 	if *showCode {
 		fmt.Println(isa.DisassembleCode(c))
 		os.Exit(0)
 	}
-	vm := vmWithStdEnv(e.Interner())
+	vm := vmWithStdEnv(i)
 	vm.Interpret(c)
 }
 
