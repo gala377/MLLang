@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -35,11 +36,12 @@ func evaluateBuffer(buff []byte) {
 		fmt.Println(isa.DisassembleCode(c))
 		os.Exit(0)
 	}
-	vm := vmWithStdEnv(i)
+	s := bytes.NewReader(buff)
+	vm := vmWithStdEnv(s, i)
 	vm.Interpret(c)
 }
 
-func vmWithStdEnv(i *codegen.Interner) *vm.Vm {
+func vmWithStdEnv(source *bytes.Reader, i *codegen.Interner) *vm.Vm {
 	env := make(map[data.Symbol]data.Value)
 	for _, fn := range stdEnv {
 		s := i.Intern(fn.name)
@@ -47,7 +49,7 @@ func vmWithStdEnv(i *codegen.Interner) *vm.Vm {
 		env[data.NewSymbol(s)] = &nf
 	}
 	globals := vm.EnvFromMap(env)
-	vm := vm.VmWithEnv(globals)
+	vm := vm.VmWithEnv(source, globals)
 	return &vm
 }
 

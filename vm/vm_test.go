@@ -1,9 +1,9 @@
 package vm
 
 import (
+	"bytes"
 	"fmt"
 	"log"
-	"strings"
 	"testing"
 
 	"github.com/gala377/MLLang/codegen"
@@ -30,7 +30,8 @@ func TestSimpleVm(t *testing.T) {
 }
 
 func runTest(t *testing.T, src string, echo data.NativeFunc) {
-	p := syntax.NewParser(strings.NewReader(src))
+	s := bytes.NewReader([]byte(src))
+	p := syntax.NewParser(s)
 	ast := p.Parse()
 	if len(p.Errors()) > 0 {
 		log.Printf("Parsing error:")
@@ -52,18 +53,18 @@ func runTest(t *testing.T, src string, echo data.NativeFunc) {
 		}
 	}()
 	name := e.Interner().Intern("echo")
-	vm := vmWithEcho(name, echo)
+	vm := vmWithEcho(s, name, echo)
 
 	vm.Interpret(c)
 }
 
-func vmWithEcho(name data.InternedString, echo data.NativeFunc) *Vm {
+func vmWithEcho(source *bytes.Reader, name data.InternedString, echo data.NativeFunc) *Vm {
 	k := data.NewSymbol(name)
 	env := map[data.Symbol]data.Value{
 		k: &echo,
 	}
 	global := NewEnv()
 	global.vals = env
-	vm := VmWithEnv(global)
+	vm := VmWithEnv(source, global)
 	return &vm
 }

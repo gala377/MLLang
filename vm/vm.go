@@ -1,8 +1,11 @@
 package vm
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/binary"
 	"fmt"
+	"io"
 	"strings"
 
 	"github.com/gala377/MLLang/data"
@@ -21,21 +24,23 @@ type (
 		stack    []data.Value
 		stackTop int
 		globals  Env
+		source   *bytes.Reader
 	}
 )
 
-func NewVm() Vm {
+func NewVm(source *bytes.Reader) Vm {
 	return Vm{
 		code:     nil,
 		ip:       0,
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
 		globals:  NewEnv(),
+		source:   source,
 	}
 }
 
-func VmWithEnv(env Env) Vm {
-	vm := NewVm()
+func VmWithEnv(source *bytes.Reader, env Env) Vm {
+	vm := NewVm(source)
 	vm.globals = env
 	return vm
 }
@@ -83,7 +88,7 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			callee := vm.pop()
 			fn, ok := callee.(data.Callable)
 			if !ok {
-				panic("Trying to call something that is not callable")
+				vm.bail("Trying to call something that is not callable")
 			}
 			if Debug {
 				fmt.Printf("Calling a function %s\n", fn.String())
@@ -103,7 +108,7 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 				}
 				vm.push(v)
 			} else {
-				panic(fmt.Sprintf("variable %s undefined", s))
+				vm.bail(fmt.Sprintf("variable %s undefined", s))
 			}
 		}
 	}
@@ -166,7 +171,8 @@ func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) data.Trampoline {
 		vm.push(data.NewPartialApp(fn, args...))
 		return data.ProceedTramp
 	case argc > fn.Arity():
-		panic("supplied more arguments than the function takes")
+		vm.bail("supplied more arguments than the function takes")
+		return data.Trampoline{}
 	}
 	panic("unreachable")
 }
@@ -186,7 +192,18 @@ func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
 	if as, ok := s.(data.Symbol); ok {
 		return as
 	}
-	panic("Expected constant to be a symbol")
+	vm.bail("expected constant to be a symbol")
+	return data.Symbol{}
+}
+
+func (vm *Vm) bail(msg string) {
+	line := vm.code.Lines[vm.ip+1]
+	code := getLine(line, vm.source)
+
+	fmt.Printf("\n\nRuntime error at line %d\n\n", line)
+	fmt.Printf("%s\n\n", code)
+	fmt.Println(msg)
+	panic("runtime error")
 }
 
 func reverse(s []data.Value) []data.Value {
@@ -194,4 +211,21 @@ func reverse(s []data.Value) []data.Value {
 		s[i], s[j] = s[j], s[i]
 	}
 	return s
+}
+
+type seekReader interface {
+	io.Reader
+	io.Seeker
+}
+
+func getLine(line int, r seekReader) string {
+	r.Seek(0, 0)
+	sc := bufio.NewScanner(r)
+	sc.Split(bufio.ScanLines)
+	for cline := 1; sc.Scan(); cline++ {
+		if cline == line {
+			return sc.Text()
+		}
+	}
+	panic("could not find given line")
 }

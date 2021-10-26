@@ -64,6 +64,7 @@ func (e *Emitter) Interner() *Interner {
 }
 
 func (e *Emitter) emitNode(n ast.Node) {
+	e.line = int(n.NodeSpan().Beg.Line)
 	if v, ok := n.(ast.Expr); ok {
 		e.emitUnboundExpr(v)
 		return
