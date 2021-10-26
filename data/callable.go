@@ -9,7 +9,9 @@ type (
 	ReturnKind = byte
 
 	Trampoline struct {
-		kind ReturnKind
+		Kind ReturnKind
+		Code *Code
+		Env  *Env
 	}
 	Callable interface {
 		Value
@@ -31,14 +33,14 @@ type (
 	Function struct {
 		args []Symbol
 		name string
-		// code *isa.Code
-		env Env
+		env  *Env
+		body *Code
 	}
 )
 
 const (
 	Returned ReturnKind = iota
-	NormalCall
+	Call
 	TailCall
 )
 
@@ -107,4 +109,59 @@ func (f *PartialApp) Equal(o Value) bool {
 	return false
 }
 
-var ProceedTramp = Trampoline{kind: Returned}
+func NewFunction(name string, args []Symbol, body *Code) *Function {
+	env := NewEnv()
+	return &Function{
+		name: name,
+		args: args,
+		body: body,
+		env:  &env,
+	}
+}
+
+func NewLambda(env *Env, args []Symbol, body *Code) *Function {
+	return &Function{
+		name: "",
+		args: args,
+		body: body,
+		env:  env,
+	}
+}
+
+func (f *Function) Arity() int {
+	return len(f.args)
+}
+
+func (f *Function) Call(vv ...Value) (Value, Trampoline) {
+	callenv := make(map[Symbol]Value)
+	for k, v := range f.env.Vals {
+		callenv[k] = v
+	}
+	for i, arg := range f.args {
+		callenv[arg] = vv[i]
+	}
+	env := EnvFromMap(callenv)
+	t := Trampoline{
+		Kind: Call,
+		Code: f.body,
+		Env:  &env,
+	}
+	return None, t
+}
+
+func (f *Function) String() string {
+	name := f.name
+	if name == "" {
+		name = "lambda"
+	}
+	return fmt.Sprintf("<function %s>", name)
+}
+
+func (f *Function) Equal(o Value) bool {
+	if of, ok := o.(*Function); ok {
+		return f == of
+	}
+	return false
+}
+
+var ProceedTramp = Trampoline{Kind: Returned}
