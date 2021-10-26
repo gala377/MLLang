@@ -8,9 +8,9 @@ import (
 	"log"
 	"os"
 
+	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
-	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/vm"
 )
 
@@ -33,7 +33,7 @@ func evaluateBuffer(buff []byte) {
 		os.Exit(1)
 	}
 	if *showCode {
-		fmt.Println(isa.DisassembleCode(c))
+		fmt.Println(code.DisassembleCode(c))
 		os.Exit(0)
 	}
 	s := bytes.NewReader(buff)
@@ -48,7 +48,7 @@ func vmWithStdEnv(source *bytes.Reader, i *codegen.Interner) *vm.Vm {
 		nf := data.NewNativeFunc(fn.name, fn.arity, fn.f)
 		env[data.NewSymbol(s)] = &nf
 	}
-	globals := vm.EnvFromMap(env)
+	globals := data.EnvFromMap(env)
 	vm := vm.VmWithEnv(source, globals)
 	return &vm
 }

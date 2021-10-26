@@ -1,10 +1,8 @@
-package isa
-
-import "github.com/gala377/MLLang/data"
+package data
 
 type Code struct {
 	Instrs []byte
-	Consts []data.Value
+	Consts []Value
 	// todo: change Lines to something like runing sum encoding or so.
 	Lines []int
 }
@@ -12,13 +10,13 @@ type Code struct {
 func NewCode() Code {
 	c := Code{
 		Instrs: make([]byte, 0),
-		Consts: make([]data.Value, 0),
+		Consts: make([]Value, 0),
 		Lines:  make([]int, 0),
 	}
 	return c
 }
 
-func (c *Code) AddConstant(v data.Value) int {
+func (c *Code) AddConstant(v Value) int {
 	c.Consts = append(c.Consts, v)
 	return len(c.Consts) - 1
 }
@@ -32,11 +30,11 @@ func (c *Code) ReadByte(offset int) byte {
 	return c.Instrs[offset]
 }
 
-func (c *Code) GetConstant(i byte) data.Value {
+func (c *Code) GetConstant(i byte) Value {
 	return c.Consts[i]
 }
 
-func (c *Code) GetConstant2(i uint16) data.Value {
+func (c *Code) GetConstant2(i uint16) Value {
 	return c.Consts[i]
 }
 

@@ -6,9 +6,9 @@ import (
 	"log"
 	"testing"
 
+	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
-	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax"
 )
 
@@ -48,7 +48,7 @@ func runTest(t *testing.T, src string, echo data.NativeFunc) {
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Test panicked, compiled code")
-			fmt.Print(isa.DisassembleCode(c))
+			fmt.Print(code.DisassembleCode(c))
 			panic(r)
 		}
 	}()
@@ -63,8 +63,8 @@ func vmWithEcho(source *bytes.Reader, name data.InternedString, echo data.Native
 	env := map[data.Symbol]data.Value{
 		k: &echo,
 	}
-	global := NewEnv()
-	global.vals = env
+	global := data.NewEnv()
+	global.Vals = env
 	vm := VmWithEnv(source, global)
 	return &vm
 }

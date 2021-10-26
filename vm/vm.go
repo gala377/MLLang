@@ -8,6 +8,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 )
@@ -16,15 +17,15 @@ var Debug = true
 
 type (
 	Vm struct {
-		code *isa.Code
+		code *data.Code
 		// global instruction pointer or per function instruction pointer?
 		ip int
 		// modules []*module ? map[symbol]*module?
 		// thisModule *module
 		stack    []data.Value
 		stackTop int
-		globals  Env
-		locals   Env
+		globals  data.Env
+		locals   data.Env
 		source   *bytes.Reader
 	}
 )
@@ -35,19 +36,19 @@ func NewVm(source *bytes.Reader) Vm {
 		ip:       0,
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
-		globals:  NewEnv(),
-		locals:   NewEnv(),
+		globals:  data.NewEnv(),
+		locals:   data.NewEnv(),
 		source:   source,
 	}
 }
 
-func VmWithEnv(source *bytes.Reader, env Env) Vm {
+func VmWithEnv(source *bytes.Reader, env data.Env) Vm {
 	vm := NewVm(source)
 	vm.globals = env
 	return vm
 }
 
-func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
+func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 	vm.code = code
 	for {
 		if vm.ip == vm.code.Len() {
@@ -172,7 +173,7 @@ func (vm *Vm) printStack() {
 }
 
 func (vm *Vm) printInstr() {
-	s, _ := isa.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
+	s, _ := code.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
 	fmt.Println(s)
 }
 

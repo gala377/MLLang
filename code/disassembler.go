@@ -1,59 +1,62 @@
-package isa
+package code
 
 import (
 	"encoding/binary"
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/gala377/MLLang/data"
+	"github.com/gala377/MLLang/isa"
 )
 
 var instNames = [...]string{
-	Return:      "Return",
-	Constant:    "Constant",
-	Call:        "Call",
-	Jump:        "Jump",
-	JumpIfFalse: "JumpIfFalse",
-	DynLookup:   "DynLookup",
-	LocalLookup: "LocalLookup",
-	Pop:         "Pop",
-	DefGlobal:   "DefGlobal",
-	DefLocal:    "DefLocal",
+	isa.Return:      "Return",
+	isa.Constant:    "Constant",
+	isa.Call:        "Call",
+	isa.Jump:        "Jump",
+	isa.JumpIfFalse: "JumpIfFalse",
+	isa.DynLookup:   "DynLookup",
+	isa.LocalLookup: "LocalLookup",
+	isa.Pop:         "Pop",
+	isa.DefGlobal:   "DefGlobal",
+	isa.DefLocal:    "DefLocal",
 }
 
 const opCount = len(instNames)
 
 var instArguments = [opCount]int{
-	Return:      0,
-	Constant:    1,
-	Constant2:   2,
-	Call:        1,
-	Jump:        2,
-	JumpIfFalse: 2,
-	DynLookup:   2,
-	LocalLookup: 2,
-	Pop:         0,
-	DefGlobal:   2,
-	DefLocal:    2,
+	isa.Return:      0,
+	isa.Constant:    1,
+	isa.Constant2:   2,
+	isa.Call:        1,
+	isa.Jump:        2,
+	isa.JumpIfFalse: 2,
+	isa.DynLookup:   2,
+	isa.LocalLookup: 2,
+	isa.Pop:         0,
+	isa.DefGlobal:   2,
+	isa.DefLocal:    2,
 }
 
-type additionalInfoFunc = func(*Code, []byte) string
+type additionalInfoFunc = func(*data.Code, []byte) string
 
 var instSpecificInfos = [opCount]additionalInfoFunc{
-	Constant:    writeConstant,
-	Constant2:   writeConstant2,
-	Jump:        writeJump,
-	JumpIfFalse: writeJump,
-	DynLookup:   writeConstant2,
-	LocalLookup: writeConstant2,
-	DefGlobal:   writeConstant2,
-	DefLocal:    writeConstant2,
+	isa.Constant:    writeConstant,
+	isa.Constant2:   writeConstant2,
+	isa.Jump:        writeJump,
+	isa.JumpIfFalse: writeJump,
+	isa.DynLookup:   writeConstant2,
+	isa.LocalLookup: writeConstant2,
+	isa.DefGlobal:   writeConstant2,
+	isa.DefLocal:    writeConstant2,
 }
 
-func PrintCode(code *Code, name string) {
+func PrintCode(code *data.Code, name string) {
 	fmt.Printf("== %s ==\n%s", name, DisassembleCode(code))
 }
 
-func DisassembleCode(code *Code) string {
+func DisassembleCode(code *data.Code) string {
 	var c strings.Builder
 	line := -1
 	for i := 0; i < len(code.Instrs); {
@@ -66,7 +69,7 @@ func DisassembleCode(code *Code) string {
 	return c.String()
 }
 
-func DisassembleInstr(code *Code, offset int, lline int) (string, int) {
+func DisassembleInstr(code *data.Code, offset int, lline int) (string, int) {
 	var b strings.Builder
 	op := code.Instrs[offset]
 	line := "    |"
@@ -89,16 +92,16 @@ func DisassembleInstr(code *Code, offset int, lline int) (string, int) {
 	return b.String(), 1 + args
 }
 
-func writeConstant(code *Code, args []byte) string {
+func writeConstant(code *data.Code, args []byte) string {
 	return fmt.Sprintf("%16s", code.Consts[args[0]])
 }
 
-func writeConstant2(code *Code, args []byte) string {
+func writeConstant2(code *data.Code, args []byte) string {
 	i := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16s", code.Consts[i])
 }
 
-func writeJump(code *Code, args []byte) string {
+func writeJump(code *data.Code, args []byte) string {
 	o := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16d", o)
 }

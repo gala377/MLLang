@@ -27,6 +27,13 @@ type (
 		args []Value
 		fn   Callable
 	}
+
+	Function struct {
+		args []Symbol
+		name string
+		// code *isa.Code
+		env Env
+	}
 )
 
 const (

@@ -26,7 +26,7 @@ func (c CompilationError) SourceLoc() span.Span {
 }
 
 type Emitter struct {
-	result   *isa.Code
+	result   *data.Code
 	line     int
 	interner *Interner
 	errors   []CompilationError
@@ -34,7 +34,7 @@ type Emitter struct {
 }
 
 func NewEmitter(i *Interner) *Emitter {
-	c := isa.NewCode()
+	c := data.NewCode()
 	e := Emitter{
 		result:   &c,
 		line:     0,
@@ -45,7 +45,7 @@ func NewEmitter(i *Interner) *Emitter {
 	return &e
 }
 
-func (e *Emitter) Compile(nn []ast.Node) (*isa.Code, []CompilationError) {
+func (e *Emitter) Compile(nn []ast.Node) (*data.Code, []CompilationError) {
 	for _, n := range nn {
 		e.emitNode(n)
 	}

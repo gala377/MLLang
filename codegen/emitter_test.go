@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax"
@@ -12,7 +13,7 @@ import (
 
 type etest []struct {
 	source string
-	expect *isa.Code
+	expect *data.Code
 }
 
 func TestEmittingConstValues(t *testing.T) {
@@ -101,8 +102,8 @@ func TestEmittingMultipleStatements(t *testing.T) {
 	matchResults(t, &test)
 }
 
-func codeFromBytes(cc int, bb []byte) *isa.Code {
-	c := isa.NewCode()
+func codeFromBytes(cc int, bb []byte) *data.Code {
+	c := data.NewCode()
 	c.Instrs = bb
 	consts := []data.Value{}
 	for i := 0; i < cc; i++ {
@@ -125,8 +126,8 @@ func matchResults(t *testing.T, table *etest) {
 				t.Errorf("Unexpected compilation errors %v", errs)
 			}
 			if !bytes.Equal(got.Instrs, test.expect.Instrs) {
-				t.Logf("Want:\n%s", isa.DisassembleCode(test.expect))
-				t.Logf("\nGot:\n%s\n", isa.DisassembleCode(got))
+				t.Logf("Want:\n%s", code.DisassembleCode(test.expect))
+				t.Logf("\nGot:\n%s\n", code.DisassembleCode(got))
 				t.FailNow()
 			}
 		})

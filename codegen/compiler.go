@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/gala377/MLLang/isa"
+	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/syntax"
 )
 
-func Compile(source []byte, interner *Interner) (*isa.Code, error) {
+func Compile(source []byte, interner *Interner) (*data.Code, error) {
 	sr := bytes.NewReader(source)
 	p := syntax.NewParser(sr)
 	ast := p.Parse()
