@@ -81,6 +81,10 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			vm.globals.Instert(s, vm.pop())
+		case isa.DefLocal:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			vm.locals.Instert(s, vm.pop())
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -102,16 +106,27 @@ func (vm *Vm) Interpret(code *isa.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			if Debug {
-				fmt.Printf("Lookup fo value %s\n", s)
+				fmt.Printf("Global lookup of value %s\n", s)
 			}
-			if v := vm.globals.Lookup(s); v != nil {
-				if Debug {
-					fmt.Printf("Lookup successfull. Value is %s\n", v)
-				}
-				vm.push(v)
-			} else {
+			v := vm.globals.Lookup(s)
+			if v == nil {
 				vm.bail(fmt.Sprintf("variable %s undefined", s))
 			}
+			if Debug {
+				fmt.Printf("Lookup successful. Value is %s\n", v)
+			}
+			vm.push(v)
+		case isa.LocalLookup:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			if Debug {
+				fmt.Printf("Local lookup of value %s\n", s)
+			}
+			v := vm.locals.Lookup(s)
+			if v == nil {
+				vm.bail(fmt.Sprintf("variable %s undefined", s))
+			}
+			vm.push(v)
 		}
 	}
 	return data.None, nil
