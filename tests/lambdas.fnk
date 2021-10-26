@@ -1,0 +1,19 @@
+@EXPECTED
+1
+2
+3
+4
+
+@SOURCE
+
+val echo = printf "%v"
+
+val addition = do |a b| -> add a b
+echo (addition 0 1)
+val getTwo = do -> addition 1 1
+echo (getTwo!)
+
+val part = addition 2
+echo (part 1)
+echo (part 2)
+

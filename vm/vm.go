@@ -75,7 +75,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if !ok {
 				panic("ICE: on return popped value is not a code")
 			}
-			ip, ok := vm.pop().(*data.Int)
+			ip, ok := vm.pop().(data.Int)
 			if !ok {
 				panic("ICE: on return popped value is not an ip")
 			}
@@ -115,8 +115,10 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if Debug {
 				fmt.Printf("Calling a function %s\n", fn.String())
 			}
-			t := vm.applyFunc(fn, reverse(args))
+			v, t := vm.applyFunc(fn, reverse(args))
 			switch t.Kind {
+			case data.Returned:
+				vm.push(v)
 			case data.Call:
 				vm.push(data.Int{Val: vm.ip})
 				vm.push(vm.code)
@@ -124,6 +126,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.ip = 0
 				vm.code = t.Code
 				vm.locals = t.Env
+			case data.Error:
+				vm.bail(v.String())
 			}
 		case isa.DynLookup:
 			arg := vm.readShort()
@@ -208,32 +212,21 @@ func (vm *Vm) printInstr() {
 	fmt.Println(s)
 }
 
-func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) data.Trampoline {
+func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) (data.Value, data.Trampoline) {
 	argc := len(args)
 	switch {
 	case argc == fn.Arity():
-		return vm.call(fn, args)
+		return fn.Call(args...)
 	case argc < fn.Arity():
 		if Debug {
 			fmt.Printf("Parital application %d < %d", argc, fn.Arity())
 		}
-		vm.push(data.NewPartialApp(fn, args...))
-		return data.ProceedTramp
+		return data.NewPartialApp(fn, args...), data.ReturnTramp
 	case argc > fn.Arity():
 		vm.bail("supplied more arguments than the function takes")
-		return data.Trampoline{}
+		return nil, data.Trampoline{}
 	}
 	panic("unreachable")
-}
-
-func (vm *Vm) call(fn data.Callable, args []data.Value) data.Trampoline {
-	switch c := fn.(type) {
-	case *data.NativeFunc, *data.PartialApp:
-		v, t := c.Call(args...)
-		vm.push(v)
-		return t
-	}
-	panic("Unreachable")
 }
 
 func (vm *Vm) getSymbolAt(i uint16) data.Symbol {

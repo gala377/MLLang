@@ -13,13 +13,13 @@ import (
 )
 
 func echo(t *testing.T, v data.Value) data.NativeFunc {
-	return data.NewNativeFunc("echo", 1, func(vs ...data.Value) data.Value {
+	return data.NewNativeFunc("echo", 1, func(vs ...data.Value) (data.Value, error) {
 		if len(vs) != 1 {
 			t.Errorf("echo expects one value, got %v", vs)
 		} else if !v.Equal(vs[0]) {
 			t.Errorf("Values don't match: Want=%s, Got=%s", v, vs[0])
 		}
-		return data.NewInt(0)
+		return data.NewInt(0), nil
 	})
 }
 

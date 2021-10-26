@@ -20,7 +20,7 @@ type (
 	}
 
 	NativeFunc struct {
-		fn    func(...Value) Value
+		fn    func(...Value) (Value, error)
 		arity int
 		name  string
 	}
@@ -42,9 +42,10 @@ const (
 	Returned ReturnKind = iota
 	Call
 	TailCall
+	Error
 )
 
-func NewNativeFunc(name string, arity int, fn func(...Value) Value) NativeFunc {
+func NewNativeFunc(name string, arity int, fn func(...Value) (Value, error)) NativeFunc {
 	return NativeFunc{
 		name:  name,
 		arity: arity,
@@ -57,7 +58,11 @@ func (fn *NativeFunc) Arity() int {
 }
 
 func (fn *NativeFunc) Call(vv ...Value) (Value, Trampoline) {
-	return (fn.fn)(vv...), ProceedTramp
+	res, err := (fn.fn)(vv...)
+	if err != nil {
+		return NewString(err.Error()), ErrorTramp
+	}
+	return res, ReturnTramp
 }
 
 func (fn *NativeFunc) String() string {
@@ -164,4 +169,5 @@ func (f *Function) Equal(o Value) bool {
 	return false
 }
 
-var ProceedTramp = Trampoline{Kind: Returned}
+var ReturnTramp = Trampoline{Kind: Returned}
+var ErrorTramp = Trampoline{Kind: Error}
