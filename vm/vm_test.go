@@ -40,7 +40,10 @@ func runTest(t *testing.T, src string, echo data.NativeFunc) {
 		t.FailNow()
 	}
 	e := codegen.NewEmitter()
-	c := e.Compile(ast)
+	c, errs := e.Compile(ast)
+	if len(errs) > 0 {
+		panic("Compilation errors")
+	}
 	defer func() {
 		if r := recover(); r != nil {
 			fmt.Println("Test panicked, compiled code")

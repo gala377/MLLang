@@ -8,12 +8,18 @@ import (
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax/ast"
+	"github.com/gala377/MLLang/syntax/span"
 )
 
+type CompilationError struct {
+	Location *span.Span
+	Message  string
+}
 type Emitter struct {
 	result   *isa.Code
 	line     int
 	interner *Interner
+	errors   []CompilationError
 }
 
 func NewEmitter() *Emitter {
@@ -22,15 +28,23 @@ func NewEmitter() *Emitter {
 		result:   &c,
 		line:     0,
 		interner: NewInterner(),
+		errors:   make([]CompilationError, 0),
 	}
 	return &e
 }
 
-func (e *Emitter) Compile(nn []ast.Node) *isa.Code {
+func (e *Emitter) Compile(nn []ast.Node) (*isa.Code, []CompilationError) {
 	for _, n := range nn {
 		e.emitNode(n)
 	}
-	return e.result
+	if len(e.errors) > 0 {
+		return nil, e.errors
+	}
+	return e.result, nil
+}
+
+func (e *Emitter) error(loc *span.Span, msg string) {
+
 }
 
 func (e *Emitter) Interner() *Interner {

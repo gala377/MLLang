@@ -37,7 +37,10 @@ func evaluateBuffer(buff []byte) {
 		os.Exit(1)
 	}
 	e := codegen.NewEmitter()
-	c := e.Compile(ast)
+	c, errs := e.Compile(ast)
+	if len(errs) > 0 {
+		panic("Compilation erros")
+	}
 	if *showCode {
 		fmt.Println(isa.DisassembleCode(c))
 		os.Exit(0)

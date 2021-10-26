@@ -1,6 +1,9 @@
 package span
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 // Span is represents a fragment of source that the given
 // production is associated with. The fields correspond to
@@ -22,4 +25,16 @@ func NewSpan(beg, end Position) Span {
 		panic(err)
 	}
 	return Span{beg, end}
+}
+
+func (s *Span) Extract(source io.ReaderAt) ([]byte, error) {
+	begoff := s.Beg.Offset
+	readbytes := s.End.Offset - s.Beg.Offset
+	out := make([]byte, readbytes)
+	n, err := source.ReadAt(out, int64(begoff))
+	if n != int(readbytes) {
+		panic("Extract read less bytes than it expected, this should never happen")
+	}
+	return out, err
+
 }

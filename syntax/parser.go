@@ -18,6 +18,14 @@ type SyntaxError struct {
 	msg string
 }
 
+func (s SyntaxError) SourceLoc() span.Span {
+	return s.pos
+}
+
+func (s SyntaxError) Error() string {
+	return s.msg
+}
+
 type Parser struct {
 	l                   *Lexer
 	errors              []SyntaxError

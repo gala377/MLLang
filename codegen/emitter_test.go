@@ -120,7 +120,10 @@ func matchResults(t *testing.T, table *etest) {
 			p := syntax.NewParser(strings.NewReader(test.source))
 			c := p.Parse()
 			e := NewEmitter()
-			got := e.Compile(c)
+			got, errs := e.Compile(c)
+			if len(errs) > 0 {
+				t.Errorf("Unexpected compilation errors %s", errs)
+			}
 			if !bytes.Equal(got.Instrs, test.expect.Instrs) {
 				t.Logf("Want:\n%s", isa.DisassembleCode(test.expect))
 				t.Logf("\nGot:\n%s\n", isa.DisassembleCode(got))
