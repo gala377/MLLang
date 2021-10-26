@@ -20,6 +20,6 @@ func PrintWithSource(source io.ReaderAt, srcerr SourceError) {
 	}
 	line, col := loc.Beg.Line, loc.Beg.Column
 	fmt.Printf("Error at line %d, column %d\n\n", line, col)
-	fmt.Println(code)
+	fmt.Println(string(code))
 	fmt.Println(srcerr.Error())
 }
