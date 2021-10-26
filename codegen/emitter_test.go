@@ -122,7 +122,7 @@ func matchResults(t *testing.T, table *etest) {
 			e := NewEmitter()
 			got, errs := e.Compile(c)
 			if len(errs) > 0 {
-				t.Errorf("Unexpected compilation errors %s", errs)
+				t.Errorf("Unexpected compilation errors %v", errs)
 			}
 			if !bytes.Equal(got.Instrs, test.expect.Instrs) {
 				t.Logf("Want:\n%s", isa.DisassembleCode(test.expect))
