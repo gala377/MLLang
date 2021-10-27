@@ -1,14 +1,12 @@
 import os
-from posixpath import expanduser, join
-import sys
 import subprocess
-import glob
 import tempfile
-import pdb
+import re
+import argparse
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional
 
 """
 Build fnk binary somewhere
@@ -24,8 +22,8 @@ FNK_BINARY_NAME = "funk"
 tests_dir = Path(__file__).parent
 root_dir = tests_dir.parent
 
-def run():
-    test_files = get_tests(tests_dir)
+def run(args):
+    test_files = get_tests(tests_dir, pattern=args.filter[0])
     print_tests(tests_dir, test_files)
     with tempfile.TemporaryDirectory() as build_dir:
         build_dir_path = Path(build_dir)
@@ -35,8 +33,12 @@ def run():
             raise RuntimeError(f"Funk binary {fnk_binary} does not exist")
         run_tests(fnk_binary, test_files)
 
-def get_tests(path: Path) -> list[Path]:
-    return list(path.glob(f"**/*.{TEST_FILES_EXTENSION}"))
+def get_tests(path: Path, pattern: Optional[str]) -> list[Path]:
+    files = list(path.glob(f"**/*.{TEST_FILES_EXTENSION}"))
+    if pattern is not None:
+        return [f for f in files
+               if re.match(pattern, f.name)]
+    return files
 
 def print_tests(tests_root: Path, tests: list[Path]):
     print("Found following test files:")
@@ -131,5 +133,13 @@ def print_stats(failed: list[tuple[Path, bytes, bytes]], all: list[Path]):
 def strip_tests_dir(path) -> str:
     return str(path)[len(str(tests_dir))+1:]
 
+def command_parser():
+    parser = argparse.ArgumentParser(description='tool to run fnk e2e tests')
+    parser.add_argument('--filter', type=str, nargs=1,
+                        help='only run tests matching the regex')
+    return parser
+
 if __name__ == '__main__':
-    run()
+    parser = command_parser()
+    args = parser.parse_args()
+    run(args)
