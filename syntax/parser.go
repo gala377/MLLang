@@ -432,6 +432,17 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		var node ast.Identifier
 		node.Span = tok.Span
 		node.Name = tok.Val
+		if p.match(token.Exclamation) != nil {
+			// unary application on identifier
+			span := span.NewSpan(node.Span.Beg, p.position())
+			fapp := ast.FuncApplication{
+				Span:   &span,
+				Callee: &node,
+				Args:   make([]ast.Expr, 0),
+				Block:  nil,
+			}
+			return &fapp, true
+		}
 		return &node, true
 	case token.LSquareParen, token.LBracket:
 		panic("not implemented")

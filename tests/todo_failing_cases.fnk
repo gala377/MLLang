@@ -14,15 +14,3 @@
 ;     ; it's not a bug in a sense but
 ;     ; do we want to have it like that?
 ;     val outer = 2
-
-
-
-val echo = printf "%v"
-
-val addition = do |a b| -> add a b
-echo (addition 0 1)
-val getTwo = do -> addition 1 1
-
-; this gives us sigsegv on compilation
-; we have to debug this
-echo getTwo!

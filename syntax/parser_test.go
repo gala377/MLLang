@@ -164,6 +164,24 @@ func TestFuncApplication(t *testing.T) {
 				},
 			},
 		},
+		{
+			"a! b! c",
+			[]an{
+				&ast.FuncApplication{
+					Callee: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args:   make([]ast.Expr, 0),
+					},
+					Args: []ast.Expr{
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{Name: "b"},
+							Args:   make([]ast.Expr, 0),
+						},
+						&ast.Identifier{Name: "c"},
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }
