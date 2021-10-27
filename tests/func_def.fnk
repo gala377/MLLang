@@ -1,0 +1,11 @@
+@EXPECTED
+3
+2
+1
+
+@SOURCE
+fn echo v = printf "%v" v
+
+echo 3
+echo 2
+echo 1

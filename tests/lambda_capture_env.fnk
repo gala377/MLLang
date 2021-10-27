@@ -1,0 +1,32 @@
+@EXPECTED
+16
+106
+12
+102
+@SOURCE
+
+fn make_adder a:
+  val cap = 5
+  do |x|:
+    add (add a x) cap
+
+val add1 = make_adder 10
+val add2 = make_adder 100
+
+val echo = printf "%v"
+
+echo (add1 1)
+echo (add2 1)
+
+
+fn make_adder_2 a:
+  val cap = 5
+  do |cap|:
+    add (add a cap) cap
+
+
+val add3 = make_adder_2 10
+val add4 = make_adder_2 100
+
+echo (add3 1)
+echo (add4 1)

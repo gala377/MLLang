@@ -32,7 +32,7 @@ type (
 
 	Function struct {
 		Args []Symbol
-		Name string
+		Name Symbol
 		Env  *Env
 		Body *Code
 	}
@@ -114,7 +114,7 @@ func (f *PartialApp) Equal(o Value) bool {
 	return false
 }
 
-func NewFunction(name string, args []Symbol, body *Code) *Function {
+func NewFunction(name Symbol, args []Symbol, body *Code) *Function {
 	env := NewEnv()
 	return &Function{
 		Name: name,
@@ -126,7 +126,7 @@ func NewFunction(name string, args []Symbol, body *Code) *Function {
 
 func NewLambda(env *Env, args []Symbol, body *Code) *Function {
 	return &Function{
-		Name: "",
+		Name: Symbol{nil},
 		Args: args,
 		Body: body,
 		Env:  env,
@@ -155,11 +155,10 @@ func (f *Function) Call(vv ...Value) (Value, Trampoline) {
 }
 
 func (f *Function) String() string {
-	name := f.Name
-	if name == "" {
-		name = "lambda"
+	if f.Name.Inner() == nil {
+		return "<anonymous function>"
 	}
-	return fmt.Sprintf("<function %s>", name)
+	return fmt.Sprintf("<function %s>", *f.Name.Inner())
 }
 
 func (f *Function) Equal(o Value) bool {

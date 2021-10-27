@@ -268,7 +268,9 @@ func (e *Emitter) emitDeclaration(node ast.Decl) {
 	case *ast.GlobalValDecl:
 		e.emitGlobalVariableDecl(v)
 	case *ast.FuncDecl:
-		e.error(node.NodeSpan(), "Function declarations not supported")
+		e.emitFuncDeclaration(v)
+	default:
+		panic("unreachable")
 	}
 }
 
@@ -290,6 +292,52 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 		return
 	}
 	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.DefGlobal)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
+	if !e.scope.IsGlobal() {
+		panic("ICE: trying to define function in local scope")
+	}
+	if e.scope.Lookup(node.Name) {
+		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of the name %s", node.Name))
+	}
+	e.scope.Insert(node.Name)
+	fname := data.NewSymbol(e.interner.Intern(node.Name))
+	// emit function body
+	fe := NewEmitter(e.interner)
+	fe.scope = e.scope.Derive()
+	fargs := make([]data.Symbol, 0, len(node.Args))
+	for _, arg := range node.Args {
+		fe.scope.Insert(arg.Name)
+		s := e.interner.Intern(arg.Name)
+		fargs = append(fargs, data.NewSymbol(s))
+	}
+	fe.emitExpr(node.Body)
+	// todo: implicit return might not always be needed but then
+	// we will never get there if there is an explicit one
+	fe.emitByte(isa.Return)
+	e.errors = append(e.errors, fe.errors...)
+	code := fe.result
+	l := data.NewFunction(fname, fargs, code)
+	index := e.result.AddConstant(l)
+	if index > math.MaxUint16 {
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.Lambda)
+	e.emitBytes(args...)
+	// assign to global variable
+	index = e.result.AddConstant(fname)
+	if index > math.MaxUint16 {
+		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		return
+	}
+	args = []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefGlobal)
 	e.emitBytes(args...)
