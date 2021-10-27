@@ -295,8 +295,8 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	log.Println("Parse fn app")
 	beg := p.position()
 	fn, ok := p.parsePrimaryExpr()
-	if !ok {
-		return nil, false
+	if fn == nil || !ok {
+		return nil, ok
 	}
 	// No args application
 	if p.match(token.Exclamation) != nil {

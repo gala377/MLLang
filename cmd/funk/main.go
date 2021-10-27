@@ -11,17 +11,26 @@ import (
 	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
+	"github.com/gala377/MLLang/syntax"
 	"github.com/gala377/MLLang/vm"
 )
 
 var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virtual machine")
 var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
+var showAst = flag.Bool("dump_ast", false, "just parse the file and print the ast to stdout")
 
 func main() {
 	flag.Parse()
 	f := getFile()
 	log.SetOutput(ioutil.Discard)
 	vm.Debug = *verboseFlag
+	if *showAst {
+		sr := bytes.NewReader(f)
+		p := syntax.NewParser(sr)
+		ast := p.Parse()
+		fmt.Printf("%s", ast)
+		return
+	}
 	evaluateBuffer(f)
 }
 
