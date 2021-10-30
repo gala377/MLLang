@@ -44,12 +44,27 @@ func evaluateBuffer(buff []byte) {
 		os.Exit(1)
 	}
 	if *showCode {
-		fmt.Println(isa.DisassembleCode(c))
+		printCode(c)
 		os.Exit(0)
 	}
 	s := bytes.NewReader(buff)
 	vm := vmWithStdEnv(s, i)
 	vm.Interpret(c)
+}
+
+func printCode(c *data.Code) {
+	fmt.Println(isa.DisassembleCode(c))
+	for _, c := range c.Consts {
+		switch v := c.(type) {
+		case *data.Function:
+			name := ""
+			if v.Name.Inner() != nil {
+				name = *v.Name.Inner()
+			}
+			fmt.Printf("\n=======Function %s========\n", name)
+			printCode(v.Body)
+		}
+	}
 }
 
 func vmWithStdEnv(source *bytes.Reader, i *codegen.Interner) *vm.Vm {

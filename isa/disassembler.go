@@ -47,6 +47,8 @@ var instArguments = [opCount]int{
 	PushNone:    0,
 	StoreLocal:  2,
 	StoreDyn:    2,
+	StoreDeref:  2,
+	LoadDeref:   2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string

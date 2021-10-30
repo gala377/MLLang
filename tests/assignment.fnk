@@ -1,6 +1,6 @@
 @EXPECTED
 12
-"Hello"
+Hello
 100
 200
 20
@@ -29,6 +29,7 @@ fn nested:
   val a = 10
   val f = do:
     a = 20
+  f!
   print a
 
 nested!

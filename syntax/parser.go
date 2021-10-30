@@ -233,12 +233,15 @@ func (p *Parser) parseStmt() (ast.Stmt, bool) {
 	t := p.curr
 	parseSpecialForm := p.stmtSpecialForms[t.Typ]
 	if parseSpecialForm == nil {
-		res, ok := p.parseExpr()
-		if res == nil {
+		lval, ok := p.parseExpr()
+		if lval == nil {
 			return nil, ok
 		}
-		var node ast.Stmt = &ast.StmtExpr{Expr: res}
+		var node ast.Stmt = &ast.StmtExpr{Expr: lval}
 		if p.match(token.Assignment) != nil {
+			if id, ok := lval.(*ast.Identifier); ok {
+				p.tryLiftVar(id.Name)
+			}
 			rval, ok := p.parseExpr()
 			if rval == nil || !ok {
 				if ok {
@@ -247,11 +250,8 @@ func (p *Parser) parseStmt() (ast.Stmt, bool) {
 				}
 				return nil, false
 			}
-			if id, ok := rval.(*ast.Identifier); ok {
-				p.tryLiftVar(id.Name)
-			}
 			span := span.NewSpan(t.Span.Beg, p.position())
-			node = &ast.Assignment{Span: &span, LValue: res, RValue: rval}
+			node = &ast.Assignment{Span: &span, LValue: lval, RValue: rval}
 		}
 		p.match(token.NewLine)
 		return node, ok

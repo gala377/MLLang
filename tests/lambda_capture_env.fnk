@@ -37,6 +37,7 @@ fn external_capture:
   val cap = 0
   val f = do:
     cap = 7
+  f!
   print cap
 
 external_capture!
