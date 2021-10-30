@@ -232,7 +232,8 @@ func (p *Parser) parseStmt() (ast.Stmt, bool) {
 				}
 				return nil, false
 			}
-			node = &ast.Assignment{LValue: res, RValue: rval}
+			span := span.NewSpan(t.Span.Beg, p.position())
+			node = &ast.Assignment{Span: &span, LValue: res, RValue: rval}
 		}
 		p.match(token.NewLine)
 		return node, ok

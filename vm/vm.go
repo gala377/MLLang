@@ -129,7 +129,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			case data.Error:
 				vm.bail(v.String())
 			}
-		case isa.DynLookup:
+		case isa.LoadDyn:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			if Debug {
@@ -143,7 +143,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				fmt.Printf("Lookup successful. Value is %s\n", v)
 			}
 			vm.push(v)
-		case isa.LocalLookup:
+		case isa.LoadLocal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			if Debug {
@@ -165,6 +165,14 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.push(l)
 		case isa.PushNone:
 			vm.push(data.None)
+		case isa.StoreDyn:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			vm.globals.Insert(s, vm.pop())
+		case isa.StoreLocal:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			vm.locals.Insert(s, vm.pop())
 		}
 	}
 	return data.None, nil

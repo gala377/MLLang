@@ -9,8 +9,10 @@ const (
 	Call
 	Jump
 	JumpIfFalse
-	DynLookup
-	LocalLookup
+	LoadDyn
+	StoreDyn
+	StoreLocal
+	LoadLocal
 	Pop
 	DefGlobal
 	DefLocal

@@ -1,0 +1,34 @@
+@EXPECTED
+12
+"Hello"
+100
+200
+20
+
+@SOURCE
+
+val b = 10
+b = 12
+print b
+
+fn global:
+  b = "Hello"
+
+global!
+print b
+
+fn local:
+  val c = 100
+  print c
+  c = 200
+  print c
+
+local!
+
+fn nested:
+  val a = 10
+  val f = do:
+    a = 20
+  print a
+
+nested!

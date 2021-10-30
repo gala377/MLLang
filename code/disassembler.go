@@ -16,13 +16,15 @@ var instNames = [...]string{
 	isa.Call:        "Call",
 	isa.Jump:        "Jump",
 	isa.JumpIfFalse: "JumpIfFalse",
-	isa.DynLookup:   "DynLookup",
-	isa.LocalLookup: "LocalLookup",
+	isa.LoadDyn:     "LoadDyn",
+	isa.LoadLocal:   "LoadLocal",
 	isa.Pop:         "Pop",
 	isa.DefGlobal:   "DefGlobal",
 	isa.DefLocal:    "DefLocal",
 	isa.Lambda:      "Lambda",
 	isa.PushNone:    "PushNone",
+	isa.StoreLocal:  "StoreLocal",
+	isa.StoreDyn:    "StoreDyn",
 }
 
 const opCount = len(instNames)
@@ -34,13 +36,15 @@ var instArguments = [opCount]int{
 	isa.Call:        1,
 	isa.Jump:        2,
 	isa.JumpIfFalse: 2,
-	isa.DynLookup:   2,
-	isa.LocalLookup: 2,
+	isa.LoadDyn:     2,
+	isa.LoadLocal:   2,
 	isa.Pop:         0,
 	isa.DefGlobal:   2,
 	isa.DefLocal:    2,
 	isa.Lambda:      2,
 	isa.PushNone:    0,
+	isa.StoreLocal:  2,
+	isa.StoreDyn:    2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
@@ -50,11 +54,13 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	isa.Constant2:   writeConstant2,
 	isa.Jump:        writeJump,
 	isa.JumpIfFalse: writeJump,
-	isa.DynLookup:   writeConstant2,
-	isa.LocalLookup: writeConstant2,
+	isa.LoadDyn:     writeConstant2,
+	isa.LoadLocal:   writeConstant2,
 	isa.DefGlobal:   writeConstant2,
 	isa.DefLocal:    writeConstant2,
 	isa.Lambda:      writeConstant2,
+	isa.StoreLocal:  writeConstant2,
+	isa.StoreDyn:    writeConstant2,
 }
 
 func PrintCode(code *data.Code, name string) {

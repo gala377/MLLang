@@ -39,7 +39,7 @@ func TestEmittingConstValues(t *testing.T) {
 		{
 			"a",
 			codeFromBytes(1, []byte{
-				isa.DynLookup, 0, 0,
+				isa.LoadDyn, 0, 0,
 				isa.Pop,
 			}),
 		},

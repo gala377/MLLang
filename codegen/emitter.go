@@ -142,6 +142,8 @@ func (e *Emitter) emitStmt(node ast.Stmt) {
 		e.emitUnboundExpr(v.Expr)
 	case *ast.ValDecl:
 		e.emitVariableDecl(v)
+	case *ast.Assignment:
+		e.emitAssignment(v)
 	default:
 		log.Printf("Stmt node is %v", node)
 		e.error(node.NodeSpan(), "Stmt node cannot be emitted. Not supported")
@@ -230,13 +232,12 @@ func (e *Emitter) patchJump(i int, offset int) {
 }
 
 func (e *Emitter) emitGlobalLookup(node *ast.Identifier) {
-	e.emitLookup(isa.DynLookup, node)
+	e.emitLookup(isa.LoadDyn, node)
 }
 
 func (e *Emitter) emitLocalLookup(node *ast.Identifier) {
-	e.emitLookup(isa.LocalLookup, node)
+	e.emitLookup(isa.LoadLocal, node)
 }
-
 func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
 	s := e.interner.Intern(node.Name)
 	v := data.NewSymbol(s)
@@ -248,6 +249,32 @@ func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(kind)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitAssignment(node *ast.Assignment) {
+	var index int
+	instr := isa.StoreDyn
+	switch loc := node.LValue.(type) {
+	case *ast.Identifier:
+		s := e.interner.Intern(loc.Name)
+		v := data.NewSymbol(s)
+		index = e.result.AddConstant(v)
+		if index > math.MaxUint16 {
+			e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+			return
+		}
+		if e.scope.LookupLocal(loc.Name) {
+			instr = isa.StoreLocal
+		}
+	default:
+		e.error(node.NodeSpan(), "values can only be assigned to names")
+		return
+	}
+	e.emitExpr(node.RValue)
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(instr)
 	e.emitBytes(args...)
 }
 
