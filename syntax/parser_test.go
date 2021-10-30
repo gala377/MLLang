@@ -744,6 +744,36 @@ func TestLocalVariableDecl(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestAssignment(t *testing.T) {
+	table := ptable{
+		{
+			"a = 1\na b c = d a\n",
+			[]an{
+				&ast.Assignment{
+					LValue: &ast.Identifier{Name: "a"},
+					RValue: &ast.IntConst{Val: 1},
+				},
+				&ast.Assignment{
+					LValue: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args: []ast.Expr{
+							&ast.Identifier{Name: "b"},
+							&ast.Identifier{Name: "c"},
+						},
+					},
+					RValue: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "d"},
+						Args: []ast.Expr{
+							&ast.Identifier{Name: "a"},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {

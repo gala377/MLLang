@@ -222,8 +222,20 @@ func (p *Parser) parseStmt() (ast.Stmt, bool) {
 		if res == nil {
 			return nil, ok
 		}
+		var node ast.Stmt = &ast.StmtExpr{Expr: res}
+		if p.match(token.Assignment) != nil {
+			rval, ok := p.parseExpr()
+			if rval == nil || !ok {
+				if ok {
+					p.error(t.Span.Beg, p.position(), "expected expression after assigment operator")
+					p.recover()
+				}
+				return nil, false
+			}
+			node = &ast.Assignment{LValue: res, RValue: rval}
+		}
 		p.match(token.NewLine)
-		return &ast.StmtExpr{Expr: res}, ok
+		return node, ok
 	}
 	res, ok := parseSpecialForm()
 	if ok && res == nil {
