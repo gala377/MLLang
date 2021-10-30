@@ -8,6 +8,7 @@ import (
 
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
+	"github.com/gala377/MLLang/syntax"
 	"github.com/gala377/MLLang/syntax/ast"
 	"github.com/gala377/MLLang/syntax/span"
 )
@@ -30,7 +31,7 @@ type Emitter struct {
 	line     int
 	interner *Interner
 	errors   []CompilationError
-	scope    *Scope
+	scope    *syntax.Scope
 }
 
 func NewEmitter(i *Interner) *Emitter {
@@ -40,7 +41,7 @@ func NewEmitter(i *Interner) *Emitter {
 		line:     0,
 		interner: i,
 		errors:   make([]CompilationError, 0),
-		scope:    NewScope(nil),
+		scope:    syntax.NewScope(nil),
 	}
 	return &e
 }

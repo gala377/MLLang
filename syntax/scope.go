@@ -1,4 +1,4 @@
-package codegen
+package syntax
 
 type Scope struct {
 	parent *Scope
