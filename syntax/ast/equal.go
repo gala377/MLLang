@@ -219,3 +219,10 @@ func (b *BoolConst) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (a *Assignment) Equal(o Node) bool {
+	if oa, ok := o.(*Assignment); ok {
+		return AstEqual(oa.LValue, a.LValue) && AstEqual(oa.RValue, a.RValue)
+	}
+	return false
+}

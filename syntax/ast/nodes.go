@@ -130,14 +130,21 @@ type (
 		*span.Span
 		Val bool
 	}
+
+	Assignment struct {
+		*span.Span
+		LValue Expr
+		RValue Expr
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
 func (f *FuncDecl) declNode()      {}
 
-func (v *ValDecl) stmtNode()   {}
-func (w *WhileStmt) stmtNode() {}
-func (s *StmtExpr) stmtNode()  {}
+func (v *ValDecl) stmtNode()    {}
+func (w *WhileStmt) stmtNode()  {}
+func (s *StmtExpr) stmtNode()   {}
+func (a *Assignment) stmtNode() {}
 
 func (b *Block) exprNode()           {}
 func (f *FuncApplication) exprNode() {}
@@ -223,6 +230,10 @@ func (l *LambdaExpr) NodeSpan() *span.Span {
 
 func (b *BoolConst) NodeSpan() *span.Span {
 	return b.Span
+}
+
+func (a *Assignment) NodeSpan() *span.Span {
+	return a.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -337,4 +348,10 @@ func (l *LambdaExpr) String() string {
 
 func (b *BoolConst) String() string {
 	return fmt.Sprintf("%v", b.Val)
+}
+
+func (a *Assignment) String() string {
+	return fmt.Sprintf(
+		"Assignment{\n\tLval=%s,\nRval=%s\n}",
+		a.LValue, a.RValue)
 }
