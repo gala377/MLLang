@@ -35,6 +35,7 @@ type Parser struct {
 	stmtSpecialForms    [token.Eof]parseStmtFn
 	exprSpecialForms    [token.Eof]parseExprFn
 	parseTrailingBlocks bool
+	scope               *Scope
 }
 
 func NewParser(source io.Reader) *Parser {
@@ -65,6 +66,7 @@ func NewParser(source io.Reader) *Parser {
 		token.Val:   p.parseValDecl,
 	}
 	p.parseTrailingBlocks = true
+	p.scope = NewScope(nil)
 	return &p
 }
 
@@ -136,9 +138,18 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 		p.recover()
 		return nil, false
 	}
+	if !p.scope.IsGlobal() {
+		panic("ICE: expected global scope")
+	}
+	p.scope.Insert(name.Name)
+
+	p.openScope()
+	defer p.closeScope()
+
 	args := []*ast.Identifier{}
 	for arg := p.parseIdentifier(); arg != nil; arg = p.parseIdentifier() {
 		args = append(args, arg)
+		p.scope.Insert(arg.Name)
 	}
 	var fbody ast.Expr
 	body, ok := p.parseBlock()
@@ -206,6 +217,10 @@ func (p *Parser) parseGlobalValDecl() (*ast.GlobalValDecl, bool) {
 		Name: name.Val,
 		Rhs:  expr,
 	}
+	if !p.scope.IsGlobal() {
+		panic("ICE: expected global scope")
+	}
+	p.scope.Insert(node.Name)
 	return &node, ok
 }
 
@@ -231,6 +246,9 @@ func (p *Parser) parseStmt() (ast.Stmt, bool) {
 					p.recover()
 				}
 				return nil, false
+			}
+			if id, ok := rval.(*ast.Identifier); ok {
+				p.tryLiftVar(id.Name)
 			}
 			span := span.NewSpan(t.Span.Beg, p.position())
 			node = &ast.Assignment{Span: &span, LValue: res, RValue: rval}
@@ -357,6 +375,8 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
 	var block *ast.LambdaExpr = nil
 	if p.parseTrailingBlocks && p.check(token.Colon) != nil {
+		p.openScope()
+		defer p.closeScope()
 		lbeg := p.position()
 		b, ok := p.parseBlock()
 		if !ok {
@@ -571,6 +591,8 @@ func (p *Parser) parseElse() (ast.Expr, bool) {
 func (p *Parser) parseLambda() (ast.Expr, bool) {
 	log.Println("Parsing lambda")
 	beg := p.position()
+	p.openScope()
+	defer p.closeScope()
 	if t := p.match(token.Do); t == nil {
 		return nil, true
 	}
@@ -590,6 +612,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 			}
 			log.Printf("Parsed parameter %s", a.Name)
 			args = append(args, a)
+			p.scope.Insert(a.Name)
 		}
 	}
 	log.Println("Parsed lambda arguments")
@@ -644,6 +667,7 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 		p.recover()
 		return nil, false
 	}
+	p.scope.Insert(name.Val)
 	if t := p.match(token.Assignment); t == nil {
 		p.error(beg, p.position(), "expected '=' operator in variable declaration")
 		p.recover()
@@ -838,4 +862,22 @@ func (p *Parser) disallowTrailingBlocks() {
 
 func (p *Parser) allowTrailingBlocks() {
 	p.parseTrailingBlocks = true
+}
+
+func (p *Parser) closeScope() {
+	if p.scope.IsGlobal() {
+		panic("ICE: cannot pop a global scope")
+	}
+	p.scope = p.scope.parent
+}
+
+func (p *Parser) openScope() {
+	p.scope = p.scope.Derive()
+}
+
+func (p *Parser) tryLiftVar(name string) {
+	rs, si := p.scope.RelativeScope(name)
+	if rs == Outer {
+		si.Lift = true
+	}
 }

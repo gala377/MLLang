@@ -119,7 +119,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
-		if e.scope.LookupLocal(v.Name) {
+		if e.scope.LookupLocal(v.Name) != nil {
 			e.emitLocalLookup(v)
 		} else {
 			e.emitGlobalLookup(v)
@@ -264,7 +264,7 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 			e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
 			return
 		}
-		if e.scope.LookupLocal(loc.Name) {
+		if e.scope.LookupLocal(loc.Name) != nil {
 			instr = isa.StoreLocal
 		}
 	default:
@@ -312,7 +312,7 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 	if !e.scope.IsGlobal() {
 		panic("ICE: trying to emit global variable declation not in global scope")
 	}
-	if e.scope.Lookup(node.Name) {
+	if e.scope.Lookup(node.Name) != nil {
 		e.error(node.Span, fmt.Sprintf("redeclaration of name %s", node.Name))
 		return
 	}
@@ -335,7 +335,7 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	if !e.scope.IsGlobal() {
 		panic("ICE: trying to define function in local scope")
 	}
-	if e.scope.Lookup(node.Name) {
+	if e.scope.Lookup(node.Name) != nil {
 		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of the name %s", node.Name))
 	}
 	e.scope.Insert(node.Name)
@@ -381,7 +381,7 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 	if e.scope.IsGlobal() {
 		panic("ICE: trying to emit local val declaration in global scope")
 	}
-	if e.scope.LookupLocal(node.Name) {
+	if e.scope.LookupLocal(node.Name) != nil {
 		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of local name %s", node.Name))
 		return
 	}
