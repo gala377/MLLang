@@ -15,4 +15,5 @@ const (
 	DefGlobal
 	DefLocal
 	Lambda
+	PushNone
 )

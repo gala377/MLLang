@@ -2,6 +2,7 @@
 Hello
 How are you?
 1
+None
 
 @SOURCE
 ; we can have scope blocks with lambdas :)
@@ -14,6 +15,12 @@ scope:
   print "How are you?"
 
 print (toString a)
+
+val b = scope:
+  val a = 10
+
+print b
+
 
 ; fn inner:
 ;   val a = 1

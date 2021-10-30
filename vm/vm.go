@@ -163,6 +163,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			l = data.NewLambda(&lenv, l.Args, l.Body)
 			vm.push(l)
+		case isa.PushNone:
+			vm.push(data.None)
 		}
 	}
 	return data.None, nil
@@ -248,7 +250,7 @@ func (vm *Vm) getFunctionAt(i uint16) *data.Function {
 }
 
 func (vm *Vm) bail(msg string) {
-	line := vm.code.Lines[vm.ip+1]
+	line := vm.code.Lines[vm.ip] + 1
 	code := getLine(line, vm.source)
 
 	fmt.Printf("\n\nRuntime error at line %d\n\n", line)

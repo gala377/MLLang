@@ -46,11 +46,11 @@ func printf(vv ...data.Value) (data.Value, error) {
 
 func print(vv ...data.Value) (data.Value, error) {
 	val := vv[0]
-	sfmt, ok := val.(data.String)
-	if !ok {
-		return nil, fmt.Errorf("first argument to print has to be a string")
+	msg := val.String()
+	if s, ok := val.(data.String); ok {
+		msg = s.Val
 	}
-	fmt.Print(sfmt.Val + "\n")
+	fmt.Println(msg)
 	return data.None, nil
 }
 

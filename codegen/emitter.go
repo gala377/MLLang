@@ -177,12 +177,13 @@ func (e *Emitter) emitBlock(node *ast.Block) {
 	for i, instr := range node.Instr {
 		if i == (len(node.Instr) - 1) {
 			// last in a block
-			if v, ok := instr.(*ast.StmtExpr); ok {
+			switch v := instr.(type) {
+			case *ast.StmtExpr:
 				e.emitExpr(v.Expr)
-				return
+			default:
+				e.emitStmt(v)
+				e.emitByte(isa.PushNone)
 			}
-			// todo: if it's a stmt then we should emit it and then push unit
-			e.error(node.NodeSpan(), "last instruction in a block should be an expression")
 		} else {
 			e.emitStmt(instr)
 		}

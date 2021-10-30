@@ -22,6 +22,7 @@ var instNames = [...]string{
 	isa.DefGlobal:   "DefGlobal",
 	isa.DefLocal:    "DefLocal",
 	isa.Lambda:      "Lambda",
+	isa.PushNone:    "PushNone",
 }
 
 const opCount = len(instNames)
@@ -39,6 +40,7 @@ var instArguments = [opCount]int{
 	isa.DefGlobal:   2,
 	isa.DefLocal:    2,
 	isa.Lambda:      2,
+	isa.PushNone:    0,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
