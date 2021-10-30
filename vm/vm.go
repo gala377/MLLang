@@ -8,7 +8,6 @@ import (
 	"io"
 	"strings"
 
-	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 )
@@ -173,6 +172,26 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			vm.locals.Insert(s, vm.pop())
+		case isa.MakeCell:
+			vm.push(data.NewCell(vm.pop()))
+		case isa.LoadDeref:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			c := vm.locals.Lookup(s)
+			if ac, ok := c.(*data.Cell); ok {
+				vm.push(ac.Get())
+			} else {
+				vm.bail("ICE: LoadDeref used not on cell")
+			}
+		case isa.StoreDeref:
+			arg := vm.readShort()
+			s := vm.getSymbolAt(arg)
+			c := vm.locals.Lookup(s)
+			if ac, ok := c.(*data.Cell); ok {
+				ac.Set(vm.pop())
+			} else {
+				vm.bail("ICE: StoreDeref used not on cell")
+			}
 		}
 	}
 	return data.None, nil
@@ -218,7 +237,7 @@ func (vm *Vm) printStack() {
 }
 
 func (vm *Vm) printInstr() {
-	s, _ := code.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
+	s, _ := isa.DisassembleInstr(vm.code, vm.ip, vm.code.Lines[vm.ip])
 	fmt.Println(s)
 }
 

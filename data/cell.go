@@ -6,6 +6,10 @@ type Cell struct {
 	Val Value
 }
 
+func NewCell(v Value) *Cell {
+	return &Cell{v}
+}
+
 func (c *Cell) Equal(o Value) bool {
 	if oc, ok := o.(*Cell); ok {
 		return c.Val.Equal(oc.Val)

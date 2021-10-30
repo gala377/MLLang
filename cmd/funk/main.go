@@ -8,9 +8,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
+	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax"
 	"github.com/gala377/MLLang/vm"
 )
@@ -44,7 +44,7 @@ func evaluateBuffer(buff []byte) {
 		os.Exit(1)
 	}
 	if *showCode {
-		fmt.Println(code.DisassembleCode(c))
+		fmt.Println(isa.DisassembleCode(c))
 		os.Exit(0)
 	}
 	s := bytes.NewReader(buff)

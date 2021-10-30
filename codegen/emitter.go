@@ -119,8 +119,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
-		if e.scope.LookupLocal(v.Name) != nil {
-			e.emitLocalLookup(v)
+		if si := e.scope.LookupLocal(v.Name); si != nil {
+			e.emitLocalLookup(v, si.VarDecl)
 		} else {
 			e.emitGlobalLookup(v)
 		}
@@ -235,8 +235,12 @@ func (e *Emitter) emitGlobalLookup(node *ast.Identifier) {
 	e.emitLookup(isa.LoadDyn, node)
 }
 
-func (e *Emitter) emitLocalLookup(node *ast.Identifier) {
-	e.emitLookup(isa.LoadLocal, node)
+func (e *Emitter) emitLocalLookup(node *ast.Identifier, decl *ast.ValDecl) {
+	if decl != nil && decl.Lift {
+		e.emitLookup(isa.LoadDeref, node)
+	} else {
+		e.emitLookup(isa.LoadLocal, node)
+	}
 }
 func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
 	s := e.interner.Intern(node.Name)
@@ -264,8 +268,11 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 			e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
 			return
 		}
-		if e.scope.LookupLocal(loc.Name) != nil {
+		if si := e.scope.LookupLocal(loc.Name); si != nil {
 			instr = isa.StoreLocal
+			if si.VarDecl != nil && si.VarDecl.Lift {
+				instr = isa.StoreDeref
+			}
 		}
 	default:
 		e.error(node.NodeSpan(), "values can only be assigned to names")
@@ -385,7 +392,7 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of local name %s", node.Name))
 		return
 	}
-	e.scope.Insert(node.Name)
+	e.scope.InsertVal(node)
 	e.emitExpr(node.Rhs)
 	s := e.interner.Intern(node.Name)
 	v := data.NewSymbol(s)
@@ -393,6 +400,9 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 	if index > math.MaxUint16 {
 		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
 		return
+	}
+	if node.Lift {
+		e.emitByte(isa.MakeCell)
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))

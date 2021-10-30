@@ -11,6 +11,8 @@ const (
 	JumpIfFalse
 	LoadDyn
 	StoreDyn
+	LoadDeref
+	StoreDeref
 	StoreLocal
 	LoadLocal
 	Pop
@@ -18,4 +20,5 @@ const (
 	DefLocal
 	Lambda
 	PushNone
+	MakeCell
 )

@@ -5,7 +5,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/gala377/MLLang/code"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 	"github.com/gala377/MLLang/syntax"
@@ -126,8 +125,8 @@ func matchResults(t *testing.T, table *etest) {
 				t.Errorf("Unexpected compilation errors %v", errs)
 			}
 			if !bytes.Equal(got.Instrs, test.expect.Instrs) {
-				t.Logf("Want:\n%s", code.DisassembleCode(test.expect))
-				t.Logf("\nGot:\n%s\n", code.DisassembleCode(got))
+				t.Logf("Want:\n%s", isa.DisassembleCode(test.expect))
+				t.Logf("\nGot:\n%s\n", isa.DisassembleCode(got))
 				t.FailNow()
 			}
 		})

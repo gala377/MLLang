@@ -1,4 +1,4 @@
-package code
+package isa
 
 import (
 	"encoding/binary"
@@ -7,60 +7,64 @@ import (
 	"strings"
 
 	"github.com/gala377/MLLang/data"
-	"github.com/gala377/MLLang/isa"
 )
 
 var instNames = [...]string{
-	isa.Return:      "Return",
-	isa.Constant:    "Constant",
-	isa.Call:        "Call",
-	isa.Jump:        "Jump",
-	isa.JumpIfFalse: "JumpIfFalse",
-	isa.LoadDyn:     "LoadDyn",
-	isa.LoadLocal:   "LoadLocal",
-	isa.Pop:         "Pop",
-	isa.DefGlobal:   "DefGlobal",
-	isa.DefLocal:    "DefLocal",
-	isa.Lambda:      "Lambda",
-	isa.PushNone:    "PushNone",
-	isa.StoreLocal:  "StoreLocal",
-	isa.StoreDyn:    "StoreDyn",
+	Return:      "Return",
+	Constant:    "Constant",
+	Call:        "Call",
+	Jump:        "Jump",
+	JumpIfFalse: "JumpIfFalse",
+	LoadDyn:     "LoadDyn",
+	LoadLocal:   "LoadLocal",
+	Pop:         "Pop",
+	DefGlobal:   "DefGlobal",
+	DefLocal:    "DefLocal",
+	Lambda:      "Lambda",
+	PushNone:    "PushNone",
+	StoreLocal:  "StoreLocal",
+	StoreDyn:    "StoreDyn",
+	LoadDeref:   "LoadDeref",
+	StoreDeref:  "StoreDeref",
+	MakeCell:    "MakeCell",
 }
 
 const opCount = len(instNames)
 
 var instArguments = [opCount]int{
-	isa.Return:      0,
-	isa.Constant:    1,
-	isa.Constant2:   2,
-	isa.Call:        1,
-	isa.Jump:        2,
-	isa.JumpIfFalse: 2,
-	isa.LoadDyn:     2,
-	isa.LoadLocal:   2,
-	isa.Pop:         0,
-	isa.DefGlobal:   2,
-	isa.DefLocal:    2,
-	isa.Lambda:      2,
-	isa.PushNone:    0,
-	isa.StoreLocal:  2,
-	isa.StoreDyn:    2,
+	Return:      0,
+	Constant:    1,
+	Constant2:   2,
+	Call:        1,
+	Jump:        2,
+	JumpIfFalse: 2,
+	LoadDyn:     2,
+	LoadLocal:   2,
+	Pop:         0,
+	DefGlobal:   2,
+	DefLocal:    2,
+	Lambda:      2,
+	PushNone:    0,
+	StoreLocal:  2,
+	StoreDyn:    2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
 
 var instSpecificInfos = [opCount]additionalInfoFunc{
-	isa.Constant:    writeConstant,
-	isa.Constant2:   writeConstant2,
-	isa.Jump:        writeJump,
-	isa.JumpIfFalse: writeJump,
-	isa.LoadDyn:     writeConstant2,
-	isa.LoadLocal:   writeConstant2,
-	isa.DefGlobal:   writeConstant2,
-	isa.DefLocal:    writeConstant2,
-	isa.Lambda:      writeConstant2,
-	isa.StoreLocal:  writeConstant2,
-	isa.StoreDyn:    writeConstant2,
+	Constant:    writeConstant,
+	Constant2:   writeConstant2,
+	Jump:        writeJump,
+	JumpIfFalse: writeJump,
+	LoadDyn:     writeConstant2,
+	LoadLocal:   writeConstant2,
+	DefGlobal:   writeConstant2,
+	DefLocal:    writeConstant2,
+	Lambda:      writeConstant2,
+	StoreLocal:  writeConstant2,
+	StoreDyn:    writeConstant2,
+	StoreDeref:  writeConstant2,
+	LoadDeref:   writeConstant2,
 }
 
 func PrintCode(code *data.Code, name string) {
