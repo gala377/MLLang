@@ -667,7 +667,6 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 		p.recover()
 		return nil, false
 	}
-	p.scope.Insert(name.Val)
 	if t := p.match(token.Assignment); t == nil {
 		p.error(beg, p.position(), "expected '=' operator in variable declaration")
 		p.recover()
@@ -681,6 +680,7 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 		Name: name.Val,
 		Rhs:  expr,
 	}
+	p.scope.InsertVal(&node)
 	return &node, ok
 }
 
@@ -877,7 +877,7 @@ func (p *Parser) openScope() {
 
 func (p *Parser) tryLiftVar(name string) {
 	rs, si := p.scope.RelativeScope(name)
-	if rs == Outer {
-		si.Lift = true
+	if rs == Outer && si.VarDecl != nil {
+		si.VarDecl.Lift = true
 	}
 }

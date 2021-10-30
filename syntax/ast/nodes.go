@@ -39,6 +39,7 @@ type (
 		*span.Span
 		Name string
 		Rhs  Expr
+		Lift bool
 	}
 
 	StmtExpr struct {

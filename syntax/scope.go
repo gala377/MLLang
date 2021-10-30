@@ -1,10 +1,11 @@
 package syntax
 
+import "github.com/gala377/MLLang/syntax/ast"
+
 type (
 	RelativeScope = uint
-
-	ScopeInfo struct {
-		Lift bool // Should the value be lifted as it is used in nested scope?
+	ScopeInfo     struct {
+		VarDecl *ast.ValDecl // not nil if name comes from local var declaration
 	}
 
 	Scope struct {
@@ -25,6 +26,10 @@ func NewScope(parent *Scope) *Scope {
 
 func (s *Scope) Insert(name string) {
 	s.names[name] = &ScopeInfo{}
+}
+
+func (s *Scope) InsertVal(decl *ast.ValDecl) {
+	s.names[decl.Name] = &ScopeInfo{VarDecl: decl}
 }
 
 func (s *Scope) Derive() *Scope {
