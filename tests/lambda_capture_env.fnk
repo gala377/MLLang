@@ -3,6 +3,7 @@
 106
 12
 102
+7
 @SOURCE
 
 fn make_adder a:
@@ -30,3 +31,12 @@ val add4 = make_adder_2 100
 
 echo (add3 1)
 echo (add4 1)
+
+; modify external capture
+fn external_capture:
+  val cap = 0
+  val f = do:
+    cap = 7
+  print cap
+
+external_capture!

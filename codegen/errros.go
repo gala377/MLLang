@@ -49,4 +49,4 @@ func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
 	fmt.Println(srcerr.Error())
 }
 
-var PrintWithSource = printWithSourceExact
+var PrintWithSource = printWithSourceLine
