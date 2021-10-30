@@ -324,7 +324,7 @@ func (l *Lexer) recover() string {
 	var b strings.Builder
 	ch := l.ch
 	cont := isControl(ch)
-	for !(unicode.IsSpace(ch) || cont) {
+	for !(unicode.IsSpace(ch) || cont || l.eof) {
 		b.WriteRune(ch)
 		ch = l.readRune()
 		cont = isControl(ch)

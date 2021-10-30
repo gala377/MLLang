@@ -22,8 +22,10 @@ var showAst = flag.Bool("dump_ast", false, "just parse the file and print the as
 func main() {
 	flag.Parse()
 	f := getFile()
-	log.SetOutput(ioutil.Discard)
 	vm.Debug = *verboseFlag
+	if !*verboseFlag {
+		log.SetOutput(ioutil.Discard)
+	}
 	if *showAst {
 		sr := bytes.NewReader(f)
 		p := syntax.NewParser(sr)

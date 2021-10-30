@@ -254,12 +254,17 @@ func (e *Emitter) emitApplication(node *ast.FuncApplication) {
 	for _, a := range node.Args {
 		e.emitExpr(a)
 	}
-	if len(node.Args) > 255 {
+	argc := len(node.Args)
+	if node.Block != nil {
+		argc += 1
+		e.emitLambda(node.Block)
+	}
+	if argc > 255 {
 		e.error(node.NodeSpan(), "Function application with more than 255 arguments is not supported")
 		e.emitBytes(isa.Call, byte(255))
 		return
 	}
-	as := byte(len(node.Args))
+	as := byte(argc)
 	e.emitBytes(isa.Call, as)
 }
 

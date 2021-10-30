@@ -23,7 +23,8 @@ tests_dir = Path(__file__).parent
 root_dir = tests_dir.parent
 
 def run(args):
-    test_files = get_tests(tests_dir, pattern=args.filter[0])
+    pat = args.filter[0] if args.filter else None
+    test_files = get_tests(tests_dir, pattern=pat)
     print_tests(tests_dir, test_files)
     with tempfile.TemporaryDirectory() as build_dir:
         build_dir_path = Path(build_dir)

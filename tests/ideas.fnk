@@ -1,0 +1,23 @@
+@EXPECTED
+Hello
+How are you?
+1
+
+@SOURCE
+; we can have scope blocks with lambdas :)
+fn scope s = s!
+
+val a = 1
+scope:
+  val a = 10
+  print "Hello"
+  print "How are you?"
+
+print (toString a)
+
+; fn inner:
+;   val a = 1
+;   scope:
+;     val a = 10
+;     a
+

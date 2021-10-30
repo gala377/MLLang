@@ -219,7 +219,7 @@ func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) (data.Value, data.T
 		return fn.Call(args...)
 	case argc < fn.Arity():
 		if Debug {
-			fmt.Printf("Parital application %d < %d", argc, fn.Arity())
+			fmt.Printf("Partial application %d < %d", argc, fn.Arity())
 		}
 		return data.NewPartialApp(fn, args...), data.ReturnTramp
 	case argc > fn.Arity():

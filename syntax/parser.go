@@ -789,13 +789,16 @@ func (p *Parser) recover() {
 }
 
 func (p *Parser) recoverWithTokens(rtt ...token.Id) {
+	log.Println("In recover")
 	defer p.l.UnsetMode(skipErrorReporting)
 	p.l.SetMode(skipErrorReporting)
 	for t := p.l.curr; !p.eof() && !isRecoveryToken(t, rtt); t = p.l.Next() {
+		log.Println("Recovering")
 		if t.Typ == token.NewLine && p.l.Peek().Typ != token.Indent {
 			break
 		}
 	}
+	log.Println("Recovered")
 	p.bump()
 }
 
