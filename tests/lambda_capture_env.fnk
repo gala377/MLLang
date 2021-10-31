@@ -4,6 +4,7 @@
 12
 102
 7
+10
 @SOURCE
 
 fn make_adder a:
@@ -41,3 +42,12 @@ fn external_capture:
   print cap
 
 external_capture!
+
+fn outer_modifies:
+  val i = 0
+  val inner = do:
+    print i
+  i = 10
+  inner!
+
+outer_modifies!

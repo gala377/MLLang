@@ -465,6 +465,11 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		var node ast.Identifier
 		node.Span = tok.Span
 		node.Name = tok.Val
+		if rs, si := p.scope.RelativeScope(node.Name); rs == Outer {
+			if si.VarDecl != nil {
+				si.VarDecl.Lift = true
+			}
+		}
 		if p.match(token.Exclamation) != nil {
 			// unary application on identifier
 			span := span.NewSpan(node.Span.Beg, p.position())
