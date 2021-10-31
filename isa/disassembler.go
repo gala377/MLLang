@@ -27,6 +27,8 @@ var instNames = [...]string{
 	LoadDeref:   "LoadDeref",
 	StoreDeref:  "StoreDeref",
 	MakeCell:    "MakeCell",
+	MakeList:    "MakeList",
+	MakeTuple:   "MakeTuple",
 }
 
 const opCount = len(instNames)
@@ -49,24 +51,28 @@ var instArguments = [opCount]int{
 	StoreDyn:    2,
 	StoreDeref:  2,
 	LoadDeref:   2,
+	MakeList:    2,
+	MakeTuple:   2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
 
 var instSpecificInfos = [opCount]additionalInfoFunc{
 	Constant:    writeConstant,
-	Constant2:   writeConstant2,
-	Jump:        writeJump,
-	JumpIfFalse: writeJump,
-	LoadDyn:     writeConstant2,
-	LoadLocal:   writeConstant2,
-	DefGlobal:   writeConstant2,
-	DefLocal:    writeConstant2,
-	Lambda:      writeConstant2,
-	StoreLocal:  writeConstant2,
-	StoreDyn:    writeConstant2,
-	StoreDeref:  writeConstant2,
-	LoadDeref:   writeConstant2,
+	Constant2:   writeConstantWide,
+	Jump:        writeUint16,
+	JumpIfFalse: writeUint16,
+	LoadDyn:     writeConstantWide,
+	LoadLocal:   writeConstantWide,
+	DefGlobal:   writeConstantWide,
+	DefLocal:    writeConstantWide,
+	Lambda:      writeConstantWide,
+	StoreLocal:  writeConstantWide,
+	StoreDyn:    writeConstantWide,
+	StoreDeref:  writeConstantWide,
+	LoadDeref:   writeConstantWide,
+	MakeList:    writeUint16,
+	MakeTuple:   writeUint16,
 }
 
 func PrintCode(code *data.Code, name string) {
@@ -113,12 +119,12 @@ func writeConstant(code *data.Code, args []byte) string {
 	return fmt.Sprintf("%16s", code.Consts[args[0]])
 }
 
-func writeConstant2(code *data.Code, args []byte) string {
+func writeConstantWide(code *data.Code, args []byte) string {
 	i := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16s", code.Consts[i])
 }
 
-func writeJump(code *data.Code, args []byte) string {
+func writeUint16(code *data.Code, args []byte) string {
 	o := binary.BigEndian.Uint16(args)
 	return fmt.Sprintf("%16d", o)
 }

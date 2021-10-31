@@ -128,6 +128,10 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitApplication(v)
 	case *ast.LambdaExpr:
 		e.emitLambda(v)
+	case *ast.ListConst:
+		e.emitSequence(isa.MakeList, v)
+	case *ast.TupleConst:
+		e.emitSequence(isa.MakeTuple, v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -392,11 +396,11 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 		e.error(node.NodeSpan(), fmt.Sprintf("redeclaration of local name %s", node.Name))
 		return
 	}
-	e.scope.InsertVal(node)
 	e.emitExpr(node.Rhs)
 	s := e.interner.Intern(node.Name)
 	v := data.NewSymbol(s)
 	index := e.result.AddConstant(v)
+	e.scope.InsertVal(node)
 	if index > math.MaxUint16 {
 		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
 		return
@@ -434,5 +438,23 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.Lambda)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
+	vals := node.Values()
+	for _, expr := range vals {
+		e.emitExpr(expr)
+	}
+	size := len(vals)
+	if size > math.MaxUint16 {
+		e.error(
+			node.NodeSpan(),
+			fmt.Sprintf("sequence literals can only support max of %d elements", math.MaxUint16))
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(size))
+	e.emitByte(instr)
 	e.emitBytes(args...)
 }

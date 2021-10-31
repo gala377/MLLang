@@ -1,10 +1,20 @@
 package data
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type List struct {
 	values []Value
 	size   int
+}
+
+func NewList(vals []Value) *List {
+	return &List{
+		values: vals,
+		size:   len(vals),
+	}
 }
 
 func (l *List) String() string {
@@ -26,4 +36,27 @@ func (l *List) Equal(o Value) bool {
 		return ol == l
 	}
 	return false
+}
+
+func (l *List) Get(i *Int) (Value, error) {
+	idx := i.Val
+	if l.size <= idx {
+		return nil, fmt.Errorf("list index out of range idx=%d, size=%d", idx, l.size)
+	}
+	return l.values[idx], nil
+}
+
+func (l *List) Set(i *Int, v Value) error {
+	idx := i.Val
+	if l.size <= idx {
+		return fmt.Errorf("list index out of range idx=%d, size=%d", idx, l.size)
+	}
+	l.values[idx] = v
+	return nil
+}
+
+func (l *List) Append(v Value) error {
+	l.values = append(l.values, v)
+	l.size += 1
+	return nil
 }

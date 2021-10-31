@@ -29,6 +29,11 @@ type (
 		stmtNode()
 	}
 
+	SequenceLiteral interface {
+		Node
+		Values() []Expr
+	}
+
 	GlobalValDecl struct {
 		*span.Span
 		Name string
@@ -160,6 +165,14 @@ func (l *LetExpr) exprNode()         {}
 func (i *Identifier) exprNode()      {}
 func (l *LambdaExpr) exprNode()      {}
 func (b *BoolConst) exprNode()       {}
+
+func (l *ListConst) Values() []Expr {
+	return l.Vals
+}
+
+func (t *TupleConst) Values() []Expr {
+	return t.Vals
+}
 
 func (g *GlobalValDecl) NodeSpan() *span.Span {
 	return g.Span

@@ -192,6 +192,22 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			} else {
 				vm.bail("ICE: StoreDeref used not on cell")
 			}
+		case isa.MakeList:
+			size := int(vm.readShort())
+			vals := make([]data.Value, 0, size)
+			for i := 0; i < size; i++ {
+				vals = append(vals, vm.pop())
+			}
+			l := data.NewList(reverse(vals))
+			vm.push(l)
+		case isa.MakeTuple:
+			size := int(vm.readShort())
+			vals := make([]data.Value, 0, size)
+			for i := 0; i < size; i++ {
+				vals = append(vals, vm.pop())
+			}
+			l := data.NewTuple(reverse(vals))
+			vm.push(l)
 		}
 	}
 	return data.None, nil

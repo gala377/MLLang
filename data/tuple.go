@@ -1,10 +1,20 @@
 package data
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type Tuple struct {
 	values []Value
 	size   int
+}
+
+func NewTuple(vals []Value) *Tuple {
+	return &Tuple{
+		values: vals,
+		size:   len(vals),
+	}
 }
 
 func (t *Tuple) String() string {
@@ -34,4 +44,12 @@ func (t *Tuple) Equal(o Value) bool {
 		return true
 	}
 	return false
+}
+
+func (t *Tuple) Get(i *Int) (Value, error) {
+	idx := i.Val
+	if t.size <= idx {
+		return nil, fmt.Errorf("tuple index out of range idx=%d, size=%d", idx, t.size)
+	}
+	return t.values[idx], nil
 }

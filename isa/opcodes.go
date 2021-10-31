@@ -21,4 +21,6 @@ const (
 	Lambda
 	PushNone
 	MakeCell
+	MakeList
+	MakeTuple
 )

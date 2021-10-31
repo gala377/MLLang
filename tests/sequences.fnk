@@ -1,0 +1,30 @@
+@EXPECTED
+hello
+or something
+world
+now
+we
+what?
+again what?
+
+@SOURCE
+fn scope s = s!
+
+fn pel seq i = print (get seq i)
+
+scope:
+  val ttuple = ("hello", "world", "or something")
+  val pel = pel ttuple
+  pel 0
+  pel 2
+  pel 1
+
+scope:
+  val tlist = ["now", "we", "work with lists"]
+  val pel = pel tlist
+  pel 0
+  pel 1
+  set tlist 2 "what?"
+  append tlist "again what?"
+  pel 2
+  pel 3
