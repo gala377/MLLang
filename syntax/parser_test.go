@@ -458,7 +458,7 @@ func TestParsingBlocks(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
-func TestTupleParsing(t *testing.T) {
+func TestTupleSequences(t *testing.T) {
 	table := ptable{
 		{
 			"()",
@@ -517,6 +517,88 @@ func TestTupleParsing(t *testing.T) {
 			"(a, a b, 3,)",
 			[]an{
 				&ast.TupleConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{
+								Name: "a",
+							},
+							Args: []ast.Expr{
+								&ast.Identifier{
+									Name: "b",
+								},
+							},
+						},
+						&ast.IntConst{
+							Val: 3,
+						},
+					},
+				},
+			},
+		},
+		{
+			"[]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{},
+				},
+			},
+		},
+		{
+			"[ a ]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+					},
+				},
+			},
+		},
+		{
+			"[ a, ]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+					},
+				},
+			},
+		},
+		{
+			"[a, a b, 3]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{
+						&ast.Identifier{
+							Name: "a",
+						},
+						&ast.FuncApplication{
+							Callee: &ast.Identifier{
+								Name: "a",
+							},
+							Args: []ast.Expr{
+								&ast.Identifier{
+									Name: "b",
+								},
+							},
+						},
+						&ast.IntConst{
+							Val: 3,
+						},
+					},
+				},
+			},
+		},
+		{
+			"[ a, a b, 3, ]",
+			[]an{
+				&ast.ListConst{
 					Vals: []ast.Expr{
 						&ast.Identifier{
 							Name: "a",

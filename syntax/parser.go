@@ -482,8 +482,11 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 			return &fapp, true
 		}
 		return &node, true
-	case token.LSquareParen, token.LBracket:
+	case token.LBracket:
 		panic("not implemented")
+	case token.LSquareParen:
+		p.bump()
+		return p.parseListConst(beg)
 	case token.True:
 		p.bump()
 		var node ast.BoolConst
@@ -698,6 +701,35 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 		Span: t.Span,
 		Name: t.Val,
 	}
+}
+
+func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
+	log.Println("Parsing list literal")
+	vals := []ast.Expr{}
+	for {
+		e, ok := p.parseExpr()
+		if e == nil {
+			if !ok {
+				p.error(beg, p.position(), "Expected expression in list literal")
+				p.recoverWithTokens(token.Comma, token.NewLine, token.RBracket)
+				continue
+			}
+			break
+		}
+		vals = append(vals, e)
+		if t := p.match(token.Comma); t == nil {
+			break
+		}
+	}
+	if t := p.match(token.RSquareParen); t == nil {
+		p.error(beg, p.position(), "Expected ] to close a list literal")
+	}
+	span := span.NewSpan(beg, p.position())
+	list := &ast.ListConst{
+		Span: &span,
+		Vals: vals,
+	}
+	return list, true
 }
 
 func (p *Parser) parseTupleTail(beg span.Position, first ast.Expr) (*ast.TupleConst, bool) {
