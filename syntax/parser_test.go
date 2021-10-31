@@ -237,8 +237,8 @@ func TestParsingIf(t *testing.T) {
 					},
 					IfBranch: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
-							&ast.StmtExpr{&ast.IntConst{Val: 2}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 						},
 					},
 					ElseBranch: nil,
@@ -262,12 +262,12 @@ func TestParsingIf(t *testing.T) {
 					},
 					IfBranch: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
 						},
 					},
 					ElseBranch: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 2}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -290,14 +290,14 @@ func TestParsingIf(t *testing.T) {
 					},
 					IfBranch: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
 						},
 					},
 					ElseBranch: &ast.IfExpr{
 						Cond: &ast.Identifier{Name: "b"},
 						IfBranch: &ast.Block{
 							Instr: []ast.Stmt{
-								&ast.StmtExpr{&ast.IntConst{Val: 2}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 							},
 						},
 						ElseBranch: nil,
@@ -317,7 +317,7 @@ func TestParsingIf(t *testing.T) {
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IfExpr{
+							&ast.StmtExpr{Expr: &ast.IfExpr{
 								Cond: &ast.FuncApplication{
 									Callee: &ast.Identifier{
 										Name: "a",
@@ -328,12 +328,12 @@ func TestParsingIf(t *testing.T) {
 								},
 								IfBranch: &ast.Block{
 									Instr: []ast.Stmt{
-										&ast.StmtExpr{&ast.IntConst{Val: 1}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
 									},
 								},
 								ElseBranch: &ast.Block{
 									Instr: []ast.Stmt{
-										&ast.StmtExpr{&ast.IntConst{Val: 2}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 									},
 								},
 							}},
@@ -364,8 +364,8 @@ func TestParsingWhile(t *testing.T) {
 					},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
-							&ast.StmtExpr{&ast.IntConst{Val: 2}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -387,8 +387,8 @@ func TestParsingBlocks(t *testing.T) {
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
-							&ast.StmtExpr{&ast.IntConst{Val: 2}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 						},
 					},
 				},
@@ -406,15 +406,15 @@ func TestParsingBlocks(t *testing.T) {
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
 							&ast.WhileStmt{
 								Cond: &ast.Identifier{
 									Name: "a",
 								},
 								Body: &ast.Block{
 									Instr: []ast.Stmt{
-										&ast.StmtExpr{&ast.IntConst{Val: 2}},
-										&ast.StmtExpr{&ast.IntConst{Val: 3}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 3}},
 									},
 								},
 							},
@@ -436,19 +436,19 @@ func TestParsingBlocks(t *testing.T) {
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.IntConst{Val: 1}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
 							&ast.WhileStmt{
 								Cond: &ast.Identifier{
 									Name: "a",
 								},
 								Body: &ast.Block{
 									Instr: []ast.Stmt{
-										&ast.StmtExpr{&ast.IntConst{Val: 2}},
-										&ast.StmtExpr{&ast.IntConst{Val: 3}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
+										&ast.StmtExpr{Expr: &ast.IntConst{Val: 3}},
 									},
 								},
 							},
-							&ast.StmtExpr{&ast.IntConst{Val: 4}},
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 4}},
 						},
 					},
 				},
@@ -582,7 +582,7 @@ func TestParsingLambda(t *testing.T) {
 					Args: []ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.FuncApplication{
+							&ast.StmtExpr{Expr: &ast.FuncApplication{
 								Callee: &ast.Identifier{Name: "a"},
 								Args: []ast.Expr{
 									&ast.Identifier{Name: "b"},
@@ -603,7 +603,7 @@ func TestParsingLambda(t *testing.T) {
 					},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
-							&ast.StmtExpr{&ast.FuncApplication{
+							&ast.StmtExpr{Expr: &ast.FuncApplication{
 								Callee: &ast.Identifier{Name: "a"},
 								Args: []ast.Expr{
 									&ast.Identifier{Name: "b"},
@@ -632,8 +632,8 @@ func TestFuncBlockApplication(t *testing.T) {
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
-								&ast.StmtExpr{&ast.IntConst{Val: 1}},
-								&ast.StmtExpr{&ast.IntConst{Val: 2}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -652,8 +652,8 @@ func TestFuncBlockApplication(t *testing.T) {
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
-								&ast.StmtExpr{&ast.IntConst{Val: 1}},
-								&ast.StmtExpr{&ast.IntConst{Val: 2}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -678,8 +678,8 @@ func TestFuncBlockApplication(t *testing.T) {
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
-								&ast.StmtExpr{&ast.IntConst{Val: 1}},
-								&ast.StmtExpr{&ast.IntConst{Val: 2}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 							},
 						},
 					},
@@ -702,8 +702,8 @@ func TestFuncBlockApplication(t *testing.T) {
 						Args: []ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
-								&ast.StmtExpr{&ast.IntConst{Val: 1}},
-								&ast.StmtExpr{&ast.IntConst{Val: 2}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+								&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
 							},
 						},
 					},

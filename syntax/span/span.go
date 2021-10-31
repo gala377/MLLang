@@ -1,8 +1,8 @@
 package span
 
 import (
-	"fmt"
 	"io"
+	"log"
 )
 
 // Span is represents a fragment of source that the given
@@ -21,8 +21,9 @@ type Span struct {
 
 func NewSpan(beg, end Position) Span {
 	if beg.Offset > end.Offset {
-		err := fmt.Sprintf("wrong span creation arguments: assertion beg <= end, actual beg=%v end=%v", beg, end)
-		panic(err)
+		log.Panicf(
+			"wrong span creation arguments: assertion beg <= end, actual beg=%v end=%v",
+			beg, end)
 	}
 	return Span{beg, end}
 }

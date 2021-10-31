@@ -283,7 +283,7 @@ func (vm *Vm) bail(msg string) {
 	fmt.Printf("\n\nRuntime error at line %d\n\n", line)
 	fmt.Printf("%s\n\n", code)
 	fmt.Println(msg)
-	panic("runtime error")
+	panic("\nruntime error\n")
 }
 
 func reverse(s []data.Value) []data.Value {

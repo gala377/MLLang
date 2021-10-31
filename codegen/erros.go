@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 
 	"github.com/gala377/MLLang/syntax/span"
@@ -19,12 +20,12 @@ func printWithSourceExact(source io.ReaderAt, srcerr SourceError) {
 	loc := srcerr.SourceLoc()
 	code, err := loc.Extract(source)
 	if err != nil {
-		panic(fmt.Sprintf("unexpected error when extracting source code %s", err))
+		log.Panicf("unexpected error when extracting source code %s", err)
 	}
 	line, col := loc.Beg.Line, loc.Beg.Column
-	fmt.Printf("Error at line %d, column %d\n\n", line, col)
-	fmt.Printf("%s\n\n", code)
-	fmt.Println(srcerr.Error())
+	log.Printf("Error at line %d, column %d\n\n", line, col)
+	log.Printf("%s\n\n", code)
+	log.Println(srcerr.Error())
 }
 
 func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
