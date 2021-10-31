@@ -3,6 +3,11 @@ Hello
 How are you?
 1
 None
+0
+0
+1
+2
+3
 
 @SOURCE
 ; we can have scope blocks with lambdas :)
@@ -21,10 +26,30 @@ val b = scope:
 
 print b
 
+; works in functions
+fn useScope:
+  val a = 10
+  scope:
+    a = 0
+    val c = 1
+  print a
+  ; print c - runtime error, c undefined
+useScope!
 
-; fn inner:
-;   val a = 1
-;   scope:
-;     val a = 10
-;     a
+; btw last example can be rewritten
+scope:
+  val a = 20
+  scope:
+    a = 0
+    val c = 1
+  print a
 
+val beg = scope
+val end = b ; equals to None
+
+; who wants some pascal?
+beg:
+  print 1
+  print 2
+  print 3
+end
