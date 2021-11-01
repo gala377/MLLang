@@ -92,6 +92,33 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.push(v)
 		case isa.Pop:
 			vm.pop()
+		case isa.JumpIfFalse:
+			off := vm.readShort()
+			cond := vm.pop()
+			if Debug {
+				fmt.Printf("JumpIfFalse: jumping by %d", off)
+			}
+			ab, ok := cond.(*data.Bool)
+			if !ok {
+				vm.bail("conditiona has to be a boolean")
+			}
+			if !ab.Val {
+				vm.ip += int(off) - 3
+			}
+			if Debug {
+				i, _ := isa.DisassembleInstr(vm.code, vm.ip, -1)
+				fmt.Printf("Instruction after jump %s", i)
+			}
+		case isa.Jump:
+			off := vm.readShort()
+			if Debug {
+				fmt.Printf("Jump: jumping by %d", off)
+			}
+			vm.ip += int(off) - 3
+			if Debug {
+				i, _ := isa.DisassembleInstr(vm.code, vm.ip, -1)
+				fmt.Printf("Instruction after jump %s", i)
+			}
 		case isa.DefGlobal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
@@ -208,6 +235,9 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			l := data.NewTuple(reverse(vals))
 			vm.push(l)
+		default:
+			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
+			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
 		}
 	}
 	return data.None, nil

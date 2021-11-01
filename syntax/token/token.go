@@ -48,6 +48,7 @@ const (
 	True
 	False
 	Do
+	None
 	keywords_end
 
 	operators_beg
@@ -93,6 +94,7 @@ var tokens = [...]string{
 	Macro: "macro",
 	True:  "true",
 	False: "false",
+	None:  "none",
 
 	Assignment:  "=",
 	Exclamation: "!",

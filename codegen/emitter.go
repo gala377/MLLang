@@ -112,6 +112,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitIf(v)
 	case *ast.IntConst:
 		e.emitIntConst(v)
+	case *ast.FloatConst:
+		e.emitFloatConst(v)
 	case *ast.BoolConst:
 		e.emitBoolConst(v)
 	case *ast.StringConst:
@@ -203,6 +205,11 @@ func (e *Emitter) emitNone() {
 
 func (e *Emitter) emitIntConst(node *ast.IntConst) {
 	v := data.NewInt(node.Val)
+	e.emitConstant(v)
+}
+
+func (e *Emitter) emitFloatConst(node *ast.FloatConst) {
+	v := data.NewFloat(node.Val)
 	e.emitConstant(v)
 }
 

@@ -1,0 +1,45 @@
+@EXPECTED
+should print 1
+should print 2
+
+should print local 1
+should print local 2
+should print 4
+@SOURCE
+
+val str = if true:
+  "should print 1"
+else:
+  "dont"
+
+val str2 = if false:
+  "dont"
+else:
+  "should print 2"
+
+fn l1:
+  if true:
+    print "should print local 1"
+  else:
+    print "nothing"
+
+fn l2:
+  if false:
+    print "failed"
+  else if false:
+    print "failed"
+  else:
+    print "should print local 2"
+
+fn l3:
+  if false:
+    print "dont"
+  if true:
+    print "should print 4"
+
+
+print str
+print str2
+l1!
+l2!
+l3!
