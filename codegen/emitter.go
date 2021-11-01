@@ -118,6 +118,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitBoolConst(v)
 	case *ast.StringConst:
 		e.emitStringConst(v)
+	case *ast.NoneConst:
+		e.emitNone()
 	case *ast.Block:
 		e.emitBlock(v)
 	case *ast.Identifier:
@@ -200,7 +202,7 @@ func (e *Emitter) emitBlock(node *ast.Block) {
 }
 
 func (e *Emitter) emitNone() {
-	e.emitConstant(data.None)
+	e.emitByte(isa.PushNone)
 }
 
 func (e *Emitter) emitIntConst(node *ast.IntConst) {

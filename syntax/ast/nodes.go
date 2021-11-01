@@ -142,6 +142,10 @@ type (
 		LValue Expr
 		RValue Expr
 	}
+
+	NoneConst struct {
+		*span.Span
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -165,6 +169,7 @@ func (l *LetExpr) exprNode()         {}
 func (i *Identifier) exprNode()      {}
 func (l *LambdaExpr) exprNode()      {}
 func (b *BoolConst) exprNode()       {}
+func (n *NoneConst) exprNode()       {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -250,6 +255,10 @@ func (a *Assignment) NodeSpan() *span.Span {
 	return a.Span
 }
 
+func (n *NoneConst) NodeSpan() *span.Span {
+	return n.Span
+}
+
 func (g *GlobalValDecl) String() string {
 	return fmt.Sprintf(
 		`GlobalVar{
@@ -310,7 +319,7 @@ func (f *FloatConst) String() string {
 }
 
 func (s *StringConst) String() string {
-	return "Unsupported"
+	return fmt.Sprintf("StringConst{%s}", s.Val)
 }
 
 func (r *RecordConst) String() string {
@@ -368,4 +377,8 @@ func (a *Assignment) String() string {
 	return fmt.Sprintf(
 		"Assignment{\n\tLval=%s,\nRval=%s\n}",
 		a.LValue, a.RValue)
+}
+
+func (n *NoneConst) String() string {
+	return "NoneLit"
 }

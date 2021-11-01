@@ -499,6 +499,11 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		node.Span = tok.Span
 		node.Val = false
 		return &node, true
+	case token.None:
+		p.bump()
+		var node ast.NoneConst
+		node.Span = tok.Span
+		return &node, true
 	default:
 		log.Println("Not a primary")
 		return nil, true

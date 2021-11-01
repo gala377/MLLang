@@ -1,0 +1,6 @@
+@EXPECTED
+None
+
+@SOURCE
+
+print none

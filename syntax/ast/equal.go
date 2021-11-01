@@ -226,3 +226,10 @@ func (a *Assignment) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (n *NoneConst) Equal(o Node) bool {
+	if _, ok := o.(*NoneConst); ok {
+		return true
+	}
+	return false
+}
