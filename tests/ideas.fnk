@@ -84,10 +84,16 @@ print (sum [1, 2, 3])
 
 fn map seq body = fold seq [] do |acc x| -> append acc (body x)
 
-foreach (map [1, 2, 3] (add 1)) do |x| -> print x
-val res = map [1, 2, 3] do |x|:
-  add 10 x
-print res
+foreach (map [1, 2, 3] (add 1)) print
+
+print (map [1, 2, 3] do |x|:
+  add 10 x)
+
+fn cond pred pos neg:
+  if cond:
+    pos!
+  else:
+    neg!
 
 fn filter seq pred:
   fold seq [] do |acc x|:
