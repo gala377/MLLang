@@ -54,13 +54,14 @@ type (
 	FuncDecl struct {
 		*span.Span
 		Name string
-		Args []FuncDeclArg
+		Args []*FuncDeclArg
 		Body Expr
 	}
 
 	FuncDeclArg struct {
 		*span.Span
 		Name string
+		Lift bool
 	}
 
 	Block struct {
@@ -128,7 +129,7 @@ type (
 
 	LambdaExpr struct {
 		*span.Span
-		Args []FuncDeclArg
+		Args []*FuncDeclArg
 		Body Expr
 	}
 
@@ -290,7 +291,8 @@ func (g *ValDecl) String() string {
 		`Var{
 	name=%s
 	rhs=%s
-}`, g.Name, g.Rhs)
+	lift=%v
+}`, g.Name, g.Rhs, g.Lift)
 }
 
 func (s *StmtExpr) String() string {

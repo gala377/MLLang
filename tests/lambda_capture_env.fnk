@@ -5,6 +5,10 @@
 102
 7
 10
+1
+10
+2
+2
 @SOURCE
 
 fn make_adder a:
@@ -51,3 +55,15 @@ fn outer_modifies:
   inner!
 
 outer_modifies!
+
+fn lift_func_args a b:
+  val f = do:
+    a = add a 1
+    b = a
+  print a
+  print b
+  f!
+  print a
+  print b
+
+lift_func_args 1 10

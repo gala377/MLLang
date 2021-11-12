@@ -14,9 +14,12 @@ None
 2
 3
 4
-[11, 12, 13]
+[11, 12, 13, ]
+6
+
 @SOURCE
 ; we can have scope blocks with lambdas :)
+
 fn scope s = s!
 
 val a = 1
@@ -80,3 +83,13 @@ foreach (map [1, 2, 3] (add 1)) do |x| -> print x
 val res = map [1, 2, 3] do |x|:
   add 10 x
 print res
+
+
+fn fold seq init body:
+  foreach seq do |x|:
+    init = body init x
+  init
+
+fn sum seq = fold seq 0 add
+
+print (sum [1, 2, 3])

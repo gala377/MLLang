@@ -41,7 +41,8 @@ func NewEmitter(i *Interner) *Emitter {
 		line:     0,
 		interner: i,
 		errors:   make([]CompilationError, 0),
-		scope:    syntax.NewScope(nil),
+		// todo share scope from parser
+		scope: syntax.NewScope(nil),
 	}
 	return &e
 }
@@ -124,7 +125,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitBlock(v)
 	case *ast.Identifier:
 		if si := e.scope.LookupLocal(v.Name); si != nil {
-			e.emitLocalLookup(v, si.VarDecl)
+			e.emitLocalLookup(v, si)
 		} else {
 			e.emitGlobalLookup(v)
 		}
@@ -217,8 +218,8 @@ func (e *Emitter) emitGlobalLookup(node *ast.Identifier) {
 	e.emitLookup(isa.LoadDyn, node)
 }
 
-func (e *Emitter) emitLocalLookup(node *ast.Identifier, decl *ast.ValDecl) {
-	if decl != nil && decl.Lift {
+func (e *Emitter) emitLocalLookup(node *ast.Identifier, si syntax.ScopeInfo) {
+	if si.IsLifted() {
 		e.emitLookup(isa.LoadDeref, node)
 	} else {
 		e.emitLookup(isa.LoadLocal, node)
@@ -252,7 +253,7 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 		}
 		if si := e.scope.LookupLocal(loc.Name); si != nil {
 			instr = isa.StoreLocal
-			if si.VarDecl != nil && si.VarDecl.Lift {
+			if si.IsLifted() {
 				instr = isa.StoreDeref
 			}
 		}
@@ -334,10 +335,11 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	fe.scope = e.scope.Derive()
 	fargs := make([]data.Symbol, 0, len(node.Args))
 	for _, arg := range node.Args {
-		fe.scope.Insert(arg.Name)
+		fe.scope.InsertFuncArg(arg)
 		s := e.interner.Intern(arg.Name)
 		fargs = append(fargs, data.NewSymbol(s))
 	}
+	fe.emitLiftingForFuncArgs(node.Args, fargs)
 	fe.emitExpr(node.Body)
 	// todo: implicit return might not always be needed but then
 	// we will never get there if there is an explicit one
@@ -364,6 +366,25 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefGlobal)
 	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitLiftingForFuncArgs(args []*ast.FuncDeclArg, fargs []data.Symbol) {
+	for i, arg := range args {
+		if arg.Lift {
+			id := ast.Identifier{Name: arg.Name, Span: arg.Span}
+			index := e.result.AddConstant(fargs[i])
+			if index > math.MaxUint16 {
+				e.error(arg.Span, "More constants that uint16 can hold. That is not supported.")
+				return
+			}
+			args := []byte{0, 0}
+			binary.BigEndian.PutUint16(args, uint16(index))
+			e.emitLookup(isa.LoadLocal, &id)
+			e.emitByte(isa.MakeCell)
+			e.emitByte(isa.StoreLocal)
+			e.emitBytes(args...)
+		}
+	}
 }
 
 func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
@@ -397,10 +418,11 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	le.scope = e.scope.Derive()
 	fargs := make([]data.Symbol, 0, len(node.Args))
 	for _, arg := range node.Args {
-		le.scope.Insert(arg.Name)
+		le.scope.InsertFuncArg(arg)
 		s := e.interner.Intern(arg.Name)
 		fargs = append(fargs, data.NewSymbol(s))
 	}
+	le.emitLiftingForFuncArgs(node.Args, fargs)
 	le.emitExpr(node.Body)
 	// todo: implicit return might not always be needed but then
 	// we will never get there if there is an explicit one

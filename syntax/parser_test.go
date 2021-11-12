@@ -193,7 +193,7 @@ func TestFuncDeclaration(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.IntConst{
 						Val: 1,
 					},
@@ -205,7 +205,7 @@ func TestFuncDeclaration(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{
+					Args: []*ast.FuncDeclArg{
 						{Name: "b"},
 						{Name: "c"},
 					},
@@ -314,7 +314,7 @@ func TestParsingIf(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.StmtExpr{Expr: &ast.IfExpr{
@@ -384,7 +384,7 @@ func TestParsingBlocks(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -403,7 +403,7 @@ func TestParsingBlocks(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -433,7 +433,7 @@ func TestParsingBlocks(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -631,7 +631,7 @@ func TestParsingLambda(t *testing.T) {
 			"do -> a b",
 			[]an{
 				&ast.LambdaExpr{
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.FuncApplication{
 						Callee: &ast.Identifier{Name: "a"},
 						Args: []ast.Expr{
@@ -645,7 +645,7 @@ func TestParsingLambda(t *testing.T) {
 			"do |a b c| -> a b",
 			[]an{
 				&ast.LambdaExpr{
-					Args: []ast.FuncDeclArg{
+					Args: []*ast.FuncDeclArg{
 						{Name: "a"}, {Name: "b"}, {Name: "c"},
 					},
 					Body: &ast.FuncApplication{
@@ -661,7 +661,7 @@ func TestParsingLambda(t *testing.T) {
 			"do:\n  a b",
 			[]an{
 				&ast.LambdaExpr{
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.StmtExpr{Expr: &ast.FuncApplication{
@@ -680,7 +680,7 @@ func TestParsingLambda(t *testing.T) {
 			"do |a b c|:\n  a b",
 			[]an{
 				&ast.LambdaExpr{
-					Args: []ast.FuncDeclArg{
+					Args: []*ast.FuncDeclArg{
 						{Name: "a"}, {Name: "b"}, {Name: "c"},
 					},
 					Body: &ast.Block{
@@ -711,7 +711,7 @@ func TestFuncBlockApplication(t *testing.T) {
 					},
 					Args: []ast.Expr{},
 					Block: &ast.LambdaExpr{
-						Args: []ast.FuncDeclArg{},
+						Args: []*ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
 								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -731,7 +731,7 @@ func TestFuncBlockApplication(t *testing.T) {
 					},
 					Args: []ast.Expr{&ast.Identifier{Name: "b"}, &ast.Identifier{Name: "c"}},
 					Block: &ast.LambdaExpr{
-						Args: []ast.FuncDeclArg{},
+						Args: []*ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
 								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -757,7 +757,7 @@ func TestFuncBlockApplication(t *testing.T) {
 						},
 					},
 					Block: &ast.LambdaExpr{
-						Args: []ast.FuncDeclArg{},
+						Args: []*ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
 								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -781,7 +781,7 @@ func TestFuncBlockApplication(t *testing.T) {
 					},
 					Args: []ast.Expr{},
 					Block: &ast.LambdaExpr{
-						Args: []ast.FuncDeclArg{},
+						Args: []*ast.FuncDeclArg{},
 						Body: &ast.Block{
 							Instr: []ast.Stmt{
 								&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
@@ -803,7 +803,7 @@ func TestLocalVariableDecl(t *testing.T) {
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",
-					Args: []ast.FuncDeclArg{},
+					Args: []*ast.FuncDeclArg{},
 					Body: &ast.Block{
 						Instr: []ast.Stmt{
 							&ast.ValDecl{

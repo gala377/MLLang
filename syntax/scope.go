@@ -4,13 +4,23 @@ import "github.com/gala377/MLLang/syntax/ast"
 
 type (
 	RelativeScope = uint
-	ScopeInfo     struct {
-		VarDecl *ast.ValDecl // not nil if name comes from local var declaration
+
+	ScopeInfo interface {
+		Lift()
+		IsLifted() bool
 	}
 
 	Scope struct {
 		parent *Scope
-		names  map[string]*ScopeInfo
+		names  map[string]ScopeInfo
+	}
+
+	emptyScopeInfo struct{}
+	varScopeInfo   struct {
+		inner *ast.ValDecl
+	}
+	fnArgScopeInfo struct {
+		inner *ast.FuncDeclArg
 	}
 )
 
@@ -20,16 +30,37 @@ const (
 	Outer
 )
 
+func (e emptyScopeInfo) Lift() {}
+func (e emptyScopeInfo) IsLifted() bool {
+	return false
+}
+func (v varScopeInfo) Lift() {
+	v.inner.Lift = true
+}
+func (v varScopeInfo) IsLifted() bool {
+	return v.inner.Lift
+}
+func (a fnArgScopeInfo) Lift() {
+	a.inner.Lift = true
+}
+func (a fnArgScopeInfo) IsLifted() bool {
+	return a.inner.Lift
+}
+
 func NewScope(parent *Scope) *Scope {
-	return &Scope{parent, make(map[string]*ScopeInfo)}
+	return &Scope{parent, make(map[string]ScopeInfo)}
 }
 
 func (s *Scope) Insert(name string) {
-	s.names[name] = &ScopeInfo{}
+	s.names[name] = emptyScopeInfo{}
 }
 
 func (s *Scope) InsertVal(decl *ast.ValDecl) {
-	s.names[decl.Name] = &ScopeInfo{VarDecl: decl}
+	s.names[decl.Name] = varScopeInfo{decl}
+}
+
+func (s *Scope) InsertFuncArg(arg *ast.FuncDeclArg) {
+	s.names[arg.Name] = fnArgScopeInfo{arg}
 }
 
 func (s *Scope) Derive() *Scope {
@@ -40,7 +71,7 @@ func (s *Scope) IsGlobal() bool {
 	return s.parent == nil
 }
 
-func (s *Scope) Lookup(name string) *ScopeInfo {
+func (s *Scope) Lookup(name string) ScopeInfo {
 	if si, ok := s.names[name]; ok {
 		return si
 	}
@@ -50,7 +81,7 @@ func (s *Scope) Lookup(name string) *ScopeInfo {
 	return s.parent.Lookup(name)
 }
 
-func (s *Scope) LookupLocal(name string) *ScopeInfo {
+func (s *Scope) LookupLocal(name string) ScopeInfo {
 	if s.parent == nil {
 		return nil
 	}
@@ -60,7 +91,7 @@ func (s *Scope) LookupLocal(name string) *ScopeInfo {
 	return s.parent.LookupLocal(name)
 }
 
-func (s *Scope) RelativeScope(name string) (RelativeScope, *ScopeInfo) {
+func (s *Scope) RelativeScope(name string) (RelativeScope, ScopeInfo) {
 	si, ok := s.names[name]
 	if s.parent == nil {
 		return Global, si

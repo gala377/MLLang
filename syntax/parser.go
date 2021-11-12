@@ -146,10 +146,11 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 	p.openScope()
 	defer p.closeScope()
 
-	args := []*ast.Identifier{}
+	args := []*ast.FuncDeclArg{}
 	for arg := p.parseIdentifier(); arg != nil; arg = p.parseIdentifier() {
-		args = append(args, arg)
-		p.scope.Insert(arg.Name)
+		farg := &ast.FuncDeclArg{Span: arg.Span, Name: arg.Name}
+		args = append(args, farg)
+		p.scope.InsertFuncArg(farg)
 	}
 	var fbody ast.Expr
 	body, ok := p.parseBlock()
@@ -177,17 +178,10 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 		fbody = body
 	}
 	span := span.NewSpan(beg, p.position())
-	fargs := []ast.FuncDeclArg{}
-	for _, arg := range args {
-		fargs = append(fargs, ast.FuncDeclArg{
-			Span: arg.Span,
-			Name: arg.Name,
-		})
-	}
 	fn := ast.FuncDecl{
 		Span: &span,
 		Name: name.Name,
-		Args: fargs,
+		Args: args,
 		Body: fbody,
 	}
 	return &fn, true
@@ -389,7 +383,7 @@ func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
 		span := span.NewSpan(lbeg, p.position())
 		block = &ast.LambdaExpr{
 			Span: &span,
-			Args: []ast.FuncDeclArg{},
+			Args: []*ast.FuncDeclArg{},
 			Body: b,
 		}
 	} else {
@@ -465,11 +459,7 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		var node ast.Identifier
 		node.Span = tok.Span
 		node.Name = tok.Val
-		if rs, si := p.scope.RelativeScope(node.Name); rs == Outer {
-			if si.VarDecl != nil {
-				si.VarDecl.Lift = true
-			}
-		}
+		p.tryLiftVar(node.Name)
 		if p.match(token.Exclamation) != nil {
 			// unary application on identifier
 			span := span.NewSpan(node.Span.Beg, p.position())
@@ -609,7 +599,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 	if t := p.match(token.Do); t == nil {
 		return nil, true
 	}
-	args := []ast.FuncDeclArg{}
+	args := []*ast.FuncDeclArg{}
 	if t := p.match(token.Pipe); t != nil {
 		log.Println("Parsing lambda arguments")
 		for pt := p.match(token.Pipe); pt == nil; pt = p.match(token.Pipe) {
@@ -619,13 +609,13 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 				p.recoverWithTokens(token.Pipe)
 				continue
 			}
-			a := ast.FuncDeclArg{
+			a := &ast.FuncDeclArg{
 				Span: arg.Span,
 				Name: arg.Name,
 			}
 			log.Printf("Parsed parameter %s", a.Name)
 			args = append(args, a)
-			p.scope.Insert(a.Name)
+			p.scope.InsertFuncArg(a)
 		}
 	}
 	log.Println("Parsed lambda arguments")
@@ -919,7 +909,7 @@ func (p *Parser) openScope() {
 
 func (p *Parser) tryLiftVar(name string) {
 	rs, si := p.scope.RelativeScope(name)
-	if rs == Outer && si.VarDecl != nil {
-		si.VarDecl.Lift = true
+	if rs == Outer {
+		si.Lift()
 	}
 }
