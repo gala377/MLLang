@@ -23,6 +23,7 @@ var stdEnv = StandardEnv{
 	{"append", 2, seqAppend},
 	{"get", 2, seqGet},
 	{"set", 3, seqSet},
+	{"lessThan?", 2, lessThan},
 }
 
 func add(vv ...data.Value) (data.Value, error) {
@@ -95,4 +96,18 @@ func seqAppend(vv ...data.Value) (data.Value, error) {
 		return nil, errors.New("append can only be called on appendable sequences")
 	}
 	return data.None, as.Append(v)
+}
+
+func lessThan(vv ...data.Value) (data.Value, error) {
+	a, b := vv[0], vv[1]
+	ai, ok := a.(*data.Int)
+	if !ok {
+		return nil, errors.New("lessThan can only be called on integers")
+	}
+	bi, ok := b.(*data.Int)
+	if !ok {
+		return nil, errors.New("lessThan can only be called on integers")
+	}
+	ret := data.NewBool(ai.Val < bi.Val)
+	return ret, nil
 }

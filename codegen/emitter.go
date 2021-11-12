@@ -152,6 +152,8 @@ func (e *Emitter) emitStmt(node ast.Stmt) {
 		e.emitVariableDecl(v)
 	case *ast.Assignment:
 		e.emitAssignment(v)
+	case *ast.WhileStmt:
+		e.emitWhile(v)
 	default:
 		log.Printf("Stmt node is %v", node)
 		e.error(node.NodeSpan(), "Stmt node cannot be emitted. Not supported")
@@ -161,44 +163,6 @@ func (e *Emitter) emitStmt(node ast.Stmt) {
 func (e *Emitter) emitUnboundExpr(node ast.Expr) {
 	e.emitExpr(node)
 	e.emitByte(isa.Pop)
-}
-
-func (e *Emitter) emitIf(node *ast.IfExpr) {
-	e.emitExpr(node.Cond)
-	ifpos := e.emitJumpIfFalse()
-	e.emitBlock(node.IfBranch)
-	if node.ElseBranch != nil {
-		skipElse := e.emitJump()
-		off := e.result.Len() - ifpos
-		e.patchJump(ifpos, off)
-		e.emitExpr(node.ElseBranch)
-		off = e.result.Len() - skipElse
-		e.patchJump(skipElse, off)
-		return
-	}
-	skipNone := e.emitJump()
-	off := e.result.Len() - ifpos
-	e.patchJump(ifpos, off)
-	e.emitNone()
-	off = e.result.Len() - skipNone
-	e.patchJump(skipNone, off)
-}
-
-func (e *Emitter) emitBlock(node *ast.Block) {
-	for i, instr := range node.Instr {
-		if i == (len(node.Instr) - 1) {
-			// last in a block
-			switch v := instr.(type) {
-			case *ast.StmtExpr:
-				e.emitExpr(v.Expr)
-			default:
-				e.emitStmt(v)
-				e.emitByte(isa.PushNone)
-			}
-		} else {
-			e.emitStmt(instr)
-		}
-	}
 }
 
 func (e *Emitter) emitNone() {
@@ -232,6 +196,11 @@ func (e *Emitter) emitJumpIfFalse() int {
 
 func (e *Emitter) emitJump() int {
 	e.emitBytes(isa.Jump, 0, 0)
+	return e.result.Len() - 3
+}
+
+func (e *Emitter) emitJumpBack() int {
+	e.emitBytes(isa.JumpBack, 0, 0)
 	return e.result.Len() - 3
 }
 
@@ -466,4 +435,59 @@ func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(instr)
 	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitIf(node *ast.IfExpr) {
+	e.emitExpr(node.Cond)
+	ifpos := e.emitJumpIfFalse()
+	e.emitBlock(node.IfBranch)
+	if node.ElseBranch != nil {
+		skipElse := e.emitJump()
+		off := e.result.Len() - ifpos
+		e.patchJump(ifpos, off)
+		e.emitExpr(node.ElseBranch)
+		off = e.result.Len() - skipElse
+		e.patchJump(skipElse, off)
+		return
+	}
+	skipNone := e.emitJump()
+	off := e.result.Len() - ifpos
+	e.patchJump(ifpos, off)
+	e.emitNone()
+	off = e.result.Len() - skipNone
+	e.patchJump(skipNone, off)
+}
+
+func (e *Emitter) emitWhile(node *ast.WhileStmt) {
+	lbeg := len(e.result.Instrs)
+	e.emitExpr(node.Cond)
+	jpos := e.emitJumpIfFalse()
+	e.emitStmtBlock(node.Body)
+	jb := e.emitJumpBack()
+	e.patchJump(jb, jb-lbeg)
+	off := e.result.Len() - jpos
+	e.patchJump(jpos, off)
+}
+
+// emitStmtBlock emits a list of statements.
+// In contrary to normal block this one does
+// not push a value at the end.
+func (e *Emitter) emitStmtBlock(node *ast.Block) {
+	for _, instr := range node.Instr {
+		e.emitStmt(instr)
+	}
+}
+
+func (e *Emitter) emitBlock(node *ast.Block) {
+	for _, instr := range node.Instr[:len(node.Instr)-1] {
+		e.emitStmt(instr)
+	}
+	last := node.Instr[len(node.Instr)-1]
+	switch v := last.(type) {
+	case *ast.StmtExpr:
+		e.emitExpr(v.Expr)
+	default:
+		e.emitStmt(v)
+		e.emitByte(isa.PushNone)
+	}
 }

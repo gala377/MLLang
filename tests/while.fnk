@@ -1,0 +1,37 @@
+@EXPECTED
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+1
+2
+3
+1
+2
+3
+None
+@SOURCE
+
+
+val i = 0
+while lessThan? i 10:
+  print i
+  i = add i 1
+
+
+fn twoWhiles i a:
+  i2 = i
+  while lessThan? i a:
+    print i
+    i = add i 1
+  while lessThan? i2 a:
+    print i2
+    i2 = add i2 1
+
+print (twoWhiles 1 4)

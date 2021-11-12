@@ -119,6 +119,16 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				i, _ := isa.DisassembleInstr(vm.code, vm.ip, -1)
 				fmt.Printf("Instruction after jump %s", i)
 			}
+		case isa.JumpBack:
+			off := vm.readShort()
+			if Debug {
+				fmt.Printf("JumpBack: jumping by %d", off)
+			}
+			vm.ip -= int(off) + 3
+			if Debug {
+				i, _ := isa.DisassembleInstr(vm.code, vm.ip, -1)
+				fmt.Printf("Instruction after jump %s", i)
+			}
 		case isa.DefGlobal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)

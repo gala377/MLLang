@@ -9,6 +9,7 @@ const (
 	Call
 	Jump
 	JumpIfFalse
+	JumpBack
 	LoadDyn
 	StoreDyn
 	LoadDeref
