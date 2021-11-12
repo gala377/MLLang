@@ -23,6 +23,7 @@ var stdEnv = StandardEnv{
 	{"append", 2, seqAppend},
 	{"get", 2, seqGet},
 	{"set", 3, seqSet},
+	{"length", 1, seqLen},
 	{"lessThan?", 2, lessThan},
 }
 
@@ -87,6 +88,15 @@ func seqSet(vv ...data.Value) (data.Value, error) {
 		return nil, errors.New("index of set has to be an integer")
 	}
 	return data.None, as.Set(idx, v)
+}
+
+func seqLen(vv ...data.Value) (data.Value, error) {
+	s := vv[0]
+	as, ok := s.(data.Sequence)
+	if !ok {
+		return nil, errors.New("length can only be called on sequences")
+	}
+	return data.NewInt(as.Len()), nil
 }
 
 func seqAppend(vv ...data.Value) (data.Value, error) {

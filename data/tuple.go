@@ -53,3 +53,7 @@ func (t *Tuple) Get(i *Int) (Value, error) {
 	}
 	return t.values[idx], nil
 }
+
+func (t *Tuple) Len() int {
+	return t.size
+}

@@ -60,3 +60,7 @@ func (l *List) Append(v Value) error {
 	l.size += 1
 	return nil
 }
+
+func (l *List) Len() int {
+	return l.size
+}

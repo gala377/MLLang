@@ -3,6 +3,7 @@ package data
 type (
 	Sequence interface {
 		Get(index *Int) (Value, error)
+		Len() int
 	}
 
 	MutableSequence interface {
