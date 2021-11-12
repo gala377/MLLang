@@ -11,12 +11,12 @@ None
 1
 2
 3
+6
 2
 3
 4
 [11, 12, 13, ]
-6
-
+[0, 1, 2, 3, ]
 @SOURCE
 ; we can have scope blocks with lambdas :)
 
@@ -73,18 +73,6 @@ fn foreach seq body:
 
 foreach [1, 2, 3] do |x| -> print x
 
-fn map seq body:
-  val res = []
-  foreach seq do |e|:
-    append res (body e)
-  res
-
-foreach (map [1, 2, 3] (add 1)) do |x| -> print x
-val res = map [1, 2, 3] do |x|:
-  add 10 x
-print res
-
-
 fn fold seq init body:
   foreach seq do |x|:
     init = body init x
@@ -93,3 +81,20 @@ fn fold seq init body:
 fn sum seq = fold seq 0 add
 
 print (sum [1, 2, 3])
+
+fn map seq body = fold seq [] do |acc x| -> append acc (body x)
+
+foreach (map [1, 2, 3] (add 1)) do |x| -> print x
+val res = map [1, 2, 3] do |x|:
+  add 10 x
+print res
+
+fn filter seq pred:
+  fold seq [] do |acc x|:
+    if pred x:
+      append acc x
+    acc
+
+fn flip f a b = f b a
+
+print (filter [0, 1, 2, 3, 4, 5, 6] (flip lessThan? 4))

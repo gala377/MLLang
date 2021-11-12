@@ -105,7 +105,7 @@ func seqAppend(vv ...data.Value) (data.Value, error) {
 	if !ok {
 		return nil, errors.New("append can only be called on appendable sequences")
 	}
-	return data.None, as.Append(v)
+	return s, as.Append(v)
 }
 
 func lessThan(vv ...data.Value) (data.Value, error) {
