@@ -856,6 +856,46 @@ func TestAssignment(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestRecordLiteral(t *testing.T) {
+	table := ptable{
+		{
+			"{ a: a b, b : 1 }",
+			[]an{
+				&ast.RecordConst{
+					Fields: map[string]ast.Expr{
+						"a": &ast.FuncApplication{
+							Callee: &ast.Identifier{Name: "a"},
+							Args: []ast.Expr{
+								&ast.Identifier{Name: "b"},
+							},
+						},
+						"b": &ast.IntConst{Val: 1},
+					},
+				},
+			},
+		},
+		{
+			"{a: {a: {a: 1}}}",
+			[]an{
+				&ast.RecordConst{
+					Fields: map[string]ast.Expr{
+						"a": &ast.RecordConst{
+							Fields: map[string]ast.Expr{
+								"a": &ast.RecordConst{
+									Fields: map[string]ast.Expr{
+										"a": &ast.IntConst{Val: 1},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {

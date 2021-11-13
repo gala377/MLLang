@@ -325,11 +325,11 @@ func (s *StringConst) String() string {
 }
 
 func (r *RecordConst) String() string {
-	return "Unsupported"
+	return fmt.Sprintf("Record{%v}", r.Fields)
 }
 
 func (l *ListConst) String() string {
-	return "Unsupported"
+	return fmt.Sprintf("List{%v}", l.Vals)
 }
 
 func (t *TupleConst) String() string {

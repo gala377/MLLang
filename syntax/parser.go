@@ -473,7 +473,8 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		}
 		return &node, true
 	case token.LBracket:
-		panic("not implemented")
+		p.bump()
+		return p.parseRecordConst(beg)
 	case token.LSquareParen:
 		p.bump()
 		return p.parseListConst(beg)
@@ -597,6 +598,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 	p.openScope()
 	defer p.closeScope()
 	if t := p.match(token.Do); t == nil {
+		log.Println("Not a lambda")
 		return nil, true
 	}
 	args := []*ast.FuncDeclArg{}
@@ -698,6 +700,39 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 	}
 }
 
+func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
+	log.Println("Parsing record literal")
+	vals := map[string]ast.Expr{}
+	p.disallowTrailingBlocks()
+	defer p.allowTrailingBlocks()
+	for {
+		key := p.parseIdentifier()
+		if key == nil {
+			break
+		}
+		log.Printf("Parsing expr for key %s\n", key)
+		p.match(token.Colon)
+		val, ok := p.parseExpr()
+		if val == nil || !ok {
+			p.error(beg, p.position(), "record literal expects an expression as its values")
+			log.Println("Record literal could not parse expression, recovering.")
+			p.recoverWithTokens(token.Comma, token.NewLine)
+			continue
+		}
+		p.match(token.Comma)
+		vals[key.Name] = val
+	}
+	if p.match(token.RBracket) == nil {
+		p.error(beg, p.position(), "missing closing bracket in record literal")
+	}
+	span := span.NewSpan(beg, p.position())
+	rec := ast.RecordConst{
+		Span:   &span,
+		Fields: vals,
+	}
+	return &rec, true
+}
+
 func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 	log.Println("Parsing list literal")
 	vals := []ast.Expr{}
@@ -706,17 +741,17 @@ func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 		if e == nil {
 			if !ok {
 				p.error(beg, p.position(), "Expected expression in list literal")
-				p.recoverWithTokens(token.Comma, token.NewLine, token.RBracket)
+				p.recoverWithTokens(token.Comma, token.NewLine, token.RSquareParen)
 				continue
 			}
 			break
 		}
 		vals = append(vals, e)
-		if t := p.match(token.Comma); t == nil {
+		if p.match(token.Comma) == nil {
 			break
 		}
 	}
-	if t := p.match(token.RSquareParen); t == nil {
+	if p.match(token.RSquareParen) == nil {
 		p.error(beg, p.position(), "Expected ] to close a list literal")
 	}
 	span := span.NewSpan(beg, p.position())
@@ -743,12 +778,12 @@ func (p *Parser) parseTupleTail(beg span.Position, first ast.Expr) (*ast.TupleCo
 		}
 		log.Printf("Parsed tuple val %s\n", e.String())
 		vals = append(vals, e)
-		if t := p.match(token.Comma); t == nil {
+		if p.match(token.Comma) == nil {
 			break
 		}
 	}
 	log.Println("Endend tuple parsing")
-	if t := p.match(token.RParen); t == nil {
+	if p.match(token.RParen) == nil {
 		p.error(beg, p.position(), "Expected ) to close a tuple literal")
 	}
 	span := span.NewSpan(beg, p.position())
@@ -857,6 +892,8 @@ func (p *Parser) recover() {
 	p.recoverWithTokens()
 }
 
+// recoverWithTokens eats tokens until it sees any of
+// the passed control tokens. It also eats the control token.
 func (p *Parser) recoverWithTokens(rtt ...token.Id) {
 	log.Println("In recover")
 	defer p.l.UnsetMode(skipErrorReporting)
