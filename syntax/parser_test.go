@@ -620,6 +620,34 @@ func TestTupleSequences(t *testing.T) {
 				},
 			},
 		},
+		{
+			"[1, 2,\n 3, 4,\n 5]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{
+						&ast.IntConst{Val: 1},
+						&ast.IntConst{Val: 2},
+						&ast.IntConst{Val: 3},
+						&ast.IntConst{Val: 4},
+						&ast.IntConst{Val: 5},
+					},
+				},
+			},
+		},
+		{
+			"[1, 2,\n 3, 4,\n 5,\n]",
+			[]an{
+				&ast.ListConst{
+					Vals: []ast.Expr{
+						&ast.IntConst{Val: 1},
+						&ast.IntConst{Val: 2},
+						&ast.IntConst{Val: 3},
+						&ast.IntConst{Val: 4},
+						&ast.IntConst{Val: 5},
+					},
+				},
+			},
+		},
 	}
 
 	matchAstWithTable(t, &table)

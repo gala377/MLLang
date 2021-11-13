@@ -275,10 +275,10 @@ func (p *Parser) parseExpr() (ast.Expr, bool) {
 func (p *Parser) parseBlock() (*ast.Block, bool) {
 	log.Println("Parsing block")
 	beg := p.position()
-	if t := p.match(token.Colon); t == nil {
+	if p.match(token.Colon) == nil {
 		return nil, true
 	}
-	if t := p.match(token.NewLine); t == nil {
+	if p.match(token.NewLine) == nil {
 		p.error(beg, p.position(), "expected new line for a block")
 		p.recoverWithTokens(token.NewLine)
 		return nil, false
@@ -576,7 +576,7 @@ func (p *Parser) parseIf() (ast.Expr, bool) {
 }
 
 func (p *Parser) parseElse() (ast.Expr, bool) {
-	if t := p.match(token.Else); t == nil {
+	if p.match(token.Else) == nil {
 		if !p.checkIndent(p.currentIndent()) {
 			return nil, true
 		}
@@ -703,9 +703,29 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 	log.Println("Parsing record literal")
 	vals := map[string]ast.Expr{}
-	p.disallowTrailingBlocks()
-	defer p.allowTrailingBlocks()
+	continuationIndent := -1
+	tryParseIndent := func() bool {
+		log.Println("Trying to pass possible indent")
+		if p.match(token.NewLine) == nil {
+			log.Println("No new line, means nothing to do")
+			return true
+		}
+		if continuationIndent == -1 {
+			i, err := p.pushNextIndent()
+			if err != nil {
+				p.error(beg, p.position(), "expected indentation as record continuation")
+			}
+			log.Printf("Got new line, indentation for this expression is %d\n", i)
+			continuationIndent = i
+		}
+		v := p.matchIndent(continuationIndent)
+		log.Printf("Matching intentetion %d, matched=%v\n", continuationIndent, v)
+		return v
+	}
 	for {
+		if !tryParseIndent() {
+			break
+		}
 		key := p.parseIdentifier()
 		if key == nil {
 			break
@@ -719,11 +739,23 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			p.recoverWithTokens(token.Comma, token.NewLine)
 			continue
 		}
-		p.match(token.Comma)
 		vals[key.Name] = val
+		if p.match(token.Comma) == nil {
+			break
+		}
+	}
+	if continuationIndent != -1 {
+		p.popIndent(continuationIndent)
 	}
 	if p.match(token.RBracket) == nil {
-		p.error(beg, p.position(), "missing closing bracket in record literal")
+		if p.checkIndent(p.currentIndent()) {
+			if p.peek().Typ == token.RBracket {
+				p.bump()
+				p.bump()
+			} else {
+				p.error(beg, p.position(), "missing closing bracket in record literal")
+			}
+		}
 	}
 	span := span.NewSpan(beg, p.position())
 	rec := ast.RecordConst{
@@ -736,7 +768,30 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 	log.Println("Parsing list literal")
 	vals := []ast.Expr{}
+	continuationIndent := -1
+	tryParseIndent := func() bool {
+		log.Println("Trying to pass possible indent")
+		if p.match(token.NewLine) == nil {
+			log.Println("No new line, means nothing to do")
+			return true
+		}
+		if continuationIndent == -1 {
+			i, err := p.pushNextIndent()
+			if err != nil {
+				p.error(beg, p.position(), "expected indentation as record continuation")
+			}
+			log.Printf("Got new line, indentation for this expression is %d\n", i)
+			continuationIndent = i
+		}
+		v := p.matchIndent(continuationIndent)
+		log.Printf("Matching intentetion %d, matched=%v\n", continuationIndent, v)
+		return v
+	}
 	for {
+		if !tryParseIndent() {
+			break
+		}
+		log.Println("Parsing new expression for list")
 		e, ok := p.parseExpr()
 		if e == nil {
 			if !ok {
@@ -751,8 +806,18 @@ func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 			break
 		}
 	}
+	if continuationIndent != -1 {
+		p.popIndent(continuationIndent)
+	}
 	if p.match(token.RSquareParen) == nil {
-		p.error(beg, p.position(), "Expected ] to close a list literal")
+		if p.checkIndent(p.currentIndent()) {
+			if p.peek().Typ == token.RSquareParen {
+				p.bump()
+				p.bump()
+			} else {
+				p.error(beg, p.position(), "Expected ] to close a list literal")
+			}
+		}
 	}
 	span := span.NewSpan(beg, p.position())
 	list := &ast.ListConst{

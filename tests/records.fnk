@@ -1,0 +1,9 @@
+
+
+{ adding: do |x| -> add x x,
+  some_val: 1 }
+
+val std = {
+    adder: add,
+    printf: printf,
+}

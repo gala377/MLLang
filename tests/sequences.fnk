@@ -6,7 +6,10 @@ now
 we
 what?
 again what?
-
+[1, 2, 3, 4, 5, ]
+[1, 2, 3, 4, 5, 6, ]
+[1, 2, 3, 4, 5, 6, ]
+[1, 2, 3, 4, 5, 6, ]
 @SOURCE
 fn scope s = s!
 
@@ -28,3 +31,28 @@ scope:
   append tlist "again what?"
   pel 2
   pel 3
+
+val splitted = [
+  1, 2, 3,
+  4, 5,
+]
+print splitted
+
+scope:
+  val splitted = [ 1, 2,
+                   3, 4,
+                   5, 6,
+  ]
+  print splitted
+
+scope:
+  val splitted = [ 1, 2,
+                   3, 4,
+                   5, 6, ]
+  print splitted
+
+scope:
+  print [
+    1, 2,
+    3, 4,
+    5, 6 ]
