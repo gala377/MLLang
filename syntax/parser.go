@@ -633,7 +633,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 			return nil, false
 		}
 		body = b
-	} else if t := p.match(token.Operator); t != nil && token.IsArrow(t) {
+	} else if p.match(token.Arrow) != nil {
 		e, ok := p.parseExpr()
 		if !ok {
 			return nil, false

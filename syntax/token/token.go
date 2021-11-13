@@ -54,6 +54,8 @@ const (
 	operators_beg
 	Assignment
 	Exclamation
+	Access
+	Arrow
 	operators_end
 
 	Eof
@@ -98,6 +100,8 @@ var tokens = [...]string{
 
 	Assignment:  "=",
 	Exclamation: "!",
+	Access:      ".",
+	Arrow:       "->",
 
 	Eof: "EOF",
 }
@@ -143,8 +147,4 @@ func NewEof(pos span.Position) Token {
 		Val:  "",
 		Span: &span,
 	}
-}
-
-func IsArrow(t *Token) bool {
-	return t.Val == "->"
 }
