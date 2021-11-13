@@ -323,17 +323,6 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	if fn == nil || !ok {
 		return nil, ok
 	}
-	// No args application
-	// if p.match(token.Exclamation) != nil {
-	// 	span := span.NewSpan(beg, p.position())
-	// 	node := ast.FuncApplication{
-	// 		Span:   &span,
-	// 		Callee: fn,
-	// 		Args:   []ast.Expr{},
-	// 		Block:  nil,
-	// 	}
-	// 	return &node, true
-	// }
 	arg, ok := p.parseSimpleExpr()
 	if !ok {
 		return nil, false
