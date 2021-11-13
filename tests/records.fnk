@@ -1,6 +1,7 @@
+@EXPECTED
 
-
-{ adding: do |x| -> add x x,
+@SOURCE
+val t = { adding: do |x| -> add x x,
   some_val: 1 }
 
 val std = {

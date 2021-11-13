@@ -9,6 +9,10 @@ type Record struct {
 	fields map[Symbol]Value
 }
 
+func NewRecord(fields map[Symbol]Value) Record {
+	return Record{fields: fields}
+}
+
 func (r Record) String() string {
 	var b strings.Builder
 	b.WriteRune('{')

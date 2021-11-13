@@ -30,6 +30,7 @@ var instNames = [...]string{
 	MakeCell:    "MakeCell",
 	MakeList:    "MakeList",
 	MakeTuple:   "MakeTuple",
+	MakeRecord:  "MakeRecord",
 }
 
 const opCount = len(instNames)
@@ -55,6 +56,7 @@ var instArguments = [opCount]int{
 	LoadDeref:   2,
 	MakeList:    2,
 	MakeTuple:   2,
+	MakeRecord:  2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
@@ -76,6 +78,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	LoadDeref:   writeConstantWide,
 	MakeList:    writeUint16,
 	MakeTuple:   writeUint16,
+	MakeRecord:  writeUint16,
 }
 
 func PrintCode(code *data.Code, name string) {

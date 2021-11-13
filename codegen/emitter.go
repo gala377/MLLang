@@ -137,6 +137,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitSequence(isa.MakeList, v)
 	case *ast.TupleConst:
 		e.emitSequence(isa.MakeTuple, v)
+	case *ast.RecordConst:
+		e.emitRecord(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -456,6 +458,26 @@ func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(instr)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitRecord(node *ast.RecordConst) {
+	for key, val := range node.Fields {
+		e.emitExpr(val)
+		internedk := e.interner.Intern(key)
+		ksym := data.NewSymbol(internedk)
+		e.emitConstant(ksym)
+	}
+	size := len(node.Fields)
+	if size > math.MaxUint16 {
+		e.error(
+			node.NodeSpan(),
+			fmt.Sprintf("Record literals can only support max of %d elements", math.MaxUint16))
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(size))
+	e.emitByte(isa.MakeRecord)
 	e.emitBytes(args...)
 }
 

@@ -24,4 +24,5 @@ const (
 	MakeCell
 	MakeList
 	MakeTuple
+	MakeRecord
 )

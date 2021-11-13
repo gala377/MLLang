@@ -245,6 +245,17 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			l := data.NewTuple(reverse(vals))
 			vm.push(l)
+		case isa.MakeRecord:
+			size := int(vm.readShort())
+			vals := map[data.Symbol]data.Value{}
+			for i := 0; i < size; i++ {
+				key, ok := vm.pop().(data.Symbol)
+				if !ok {
+					vm.bail("record fields have to be symbols")
+				}
+				vals[key] = vm.pop()
+			}
+			vm.push(data.NewRecord(vals))
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
