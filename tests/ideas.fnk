@@ -17,6 +17,9 @@ None
 4
 [11, 12, 13, ]
 [0, 1, 2, 3, ]
+36
+Jack
+5
 @SOURCE
 ; we can have scope blocks with lambdas :)
 
@@ -104,3 +107,18 @@ fn filter seq pred:
 fn flip f a b = f b a
 
 print (filter [0, 1, 2, 3, 4, 5, 6] (flip lessThan? 4))
+
+; classes like in js
+fn Person name age:
+  {
+    getAge: do -> age,
+    setAge: do |new|:
+      age = new,
+    fullInfo: do -> name,
+  }
+
+val jack = Person "Jack" 36
+print jack.getAge!
+print jack.fullInfo!
+jack.setAge 5
+print jack.getAge!
