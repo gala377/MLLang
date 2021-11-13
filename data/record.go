@@ -29,3 +29,8 @@ func (r Record) Equal(o Value) bool {
 	}
 	return false
 }
+
+func (r Record) Get(s Symbol) (Value, bool) {
+	v, ok := r.fields[s]
+	return v, ok
+}

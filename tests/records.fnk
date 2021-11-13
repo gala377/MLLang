@@ -1,5 +1,9 @@
 @EXPECTED
-
+1
+11
+hello 20
+most inner
+42
 @SOURCE
 val t = { adding: do |x| -> add x x,
   some_val: 1 }
@@ -8,3 +12,23 @@ val std = {
     adder: add,
     printf: printf,
 }
+
+print t.some_val
+print (std.adder 1 10)
+std.printf "hello %v" (t.adding 10)
+
+val nested = {
+  inner: {
+    more_inner: {
+      value: "most inner",
+    },
+  },
+}
+print nested.inner.more_inner.value
+
+fn retRecord:
+  {
+    question?: do |_x|-> 42,
+  }
+
+print (retRecord!.question? ())

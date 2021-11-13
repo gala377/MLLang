@@ -139,6 +139,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitSequence(isa.MakeTuple, v)
 	case *ast.RecordConst:
 		e.emitRecord(v)
+	case *ast.Access:
+		e.emitAccess(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -478,6 +480,21 @@ func (e *Emitter) emitRecord(node *ast.RecordConst) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(isa.MakeRecord)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitAccess(node *ast.Access) {
+	e.emitExpr(node.Lhs)
+	key := e.interner.Intern(node.Property.Name)
+	skey := data.NewSymbol(key)
+	index := e.result.AddConstant(skey)
+	if index > math.MaxUint16 {
+		// rare panic but that is the best we can do honestly
+		panic("More constants that uint16 can hold. That is not supported.")
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.GetField)
 	e.emitBytes(args...)
 }
 

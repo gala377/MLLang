@@ -256,6 +256,17 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vals[key] = vm.pop()
 			}
 			vm.push(data.NewRecord(vals))
+		case isa.GetField:
+			name := vm.getSymbolAt(vm.readShort())
+			rec, ok := vm.pop().(data.Record)
+			if !ok {
+				vm.bail("field can only be accessed on a record")
+			}
+			val, ok := rec.Get(name)
+			if !ok {
+				vm.bail(fmt.Sprintf("missing field %s", name))
+			}
+			vm.push(val)
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
