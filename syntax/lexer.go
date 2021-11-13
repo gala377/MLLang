@@ -157,6 +157,8 @@ func (l *Lexer) scanNextToken() token.Token {
 			tok.Typ = token.Comma
 		case '|':
 			tok.Typ = token.Pipe
+		case '.':
+			tok.Typ = token.Access
 		default:
 			err = fmt.Errorf("unknown character %s", string(ch))
 			known = false

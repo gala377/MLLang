@@ -319,22 +319,22 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	log.Println("Parse fn app")
 	beg := p.position()
-	fn, ok := p.parsePrimaryExpr()
+	fn, ok := p.parseSimpleExpr()
 	if fn == nil || !ok {
 		return nil, ok
 	}
 	// No args application
-	if p.match(token.Exclamation) != nil {
-		span := span.NewSpan(beg, p.position())
-		node := ast.FuncApplication{
-			Span:   &span,
-			Callee: fn,
-			Args:   []ast.Expr{},
-			Block:  nil,
-		}
-		return &node, true
-	}
-	arg, ok := p.parsePrimaryExpr()
+	// if p.match(token.Exclamation) != nil {
+	// 	span := span.NewSpan(beg, p.position())
+	// 	node := ast.FuncApplication{
+	// 		Span:   &span,
+	// 		Callee: fn,
+	// 		Args:   []ast.Expr{},
+	// 		Block:  nil,
+	// 	}
+	// 	return &node, true
+	// }
+	arg, ok := p.parseSimpleExpr()
 	if !ok {
 		return nil, false
 	}
@@ -347,7 +347,7 @@ func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
 	args := []ast.Expr{}
 	for arg != nil {
 		args = append(args, arg)
-		arg, ok = p.parsePrimaryExpr()
+		arg, ok = p.parseSimpleExpr()
 		if !ok {
 			return nil, false
 		}
@@ -402,23 +402,45 @@ func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
 }
 
 func (p *Parser) parseSimpleExpr() (ast.Expr, bool) {
-	return p.parseNoArgCall()
-}
-
-func (p *Parser) parseNoArgCall() (ast.Expr, bool) {
+	log.Println("Parse simple expression")
+	beg := p.position()
 	node, ok := p.parsePrimaryExpr()
 	if node == nil || !ok {
 		return node, ok
 	}
-	if p.match(token.Exclamation) != nil {
-		span := span.NewSpan(node.NodeSpan().Beg, p.position())
-		fapp := ast.FuncApplication{
-			Span:   &span,
-			Callee: node,
-			Args:   make([]ast.Expr, 0),
-			Block:  nil,
+loop:
+	for {
+		log.Println("Checking for postfix operator")
+		t := p.curr
+		switch t.Typ {
+		case token.Exclamation:
+			log.Println("It's nullary application")
+			p.bump()
+			span := span.NewSpan(beg, p.position())
+			node = &ast.FuncApplication{
+				Span:   &span,
+				Callee: node,
+				Args:   make([]ast.Expr, 0),
+				Block:  nil,
+			}
+		case token.Access:
+			p.bump()
+			log.Println("It's access")
+			id := p.parseIdentifier()
+			if id == nil {
+				p.error(beg, p.position(), "expected indentifier in access expression")
+				return nil, !ok
+			}
+			span := span.NewSpan(beg, p.position())
+			node = &ast.Access{
+				Span:     &span,
+				Lhs:      node,
+				Property: *id,
+			}
+		default:
+			log.Printf("No postfixes, token is %s\n", token.IdToString(t.Typ))
+			break loop
 		}
-		return &fapp, true
 	}
 	return node, ok
 }
@@ -482,17 +504,6 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		node.Span = tok.Span
 		node.Name = tok.Val
 		p.tryLiftVar(node.Name)
-		if p.match(token.Exclamation) != nil {
-			// unary application on identifier
-			span := span.NewSpan(node.Span.Beg, p.position())
-			fapp := ast.FuncApplication{
-				Span:   &span,
-				Callee: &node,
-				Args:   make([]ast.Expr, 0),
-				Block:  nil,
-			}
-			return &fapp, true
-		}
 		return &node, true
 	case token.LBracket:
 		p.bump()

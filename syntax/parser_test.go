@@ -924,6 +924,59 @@ func TestRecordLiteral(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingAccess(t *testing.T) {
+	table := ptable{
+		{
+			"a.b",
+			[]an{
+				&ast.Access{
+					Lhs:      &ast.Identifier{Name: "a"},
+					Property: ast.Identifier{Name: "b"},
+				},
+			},
+		},
+		{
+			"(1, 2).hello",
+			[]an{
+				&ast.Access{
+					Lhs: &ast.TupleConst{
+						Vals: []ast.Expr{&ast.IntConst{Val: 1}, &ast.IntConst{Val: 2}},
+					},
+					Property: ast.Identifier{Name: "hello"},
+				},
+			},
+		},
+		{
+			"a.b.c!.d.e!.f",
+			[]an{
+				&ast.Access{
+					Lhs: &ast.FuncApplication{
+						Callee: &ast.Access{
+							Lhs: &ast.Access{
+								Lhs: &ast.FuncApplication{
+									Callee: &ast.Access{
+										Lhs: &ast.Access{
+											Lhs:      &ast.Identifier{Name: "a"},
+											Property: ast.Identifier{Name: "b"},
+										},
+										Property: ast.Identifier{Name: "c"},
+									},
+									Args: []ast.Expr{},
+								},
+								Property: ast.Identifier{Name: "d"},
+							},
+							Property: ast.Identifier{Name: "e"},
+						},
+						Args: []ast.Expr{},
+					},
+					Property: ast.Identifier{Name: "f"},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
