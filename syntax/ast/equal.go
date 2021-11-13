@@ -233,3 +233,10 @@ func (n *NoneConst) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (a *Access) Equal(o Node) bool {
+	if oa, ok := o.(*Access); ok {
+		return AstEqual(a.Lhs, oa.Lhs) && a.Property.Name == oa.Property.Name
+	}
+	return false
+}

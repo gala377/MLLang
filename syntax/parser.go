@@ -401,6 +401,28 @@ func (p *Parser) parseTrailingLambda() (*ast.LambdaExpr, bool) {
 	return block, true
 }
 
+func (p *Parser) parseSimpleExpr() (ast.Expr, bool) {
+	return p.parseNoArgCall()
+}
+
+func (p *Parser) parseNoArgCall() (ast.Expr, bool) {
+	node, ok := p.parsePrimaryExpr()
+	if node == nil || !ok {
+		return node, ok
+	}
+	if p.match(token.Exclamation) != nil {
+		span := span.NewSpan(node.NodeSpan().Beg, p.position())
+		fapp := ast.FuncApplication{
+			Span:   &span,
+			Callee: node,
+			Args:   make([]ast.Expr, 0),
+			Block:  nil,
+		}
+		return &fapp, true
+	}
+	return node, ok
+}
+
 func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 	log.Println("Parse primary expression")
 	beg := p.position()

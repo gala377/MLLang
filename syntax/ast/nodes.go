@@ -95,6 +95,7 @@ type (
 		*span.Span
 		Name string
 	}
+
 	RecordConst struct {
 		*span.Span
 		Fields map[string]Expr
@@ -147,6 +148,12 @@ type (
 	NoneConst struct {
 		*span.Span
 	}
+
+	Access struct {
+		*span.Span
+		Lhs      Expr
+		Property Identifier
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -171,6 +178,7 @@ func (i *Identifier) exprNode()      {}
 func (l *LambdaExpr) exprNode()      {}
 func (b *BoolConst) exprNode()       {}
 func (n *NoneConst) exprNode()       {}
+func (a *Access) exprNode()          {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -258,6 +266,10 @@ func (a *Assignment) NodeSpan() *span.Span {
 
 func (n *NoneConst) NodeSpan() *span.Span {
 	return n.Span
+}
+
+func (a *Access) NodeSpan() *span.Span {
+	return a.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -383,4 +395,8 @@ func (a *Assignment) String() string {
 
 func (n *NoneConst) String() string {
 	return "NoneLit"
+}
+
+func (a *Access) String() string {
+	return fmt.Sprintf("Access{%s.%s}", a.Lhs, a.Property.Name)
 }
