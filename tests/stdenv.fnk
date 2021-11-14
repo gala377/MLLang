@@ -29,6 +29,8 @@ false
 true
 @gensym[3]
 false
+true
+false
 @SOURCE
 
 val a = 1
@@ -112,3 +114,13 @@ val gs = gensym!
 io.print (eq? gs gs)
 io.print gs
 io.print (eq? gs (conv.toSymbol "@gesym[3]"))
+
+
+val Car = struct.new (`brand, `prodYear) do this -> {
+  lastMillenia?: do -> lt? this.prodYear 2000,
+}
+
+val mycar = Car.new {brand: `toyota, prodYear: 1996}
+io.print mycar.lastMillenia?!
+mycar.prodYear = 2001
+io.print mycar.lastMillenia?!

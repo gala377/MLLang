@@ -86,4 +86,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{Source: funkPrelude},
 	&funkSource{Source: funkConv},
 	&funkSource{Source: funkSeq},
+	&funkSource{Source: funkStruct},
 }
