@@ -10,6 +10,7 @@ again what?
 [1, 2, 3, 4, 5, 6, ]
 [1, 2, 3, 4, 5, 6, ]
 [1, 2, 3, 4, 5, 6, ]
+[1, 2, 3, ]
 @SOURCE
 fn scope s = s!
 
@@ -56,3 +57,11 @@ scope:
     1, 2,
     3, 4,
     5, 6 ]
+
+scope:
+  val some_list = [
+    1,
+    2,
+    3,
+  ]
+  io.print some_list

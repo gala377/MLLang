@@ -65,7 +65,7 @@ func (r *Record) Append(v Value) error {
 		return err
 	}
 	_, ok = r.fields[k]
-	if !ok {
+	if ok {
 		return fmt.Errorf("record already has field %s", k)
 	}
 	nv := at.values[1]

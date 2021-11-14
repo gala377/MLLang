@@ -32,8 +32,8 @@ type Parser struct {
 	errors              []SyntaxError
 	curr                token.Token
 	indents             []int
-	stmtSpecialForms    [token.Eof]parseStmtFn
-	exprSpecialForms    [token.Eof]parseExprFn
+	stmtSpecialForms    [token.Eof + 1]parseStmtFn
+	exprSpecialForms    [token.Eof + 1]parseExprFn
 	parseTrailingBlocks bool
 	scope               *Scope
 }
@@ -52,7 +52,7 @@ func NewParser(source io.Reader) *Parser {
 	p.curr = l.Next()
 	p.indents = []int{0}
 	p.errors = make([]SyntaxError, 0)
-	p.exprSpecialForms = [token.Eof]parseExprFn{
+	p.exprSpecialForms = [token.Eof + 1]parseExprFn{
 		token.Do: p.parseLambda,
 		token.If: p.parseIf,
 		token.Else: func() (ast.Expr, bool) {
@@ -61,7 +61,7 @@ func NewParser(source io.Reader) *Parser {
 			return nil, false
 		},
 	}
-	p.stmtSpecialForms = [token.Eof]parseStmtFn{
+	p.stmtSpecialForms = [token.Eof + 1]parseStmtFn{
 		token.While: p.parseWhile,
 		token.Val:   p.parseValDecl,
 	}

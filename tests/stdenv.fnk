@@ -17,6 +17,8 @@ None
 4
 [11, 12, 13, ]
 [0, 1, 2, 3, ]
+1
+2
 @SOURCE
 
 val a = 1
@@ -79,3 +81,7 @@ fn cond pred pos neg:
 
 
 io.print (filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4))
+
+val fromListRec = conv.toRecord ((`a, 1), (`b, 2))
+io.print fromListRec.a
+io.print fromListRec.b
