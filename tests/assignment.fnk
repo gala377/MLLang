@@ -9,19 +9,19 @@ Hello
 
 val b = 10
 b = 12
-print b
+io.print b
 
 fn global:
   b = "Hello"
 
 global!
-print b
+io.print b
 
 fn local:
   val c = 100
-  print c
+  io.print c
   c = 200
-  print c
+  io.print c
 
 local!
 
@@ -30,6 +30,6 @@ fn nested:
   val f = do:
     a = 20
   f!
-  print a
+  io.print a
 
 nested!

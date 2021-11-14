@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/gala377/MLLang/cmd/funk/std"
 	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
@@ -67,15 +68,11 @@ func printCode(c *data.Code) {
 	}
 }
 
-func vmWithStdEnv(source *bytes.Reader, i *codegen.Interner) *vm.Vm {
-	env := make(map[data.Symbol]data.Value)
-	for _, fn := range stdEnv {
-		s := i.Intern(fn.name)
-		nf := data.NewNativeFunc(fn.name, fn.arity, fn.f)
-		env[data.NewSymbol(s)] = &nf
+func vmWithStdEnv(source *bytes.Reader, interner *codegen.Interner) *vm.Vm {
+	vm := vm.NewVm(source, interner)
+	for _, e := range std.StdEnv {
+		e.Inject(&vm)
 	}
-	globals := data.EnvFromMap(env)
-	vm := vm.VmWithEnv(source, globals)
 	return &vm
 }
 

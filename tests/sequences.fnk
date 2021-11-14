@@ -13,7 +13,7 @@ again what?
 @SOURCE
 fn scope s = s!
 
-fn pel seq i = print (get seq i)
+fn pel s i = io.print (seq.get s i)
 
 scope:
   val ttuple = ("hello", "world", "or something")
@@ -27,8 +27,8 @@ scope:
   val pel = pel tlist
   pel 0
   pel 1
-  set tlist 2 "what?"
-  append tlist "again what?"
+  seq.set tlist 2 "what?"
+  seq.append tlist "again what?"
   pel 2
   pel 3
 
@@ -36,23 +36,23 @@ val splitted = [
   1, 2, 3,
   4, 5,
 ]
-print splitted
+io.print splitted
 
 scope:
   val splitted = [ 1, 2,
                    3, 4,
                    5, 6,
   ]
-  print splitted
+  io.print splitted
 
 scope:
   val splitted = [ 1, 2,
                    3, 4,
                    5, 6, ]
-  print splitted
+  io.print splitted
 
 scope:
-  print [
+  io.print [
     1, 2,
     3, 4,
     5, 6 ]

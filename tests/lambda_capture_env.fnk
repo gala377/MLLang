@@ -19,7 +19,7 @@ fn make_adder a:
 val add1 = make_adder 10
 val add2 = make_adder 100
 
-val echo = printf "%v"
+val echo = io.printf "%v"
 
 echo (add1 1)
 echo (add2 1)
@@ -43,14 +43,14 @@ fn external_capture:
   val f = do:
     cap = 7
   f!
-  print cap
+  io.print cap
 
 external_capture!
 
 fn outer_modifies:
   val i = 0
   val inner = do:
-    print i
+    io.print i
   i = 10
   inner!
 
@@ -60,10 +60,10 @@ fn lift_func_args a b:
   val f = do:
     a = add a 1
     b = a
-  print a
-  print b
+  io.print a
+  io.print b
   f!
-  print a
-  print b
+  io.print a
+  io.print b
 
 lift_func_args 1 10

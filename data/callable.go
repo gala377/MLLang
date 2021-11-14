@@ -45,8 +45,8 @@ const (
 	Error
 )
 
-func NewNativeFunc(name string, arity int, fn func(...Value) (Value, error)) NativeFunc {
-	return NativeFunc{
+func NewNativeFunc(name string, arity int, fn func(...Value) (Value, error)) *NativeFunc {
+	return &NativeFunc{
 		name:  name,
 		arity: arity,
 		fn:    fn,

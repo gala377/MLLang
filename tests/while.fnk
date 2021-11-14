@@ -20,18 +20,18 @@ None
 
 
 val i = 0
-while lessThan? i 10:
-  print i
+while lt? i 10:
+  io.print i
   i = add i 1
 
 
 fn twoWhiles i a:
   i2 = i
-  while lessThan? i a:
-    print i
+  while lt? i a:
+    io.print i
     i = add i 1
-  while lessThan? i2 a:
-    print i2
+  while lt? i2 a:
+    io.print i2
     i2 = add i2 1
 
-print (twoWhiles 1 4)
+io.print (twoWhiles 1 4)

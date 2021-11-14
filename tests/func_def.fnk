@@ -4,7 +4,7 @@
 1
 
 @SOURCE
-fn echo v = printf "%v" v
+fn echo v = io.printf "%v" v
 
 echo 3
 echo 2

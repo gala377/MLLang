@@ -8,14 +8,12 @@ Hello "George"
 
 @SOURCE
 
-val printer = printf "Hello %v"
+val greeter = io.printf "Hello %v"
 
-printer "Frank"
-printer "Ann"
-printer "George"
-
-val print = printf "%v"
+greeter "Frank"
+greeter "Ann"
+greeter "George"
 
 val inc = add 1
-print (inc 0)
-print (inc 10)
+io.print (inc 0)
+io.print (inc 10)

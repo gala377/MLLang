@@ -6,7 +6,7 @@
 
 @SOURCE
 
-val echo = printf "%v"
+val echo = io.printf "%v"
 
 val addition = do |a b| -> add a b
 echo (addition 0 1)

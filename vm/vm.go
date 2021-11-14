@@ -8,6 +8,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/gala377/MLLang/codegen"
 	"github.com/gala377/MLLang/data"
 	"github.com/gala377/MLLang/isa"
 )
@@ -26,10 +27,11 @@ type (
 		globals  *data.Env
 		locals   *data.Env
 		source   *bytes.Reader
+		interner *codegen.Interner
 	}
 )
 
-func NewVm(source *bytes.Reader) Vm {
+func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
 	globals := data.NewEnv()
 	locals := data.NewEnv()
 	return Vm{
@@ -40,13 +42,23 @@ func NewVm(source *bytes.Reader) Vm {
 		globals:  &globals,
 		locals:   &locals,
 		source:   source,
+		interner: interner,
 	}
 }
 
-func VmWithEnv(source *bytes.Reader, env data.Env) Vm {
-	vm := NewVm(source)
+func VmWithEnv(source *bytes.Reader, interner *codegen.Interner, env data.Env) Vm {
+	vm := NewVm(source, interner)
 	vm.globals = &env
 	return vm
+}
+
+func (vm *Vm) AddToGlobals(name string, v data.Value) {
+	vm.globals.Insert(vm.CreateSymbol(name), v)
+}
+
+func (vm *Vm) CreateSymbol(s string) data.Symbol {
+	is := vm.interner.Intern(s)
+	return data.NewSymbol(is)
 }
 
 func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {

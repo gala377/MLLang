@@ -4,6 +4,6 @@ Hello "Anne"
 Add result 2
 
 @SOURCE
-print "Hello"
-printf "Hello %s" "Anne"
-printf "Add result %v" (add 1 1)
+io.print "Hello"
+io.printf "Hello %s" "Anne"
+io.printf "Add result %v" (add 1 1)

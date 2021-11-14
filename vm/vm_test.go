@@ -12,7 +12,7 @@ import (
 	"github.com/gala377/MLLang/syntax"
 )
 
-func echo(t *testing.T, v data.Value) data.NativeFunc {
+func echo(t *testing.T, v data.Value) *data.NativeFunc {
 	return data.NewNativeFunc("echo", 1, func(vs ...data.Value) (data.Value, error) {
 		if len(vs) != 1 {
 			t.Errorf("echo expects one value, got %v", vs)
@@ -29,7 +29,7 @@ func TestSimpleVm(t *testing.T) {
 	runTest(t, source, echo)
 }
 
-func runTest(t *testing.T, src string, echo data.NativeFunc) {
+func runTest(t *testing.T, src string, echo *data.NativeFunc) {
 	s := bytes.NewReader([]byte(src))
 	p := syntax.NewParser(s)
 	ast := p.Parse()
@@ -53,18 +53,18 @@ func runTest(t *testing.T, src string, echo data.NativeFunc) {
 		}
 	}()
 	name := e.Interner().Intern("echo")
-	vm := vmWithEcho(s, name, echo)
+	vm := vmWithEcho(s, e.Interner(), name, echo)
 
 	vm.Interpret(c)
 }
 
-func vmWithEcho(source *bytes.Reader, name data.InternedString, echo data.NativeFunc) *Vm {
+func vmWithEcho(source *bytes.Reader, interner *codegen.Interner, name data.InternedString, echo *data.NativeFunc) *Vm {
 	k := data.NewSymbol(name)
 	env := map[data.Symbol]data.Value{
-		k: &echo,
+		k: echo,
 	}
 	global := data.NewEnv()
 	global.Vals = env
-	vm := VmWithEnv(source, global)
+	vm := VmWithEnv(source, interner, global)
 	return &vm
 }

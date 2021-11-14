@@ -3,4 +3,4 @@ None
 
 @SOURCE
 
-print none
+io.print none

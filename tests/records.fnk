@@ -10,11 +10,11 @@ val t = { adding: do |x| -> add x x,
 
 val std = {
     adder: add,
-    printf: printf,
+    printf: io.printf,
 }
 
-print t.some_val
-print (std.adder 1 10)
+io.print t.some_val
+io.print (std.adder 1 10)
 std.printf "hello %v" (t.adding 10)
 
 val nested = {
@@ -24,11 +24,11 @@ val nested = {
     },
   },
 }
-print nested.inner.more_inner.value
+io.print nested.inner.more_inner.value
 
 fn retRecord:
   {
     question?: do |_x|-> 42,
   }
 
-print (retRecord!.question? ())
+io.print (retRecord!.question? ())

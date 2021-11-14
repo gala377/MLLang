@@ -28,15 +28,15 @@ fn scope s = s!
 val a = 1
 scope:
   val a = 10
-  print "Hello"
-  print "How are you?"
+  io.print "Hello"
+  io.print "How are you?"
 
-print (toString a)
+io.print (conv.toString a)
 
 val b = scope:
   val a = 10
 
-print b
+io.print b
 
 ; works in functions
 fn useScope:
@@ -44,8 +44,8 @@ fn useScope:
   scope:
     a = 0
     val c = 1
-  print a
-  ; print c - runtime error, c undefined
+  io.print a
+  ; io.print c - runtime error, c undefined
 useScope!
 
 ; btw last example can be rewritten
@@ -54,42 +54,42 @@ scope:
   scope:
     a = 0
     val c = 1
-  print a
+  io.print a
 
 val beg = scope
 val end = b ; equals to None
 
 ; who wants some pascal?
 beg:
-  print 1
-  print 2
-  print 3
+  io.print 1
+  io.print 2
+  io.print 3
 end
 
 
-fn foreach seq body:
+fn foreach s body:
   val i = 0
-  val len = length seq
-  while lessThan? i len:
-    body (get seq i)
+  val len = seq.len s
+  while lt? i len:
+    body (seq.get s i)
     i = add i 1
 
-foreach [1, 2, 3] do |x| -> print x
+foreach [1, 2, 3] do |x| -> io.print x
 
-fn fold seq init body:
-  foreach seq do |x|:
+fn fold s init body:
+  foreach s do |x|:
     init = body init x
   init
 
-fn sum seq = fold seq 0 add
+fn sum s = fold s 0 add
 
-print (sum [1, 2, 3])
+io.print (sum [1, 2, 3])
 
-fn map seq body = fold seq [] do |acc x| -> append acc (body x)
+fn map s body = fold s [] do |acc x| -> seq.append acc (body x)
 
-foreach (map [1, 2, 3] (add 1)) print
+foreach (map [1, 2, 3] (add 1)) io.print
 
-print (map [1, 2, 3] do |x|:
+io.print (map [1, 2, 3] do |x|:
   add 10 x)
 
 fn cond pred pos neg:
@@ -98,15 +98,15 @@ fn cond pred pos neg:
   else:
     neg!
 
-fn filter seq pred:
-  fold seq [] do |acc x|:
+fn filter s pred:
+  fold s [] do |acc x|:
     if pred x:
-      append acc x
+      seq.append acc x
     acc
 
 fn flip f a b = f b a
 
-print (filter [0, 1, 2, 3, 4, 5, 6] (flip lessThan? 4))
+io.print (filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4))
 
 ; classes like in js
 fn Person name age:
@@ -118,7 +118,7 @@ fn Person name age:
   }
 
 val jack = Person "Jack" 36
-print jack.getAge!
-print jack.fullInfo!
+io.print jack.getAge!
+io.print jack.fullInfo!
 jack.setAge 5
-print jack.getAge!
+io.print jack.getAge!
