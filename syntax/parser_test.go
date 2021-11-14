@@ -724,6 +724,42 @@ func TestParsingLambda(t *testing.T) {
 				},
 			},
 		},
+		{
+			"do a b c -> a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []*ast.FuncDeclArg{
+						{Name: "a"}, {Name: "b"}, {Name: "c"},
+					},
+					Body: &ast.FuncApplication{
+						Callee: &ast.Identifier{Name: "a"},
+						Args: []ast.Expr{
+							&ast.Identifier{Name: "b"},
+						},
+					},
+				},
+			},
+		},
+		{
+			"do a b c:\n  a b",
+			[]an{
+				&ast.LambdaExpr{
+					Args: []*ast.FuncDeclArg{
+						{Name: "a"}, {Name: "b"}, {Name: "c"},
+					},
+					Body: &ast.Block{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{Expr: &ast.FuncApplication{
+								Callee: &ast.Identifier{Name: "a"},
+								Args: []ast.Expr{
+									&ast.Identifier{Name: "b"},
+								},
+							}},
+						},
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }

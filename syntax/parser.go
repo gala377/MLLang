@@ -281,6 +281,7 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 	if p.match(token.NewLine) == nil {
 		p.error(beg, p.position(), "expected new line for a block")
 		p.recoverWithTokens(token.NewLine)
+		p.match(token.NewLine)
 		return nil, false
 	}
 	indent, err := p.pushNextIndent()
@@ -638,8 +639,31 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 			arg := p.parseIdentifier()
 			if arg == nil {
 				p.error(beg, p.position(), "Lambda argument has to be an identifier")
-				p.recoverWithTokens(token.Pipe)
-				continue
+				p.recoverWithTokens(token.Pipe, token.Colon, token.Arrow)
+				p.match(token.Pipe)
+				break
+			}
+			a := &ast.FuncDeclArg{
+				Span: arg.Span,
+				Name: arg.Name,
+			}
+			log.Printf("Parsed parameter %s", a.Name)
+			args = append(args, a)
+			p.scope.InsertFuncArg(a)
+		}
+	} else {
+		log.Println("Parsing lambda arguments witout pipe")
+		for {
+			arg := p.parseIdentifier()
+			if arg == nil {
+				if p.check(token.Colon) != nil || p.check(token.Arrow) != nil {
+					break
+				} else {
+					p.error(beg, p.position(), "Lambda argument has to be an identifier")
+					p.recoverWithTokens(token.Pipe, token.Colon, token.Arrow)
+					p.match(token.Pipe)
+					break
+				}
 			}
 			a := &ast.FuncDeclArg{
 				Span: arg.Span,
@@ -766,7 +790,7 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 		if val == nil || !ok {
 			p.error(beg, p.position(), "record literal expects an expression as its values")
 			log.Println("Record literal could not parse expression, recovering.")
-			p.recoverWithTokens(token.Comma, token.NewLine)
+			p.recoverWithTokens(token.NewLine)
 			continue
 		}
 		vals[key.Name] = val
@@ -826,7 +850,7 @@ func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 		if e == nil {
 			if !ok {
 				p.error(beg, p.position(), "Expected expression in list literal")
-				p.recoverWithTokens(token.Comma, token.NewLine, token.RSquareParen)
+				p.recoverWithTokens(token.NewLine, token.RSquareParen)
 				continue
 			}
 			break
@@ -867,6 +891,7 @@ func (p *Parser) parseTupleTail(beg span.Position, first ast.Expr) (*ast.TupleCo
 			if !ok {
 				p.error(beg, p.position(), "Expected expression in tuple constant")
 				p.recoverWithTokens(token.Comma, token.NewLine, token.RParen)
+				p.match(token.Comma)
 				continue
 			}
 			break
@@ -988,19 +1013,25 @@ func (p *Parser) recover() {
 }
 
 // recoverWithTokens eats tokens until it sees any of
-// the passed control tokens. It also eats the control token.
+// the passed control tokens. It does not eat the control token
+// unless it hit end of top level item.
 func (p *Parser) recoverWithTokens(rtt ...token.Id) {
 	log.Println("In recover")
 	defer p.l.UnsetMode(skipErrorReporting)
 	p.l.SetMode(skipErrorReporting)
-	for t := p.l.curr; !p.eof() && !isRecoveryToken(t, rtt); t = p.l.Next() {
+	var t token.Token
+	eat := false
+	for t = p.l.curr; !p.eof() && !isRecoveryToken(t, rtt); t = p.l.Next() {
 		log.Println("Recovering")
 		if t.Typ == token.NewLine && p.l.Peek().Typ != token.Indent {
+			eat = true
 			break
 		}
 	}
+	if eat {
+		p.bump()
+	}
 	log.Println("Recovered")
-	p.bump()
 }
 
 func isRecoveryToken(t token.Token, rtt []token.Id) bool {
