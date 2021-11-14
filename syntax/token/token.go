@@ -35,6 +35,8 @@ const (
 	Operator
 	Comment
 	Pipe
+	Access
+	Quote
 
 	keywords_beg
 	Fn
@@ -54,7 +56,6 @@ const (
 	operators_beg
 	Assignment
 	Exclamation
-	Access
 	Arrow
 	operators_end
 
@@ -85,6 +86,8 @@ var tokens = [...]string{
 	NewLine:      "NEWLINE",
 	Operator:     "OPERATOR",
 	Do:           "do",
+	Access:       ".",
+	Quote:        "`",
 
 	Fn:    "fn",
 	Val:   "val",
@@ -100,7 +103,6 @@ var tokens = [...]string{
 
 	Assignment:  "=",
 	Exclamation: "!",
-	Access:      ".",
 	Arrow:       "->",
 
 	Eof: "EOF",

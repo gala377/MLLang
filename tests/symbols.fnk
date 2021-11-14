@@ -1,0 +1,7 @@
+@EXPECTED
+true
+this_is_a_symbol?
+@SOURCE
+
+io.print (eq? `hello `hello)
+io.print `this_is_a_symbol?

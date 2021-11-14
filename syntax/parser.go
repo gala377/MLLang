@@ -517,6 +517,14 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 		var node ast.NoneConst
 		node.Span = tok.Span
 		return &node, true
+	case token.Quote:
+		p.bump()
+		id := p.match(token.Identifier)
+		if id == nil {
+			p.error(beg, p.position(), "Only identifiers can be quoted")
+			return nil, false
+		}
+		return &ast.Symbol{Span: id.Span, Val: id.Val}, true
 	default:
 		log.Println("Not a primary")
 		return nil, true

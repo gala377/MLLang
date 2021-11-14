@@ -240,3 +240,10 @@ func (a *Access) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (a *Symbol) Equal(o Node) bool {
+	if oa, ok := o.(*Symbol); ok {
+		return a.Val == oa.Val
+	}
+	return false
+}

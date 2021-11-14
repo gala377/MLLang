@@ -2,6 +2,7 @@ package codegen
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -141,6 +142,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitRecord(v)
 	case *ast.Access:
 		e.emitAccess(v)
+	case *ast.Symbol:
+		e.emitSymbol(v.Val)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -194,6 +197,11 @@ func (e *Emitter) emitStringConst(node *ast.StringConst) {
 	e.emitConstant(v)
 }
 
+func (e *Emitter) emitSymbol(val string) {
+	v := data.NewSymbol(e.interner.Intern(val))
+	e.emitConstant(v)
+}
+
 func (e *Emitter) emitJumpIfFalse() int {
 	e.emitBytes(isa.JumpIfFalse, 0, 0)
 	return e.result.Len() - 3
@@ -230,11 +238,9 @@ func (e *Emitter) emitLocalLookup(node *ast.Identifier, si syntax.ScopeInfo) {
 	}
 }
 func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
-	s := e.interner.Intern(node.Name)
-	v := data.NewSymbol(s)
-	index := e.result.AddConstant(v)
-	if index > math.MaxUint16 {
-		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+	index, err := e.addSymbol(node.Name)
+	if err != nil {
+		e.error(node.NodeSpan(), err.Error())
 		return
 	}
 	args := []byte{0, 0}
@@ -245,14 +251,13 @@ func (e *Emitter) emitLookup(kind isa.Op, node *ast.Identifier) {
 
 func (e *Emitter) emitAssignment(node *ast.Assignment) {
 	var index int
+	var err error
 	instr := isa.StoreDyn
 	switch loc := node.LValue.(type) {
 	case *ast.Identifier:
-		s := e.interner.Intern(loc.Name)
-		v := data.NewSymbol(s)
-		index = e.result.AddConstant(v)
-		if index > math.MaxUint16 {
-			e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+		index, err = e.addSymbol(loc.Name)
+		if err != nil {
+			e.error(node.NodeSpan(), err.Error())
 			return
 		}
 		if si := e.scope.LookupLocal(loc.Name); si != nil {
@@ -400,14 +405,12 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 		return
 	}
 	e.emitExpr(node.Rhs)
-	s := e.interner.Intern(node.Name)
-	v := data.NewSymbol(s)
-	index := e.result.AddConstant(v)
-	e.scope.InsertVal(node)
-	if index > math.MaxUint16 {
-		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
+	index, err := e.addSymbol(node.Name)
+	if err != nil {
+		e.error(node.NodeSpan(), err.Error())
 		return
 	}
+	e.scope.InsertVal(node)
 	if node.Lift {
 		e.emitByte(isa.MakeCell)
 	}
@@ -466,9 +469,7 @@ func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
 func (e *Emitter) emitRecord(node *ast.RecordConst) {
 	for key, val := range node.Fields {
 		e.emitExpr(val)
-		internedk := e.interner.Intern(key)
-		ksym := data.NewSymbol(internedk)
-		e.emitConstant(ksym)
+		e.emitSymbol(key)
 	}
 	size := len(node.Fields)
 	if size > math.MaxUint16 {
@@ -485,12 +486,10 @@ func (e *Emitter) emitRecord(node *ast.RecordConst) {
 
 func (e *Emitter) emitAccess(node *ast.Access) {
 	e.emitExpr(node.Lhs)
-	key := e.interner.Intern(node.Property.Name)
-	skey := data.NewSymbol(key)
-	index := e.result.AddConstant(skey)
-	if index > math.MaxUint16 {
-		// rare panic but that is the best we can do honestly
-		panic("More constants that uint16 can hold. That is not supported.")
+	index, err := e.addSymbol(node.Property.Name)
+	if err != nil {
+		e.error(node.NodeSpan(), err.Error())
+		return
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
@@ -551,4 +550,14 @@ func (e *Emitter) emitBlock(node *ast.Block) {
 		e.emitStmt(v)
 		e.emitByte(isa.PushNone)
 	}
+}
+
+func (e *Emitter) addSymbol(val string) (int, error) {
+	s := e.interner.Intern(val)
+	v := data.NewSymbol(s)
+	index := e.result.AddConstant(v)
+	if index > math.MaxUint16 {
+		return 0, errors.New("more constants that uint16 can hold, that is not supported")
+	}
+	return index, nil
 }

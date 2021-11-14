@@ -149,6 +149,10 @@ type (
 		*span.Span
 	}
 
+	Symbol struct {
+		*span.Span
+		Val string
+	}
 	Access struct {
 		*span.Span
 		Lhs      Expr
@@ -179,6 +183,7 @@ func (l *LambdaExpr) exprNode()      {}
 func (b *BoolConst) exprNode()       {}
 func (n *NoneConst) exprNode()       {}
 func (a *Access) exprNode()          {}
+func (s *Symbol) exprNode()          {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -270,6 +275,10 @@ func (n *NoneConst) NodeSpan() *span.Span {
 
 func (a *Access) NodeSpan() *span.Span {
 	return a.Span
+}
+
+func (s *Symbol) NodeSpan() *span.Span {
+	return s.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -399,4 +408,8 @@ func (n *NoneConst) String() string {
 
 func (a *Access) String() string {
 	return fmt.Sprintf("Access{%s.%s}", a.Lhs, a.Property.Name)
+}
+
+func (s *Symbol) String() string {
+	return fmt.Sprintf("SymbolLit{%s}", &s.Val)
 }
