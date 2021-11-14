@@ -40,6 +40,10 @@ func (r *Record) GetField(s Symbol) (Value, bool) {
 	return v, ok
 }
 
+func (r *Record) SetField(s Symbol, v Value) {
+	r.fields[s] = v
+}
+
 func (r *Record) Get(i Int) (Value, error) {
 	idx := i.Val
 	if len(r.keys) <= idx {

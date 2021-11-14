@@ -26,4 +26,5 @@ const (
 	MakeTuple
 	MakeRecord
 	GetField
+	SetField
 )

@@ -266,8 +266,15 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 				instr = isa.StoreDeref
 			}
 		}
+	case *ast.Access:
+		e.emitExpr(loc.Lhs)
+		index, err = e.addSymbol(loc.Property.Name)
+		if err != nil {
+			e.error(node.NodeSpan(), err.Error())
+		}
+		instr = isa.SetField
 	default:
-		e.error(node.NodeSpan(), "values can only be assigned to names")
+		e.error(node.NodeSpan(), "values can only be assigned to names or properties")
 		return
 	}
 	e.emitExpr(node.RValue)

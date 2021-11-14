@@ -2,6 +2,10 @@
 36
 Jack
 5
+true
+5
+not even an age
+true
 @SOURCE
 ; classes like in js
 fn Person name age = {
@@ -18,7 +22,7 @@ jack.setAge 5
 io.print jack.getAge!
 
 
-fn makeType fields methods:
+fn makeType name fields methods:
   val none? = eq? none
   val constr = do vals:
     val passedKeys = map vals fst
@@ -28,16 +32,53 @@ fn makeType fields methods:
     foreach vals do fpair:
       if none? (seq.find fields (eq? (fst fpair))):
         panic "Uknown field passed to type constructor"
-    val this = vals
+    val this = seq.append vals (`__type__, name)
     fold methods this do |this meth|:
       seq.append this (fst meth, (snd meth) this)
     this
-  constr
+  {
+    new: constr,
+    typeid: name,
+  }
 
-val Student = makeType (`age, `name, `surname, `score) {
+val Student = makeType `Student (`age, `name, `surname, `score) {
   getAge: do this -> do -> this.age,
   setAge: (do this age:
     this.age = age),
   passes? : do this -> do -> lt? 50 this.score,
 }
 
+val frank = Student.new {
+  name: "Frank",
+  surname: "Herbert",
+  age: 40,
+  score: 51,
+}
+
+
+io.print frank.passes?!
+frank.setAge 5
+
+io.print frank.age
+frank.age = "not even an age"
+io.print frank.getAge!
+
+; runtime error: not every field
+; val frank2 = Student.new {
+;   surname: "Herbert",
+;   age: 40,
+;   score: 51,
+; }
+
+; runtime error: uknown field
+; val frank3 = Student.new {
+;   name: "Frank",
+;   surname: "Herbert",
+;   age: 40,
+;   score: 51,
+;   middleName: "John",
+; }
+
+fn istype? v cons = eq? v.__type__ cons.typeid
+
+io.print (istype? frank Student)

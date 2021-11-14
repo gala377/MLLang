@@ -32,6 +32,7 @@ var instNames = [...]string{
 	MakeTuple:   "MakeTuple",
 	MakeRecord:  "MakeRecord",
 	GetField:    "GetField",
+	SetField:    "SetField",
 }
 
 const opCount = len(instNames)
@@ -59,6 +60,7 @@ var instArguments = [opCount]int{
 	MakeTuple:   2,
 	MakeRecord:  2,
 	GetField:    2,
+	SetField:    2,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
@@ -82,6 +84,7 @@ var instSpecificInfos = [opCount]additionalInfoFunc{
 	MakeTuple:   writeUint16,
 	MakeRecord:  writeUint16,
 	GetField:    writeConstantWide,
+	SetField:    writeConstantWide,
 }
 
 func PrintCode(code *data.Code, name string) {

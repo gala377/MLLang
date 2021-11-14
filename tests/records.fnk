@@ -4,6 +4,7 @@
 hello 20
 most inner
 42
+3
 @SOURCE
 val t = { adding: do |x| -> add x x,
   some_val: 1 }
@@ -32,3 +33,7 @@ fn retRecord:
   }
 
 io.print (retRecord!.question? ())
+
+; set nested
+nested.inner.more_inner.value = 3
+io.print nested.inner.more_inner.value
