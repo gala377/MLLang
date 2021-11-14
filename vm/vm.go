@@ -285,11 +285,11 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.push(data.NewRecord(vals))
 		case isa.GetField:
 			name := vm.getSymbolAt(vm.readShort())
-			rec, ok := vm.pop().(data.Record)
+			rec, ok := vm.pop().(*data.Record)
 			if !ok {
 				vm.bail("field can only be accessed on a record")
 			}
-			val, ok := rec.Get(name)
+			val, ok := rec.GetField(name)
 			if !ok {
 				vm.bail(fmt.Sprintf("missing field %s", name))
 			}
