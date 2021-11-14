@@ -61,6 +61,21 @@ func (vm *Vm) CreateSymbol(s string) data.Symbol {
 	return data.NewSymbol(is)
 }
 
+func (vm *Vm) Interner() *codegen.Interner {
+	return vm.interner
+}
+
+// todo: remove later. It's here for now so
+// that we can easily inject std env fnk source files
+// however when we introduce importing
+// it should not be neccessary.
+// Maybe code object should carry pointer to source?
+func (vm *Vm) ReplaceSource(ns *bytes.Reader) *bytes.Reader {
+	old := vm.source
+	vm.source = ns
+	return old
+}
+
 func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 	vm.code = code
 	for {
@@ -284,6 +299,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
 		}
 	}
+	vm.ip = 0
+	vm.code = nil
 	return data.None, nil
 }
 

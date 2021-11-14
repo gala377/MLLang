@@ -1,0 +1,81 @@
+@EXPECTED
+Hello
+How are you?
+1
+None
+0
+0
+1
+2
+3
+1
+2
+3
+6
+2
+3
+4
+[11, 12, 13, ]
+[0, 1, 2, 3, ]
+@SOURCE
+
+val a = 1
+scope:
+  val a = 10
+  io.print "Hello"
+  io.print "How are you?"
+
+io.print (conv.toString a)
+
+val b = scope:
+  val a = 10
+
+io.print b
+
+; works in functions
+fn useScope:
+  val a = 10
+  scope:
+    a = 0
+    val c = 1
+  io.print a
+  ; io.print c - runtime error, c undefined
+useScope!
+
+; btw last example can be rewritten
+scope:
+  val a = 20
+  scope:
+    a = 0
+    val c = 1
+  io.print a
+
+val beg = scope
+val end = b ; equals to None
+
+; who wants some pascal?
+beg:
+  io.print 1
+  io.print 2
+  io.print 3
+end
+
+
+foreach [1, 2, 3] do |x| -> io.print x
+
+
+io.print (sum [1, 2, 3])
+
+foreach (map [1, 2, 3] (add 1)) io.print
+
+io.print (map [1, 2, 3] do |x|:
+  add 10 x)
+
+fn cond pred pos neg:
+  if cond:
+    pos!
+  else:
+    neg!
+
+
+io.print (filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4))
