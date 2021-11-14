@@ -73,6 +73,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"eq?", 2, equal},
 	&funcEntry{"not", 1, not},
 	&funcEntry{"panic", 1, vmPanic},
+	&funcEntry{"gensym", 0, vmGenSym},
 	&module{
 		Name: "io",
 		Entries: map[string]AsValue{

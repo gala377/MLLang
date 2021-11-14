@@ -21,6 +21,7 @@ type (
 
 	VmProxy interface {
 		CreateSymbol(string) Symbol
+		GenerateSymbol() Symbol
 		Panic(string)
 	}
 	NativeFunc struct {

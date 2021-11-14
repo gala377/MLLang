@@ -25,6 +25,10 @@ true
 [(0, a, ), (1, b, ), (2, c, ), (3, d, ), ]
 false
 [(a, 1, ), (b, 2, ), (c, 3, ), (d, 4, ), ]
+false
+true
+@gensym[3]
+false
 @SOURCE
 
 val a = 1
@@ -102,3 +106,9 @@ io.print (enumerate [`a, `b, `c, `d])
 io.print (neq? 1 1)
 
 io.print (zip [`a, `b, `c, `d] [1, 2, 3, 4])
+
+io.print (eq? gensym! gensym!)
+val gs = gensym!
+io.print (eq? gs gs)
+io.print gs
+io.print (eq? gs (conv.toSymbol "@gesym[3]"))

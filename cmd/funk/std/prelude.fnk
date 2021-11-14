@@ -12,6 +12,10 @@ fn snd s = seq.get s 1
 
 fn neq? a b = not (eq? a b)
 
+val none? = eq? none
+
+val zero? = eq? 0
+
 fn foreach s body:
   val i = 0
   val len = seq.len s
@@ -47,7 +51,7 @@ fn zip s1 s2:
     seq.append acc (snd x, seq.get s2 (fst x))
 
 fn max s:
-  if eq? (seq.len s) 0:
+  if zero? (seq.len s):
     panic "sequence passed to max cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? acc x:
@@ -56,7 +60,7 @@ fn max s:
       acc
 
 fn min s:
-  if eq? (seq.len s) 0:
+  if zero? (seq.len s):
     panic "sequence passed to max cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? x acc:

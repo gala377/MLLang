@@ -28,6 +28,7 @@ type (
 		locals   *data.Env
 		source   *bytes.Reader
 		interner *codegen.Interner
+		gensymc  uint
 	}
 )
 
@@ -43,6 +44,7 @@ func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
 		locals:   &locals,
 		source:   source,
 		interner: interner,
+		gensymc:  0,
 	}
 }
 
@@ -403,6 +405,12 @@ func (vm *Vm) bail(msg string) {
 
 func (vm *Vm) Panic(msg string) {
 	vm.bail(msg)
+}
+
+func (vm *Vm) GenerateSymbol() data.Symbol {
+	vm.gensymc++
+	str := fmt.Sprintf("@gensym[%d]", vm.gensymc)
+	return data.NewSymbol(&str)
 }
 
 func reverse(s []data.Value) []data.Value {

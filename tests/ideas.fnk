@@ -22,8 +22,8 @@ jack.setAge 5
 io.print jack.getAge!
 
 
-fn makeType name fields methods:
-  val none? = eq? none
+fn makeType fields methods:
+  val typeid = gensym!
   val constr = do vals:
     val passedKeys = map vals fst
     foreach fields do field:
@@ -32,16 +32,16 @@ fn makeType name fields methods:
     foreach vals do fpair:
       if none? (seq.find fields (eq? (fst fpair))):
         panic "Uknown field passed to type constructor"
-    val this = seq.append vals (`__type__, name)
+    val this = seq.append vals (`__type__, typeid)
     fold methods this do |this meth|:
       seq.append this (fst meth, (snd meth) this)
     this
   {
     new: constr,
-    typeid: name,
+    typeid: typeid,
   }
 
-val Student = makeType `Student (`age, `name, `surname, `score) {
+val Student = makeType (`age, `name, `surname, `score) {
   getAge: do this -> do -> this.age,
   setAge: (do this age:
     this.age = age),

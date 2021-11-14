@@ -75,3 +75,7 @@ func vmPanic(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	vm.Panic(vv[0].String())
 	return nil, nil
 }
+
+func vmGenSym(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	return vm.GenerateSymbol(), nil
+}
