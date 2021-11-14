@@ -4,13 +4,12 @@ Jack
 5
 @SOURCE
 ; classes like in js
-fn Person name age:
-  {
-    getAge: do -> age,
-    setAge: do |new|:
-      age = new,
-    fullInfo: do -> name,
-  }
+fn Person name age = {
+  getAge: do -> age,
+  setAge: do |new|:
+    age = new,
+  fullInfo: do -> name,
+}
 
 val jack = Person "Jack" 36
 io.print jack.getAge!
