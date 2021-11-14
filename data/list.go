@@ -38,7 +38,7 @@ func (l *List) Equal(o Value) bool {
 	return false
 }
 
-func (l *List) Get(i *Int) (Value, error) {
+func (l *List) Get(i Int) (Value, error) {
 	idx := i.Val
 	if l.size <= idx {
 		return nil, fmt.Errorf("list index out of range idx=%d, size=%d", idx, l.size)
@@ -46,7 +46,7 @@ func (l *List) Get(i *Int) (Value, error) {
 	return l.values[idx], nil
 }
 
-func (l *List) Set(i *Int, v Value) error {
+func (l *List) Set(i Int, v Value) error {
 	idx := i.Val
 	if l.size <= idx {
 		return fmt.Errorf("list index out of range idx=%d, size=%d", idx, l.size)

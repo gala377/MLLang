@@ -21,7 +21,7 @@ func (s String) Equal(o Value) bool {
 	return false
 }
 
-func (s String) Get(i *Int) (Value, error) {
+func (s String) Get(i Int) (Value, error) {
 	if i.Val > len(s.Val) {
 		return nil, fmt.Errorf("index out of range i=%d, size=%d", i.Val, len(s.Val))
 	}

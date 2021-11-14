@@ -46,7 +46,7 @@ func (t *Tuple) Equal(o Value) bool {
 	return false
 }
 
-func (t *Tuple) Get(i *Int) (Value, error) {
+func (t *Tuple) Get(i Int) (Value, error) {
 	idx := i.Val
 	if t.size <= idx {
 		return nil, fmt.Errorf("tuple index out of range idx=%d, size=%d", idx, t.size)

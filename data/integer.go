@@ -8,8 +8,8 @@ type Int struct {
 	Val int
 }
 
-func NewInt(v int) *Int {
-	return &Int{v}
+func NewInt(v int) Int {
+	return Int{v}
 }
 
 func (i Int) String() string {
@@ -17,7 +17,7 @@ func (i Int) String() string {
 }
 
 func (i Int) Equal(o Value) bool {
-	if oi, ok := o.(*Int); ok {
+	if oi, ok := o.(Int); ok {
 		return i.Val == oi.Val
 	}
 	return false

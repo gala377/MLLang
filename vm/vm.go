@@ -125,7 +125,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if Debug {
 				fmt.Printf("JumpIfFalse: jumping by %d", off)
 			}
-			ab, ok := cond.(*data.Bool)
+			ab, ok := cond.(data.Bool)
 			if !ok {
 				vm.bail("conditiona has to be a boolean")
 			}

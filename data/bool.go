@@ -6,8 +6,8 @@ type Bool struct {
 	Val bool
 }
 
-func NewBool(v bool) *Bool {
-	return &Bool{v}
+func NewBool(v bool) Bool {
+	return Bool{v}
 }
 
 func (b Bool) String() string {
