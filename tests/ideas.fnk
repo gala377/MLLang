@@ -36,6 +36,7 @@ fn newtype fields methods:
     fold methods this do |this meth|:
       seq.append this (fst meth, (snd meth) this)
     this
+  
   {
     new: constr,
     typeid: typeid,

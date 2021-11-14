@@ -292,13 +292,18 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 	}
 	defer p.popIndent(indent)
 	parseStmt := func() (ast.Stmt, bool) {
-		log.Printf("%d running wrapped parse", indent)
-		if t := p.matchIndent(indent); !t {
-			log.Println("Indentation does not match")
-			return nil, true
+		for {
+			log.Printf("%d running wrapped parse", indent)
+			if t := p.matchIndent(indent); !t {
+				log.Println("Indentation does not match")
+				return nil, true
+			}
+			if p.match(token.NewLine) != nil {
+				continue
+			}
+			log.Println("Parse stmt for block")
+			return p.parseStmt()
 		}
-		log.Println("Parse stmt for block")
-		return p.parseStmt()
 	}
 	exprs := []ast.Stmt{}
 	var e ast.Stmt = nil
