@@ -22,7 +22,7 @@ jack.setAge 5
 io.print jack.getAge!
 
 
-fn makeType fields methods:
+fn newtype fields methods:
   val typeid = gensym!
   val constr = do vals:
     val passedKeys = map vals fst
@@ -41,7 +41,7 @@ fn makeType fields methods:
     typeid: typeid,
   }
 
-val Student = makeType (`age, `name, `surname, `score) {
+val Student = newtype (`age, `name, `surname, `score) {
   getAge: do this -> do -> this.age,
   setAge: (do this age:
     this.age = age),
