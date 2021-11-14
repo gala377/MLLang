@@ -24,6 +24,7 @@ true
 8
 [(0, a, ), (1, b, ), (2, c, ), (3, d, ), ]
 false
+[(a, 1, ), (b, 2, ), (c, 3, ), (d, 4, ), ]
 @SOURCE
 
 val a = 1
@@ -99,3 +100,5 @@ io.print (max [3, 4, 5, 8, 6, 1])
 io.print (enumerate [`a, `b, `c, `d])
 
 io.print (neq? 1 1)
+
+io.print (zip [`a, `b, `c, `d] [1, 2, 3, 4])
