@@ -1,0 +1,7 @@
+
+scope:
+  val funcs = [
+    (`toRecord, do s -> fold s {} seq.append),
+    (`toList, do s -> fold s [] seq.append),
+  ]
+  foreach funcs (seq.append conv)
