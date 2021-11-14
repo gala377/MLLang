@@ -80,16 +80,9 @@ var StdEnv = [...]EnvironmentEntry{
 			"printf": &funcEntry{"printf", 2, printf},
 		},
 	},
-	&module{
-		Name: "seq",
-		Entries: map[string]AsValue{
-			"get":    &funcEntry{"get", 2, seqGet},
-			"set":    &funcEntry{"set", 3, seqSet},
-			"append": &funcEntry{"append", 2, seqAppend},
-			"len":    &funcEntry{"len", 1, seqLen},
-		},
-	},
+	&seqModule,
 	&convModule,
 	&funkSource{Source: funkPrelude},
 	&funkSource{Source: funkConv},
+	&funkSource{Source: funkSeq},
 }
