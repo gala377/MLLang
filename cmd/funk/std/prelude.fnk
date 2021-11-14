@@ -16,6 +16,8 @@ val none? = eq? none
 
 val zero? = eq? 0
 
+fn extend s1 s2 = fold s2 s1 seq.append
+
 fn foreach s body:
   val i = 0
   val len = seq.len s

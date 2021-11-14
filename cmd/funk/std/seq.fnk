@@ -1,12 +1,9 @@
 
-scope:
-  val find = do s pred:
+extend seq {
+  find: do s pred:
     val res = filter s pred
     if eq? 0 (seq.len res):
       none
     else:
-      fst res
-  val funcs = [
-    (`find, find),
-  ]
-  foreach funcs (seq.append seq)
+      fst res,
+}

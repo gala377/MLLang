@@ -24,6 +24,7 @@ io.print jack.getAge!
 
 fn newtype fields methods:
   val typeid = gensym!
+  
   val constr = do vals:
     val passedKeys = map vals fst
     
@@ -35,9 +36,8 @@ fn newtype fields methods:
         panic "Uknown field passed to type constructor"
     
     val this = seq.append vals (`__type__, typeid)
-    fold methods this do |this meth|:
-      seq.append this (fst meth, (snd meth) this)
-    
+    fold (methods this) this do |this meth|:
+      seq.append this (fst meth, snd meth)
     this
   
   {
@@ -45,11 +45,11 @@ fn newtype fields methods:
     typeid: typeid,
   }
 
-val Student = newtype (`age, `name, `surname, `score) {
-  getAge: do this -> do -> this.age,
-  setAge: (do this age:
-    this.age = age),
-  passes? : do this -> do -> lt? 50 this.score,
+val Student = newtype (`age, `name, `surname, `score) do this -> {
+  getAge: do -> this.age,
+  setAge: do age:
+    this.age = age,
+  passes?: do -> lt? 50 this.score,
 }
 
 val frank = Student.new {
