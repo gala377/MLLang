@@ -393,6 +393,10 @@ func (vm *Vm) bail(msg string) {
 	panic("\nruntime error\n")
 }
 
+func (vm *Vm) Panic(msg string) {
+	vm.bail(msg)
+}
+
 func reverse(s []data.Value) []data.Value {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]

@@ -21,6 +21,7 @@ type (
 
 	VmProxy interface {
 		CreateSymbol(string) Symbol
+		Panic(string)
 	}
 	NativeFunc struct {
 		fn    func(VmProxy, ...Value) (Value, error)
