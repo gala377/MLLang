@@ -16,11 +16,14 @@ type (
 	Callable interface {
 		Value
 		Arity() int
-		Call(...Value) (Value, Trampoline)
+		Call(VmProxy, ...Value) (Value, Trampoline)
 	}
 
+	VmProxy interface {
+		CreateSymbol(string) Symbol
+	}
 	NativeFunc struct {
-		fn    func(...Value) (Value, error)
+		fn    func(VmProxy, ...Value) (Value, error)
 		arity int
 		name  string
 	}
@@ -45,7 +48,7 @@ const (
 	Error
 )
 
-func NewNativeFunc(name string, arity int, fn func(...Value) (Value, error)) *NativeFunc {
+func NewNativeFunc(name string, arity int, fn func(VmProxy, ...Value) (Value, error)) *NativeFunc {
 	return &NativeFunc{
 		name:  name,
 		arity: arity,
@@ -57,8 +60,8 @@ func (fn *NativeFunc) Arity() int {
 	return fn.arity
 }
 
-func (fn *NativeFunc) Call(vv ...Value) (Value, Trampoline) {
-	res, err := (fn.fn)(vv...)
+func (fn *NativeFunc) Call(vm VmProxy, vv ...Value) (Value, Trampoline) {
+	res, err := (fn.fn)(vm, vv...)
 	if err != nil {
 		return NewString(err.Error()), ErrorTramp
 	}
@@ -94,9 +97,9 @@ func (f *PartialApp) Arity() int {
 	return f.fn.Arity() - len(f.args)
 }
 
-func (f *PartialApp) Call(vv ...Value) (Value, Trampoline) {
+func (f *PartialApp) Call(vm VmProxy, vv ...Value) (Value, Trampoline) {
 	args := append(f.args, vv...)
-	return f.fn.Call(args...)
+	return f.fn.Call(vm, args...)
 }
 
 func (f *PartialApp) String() string {
@@ -137,7 +140,7 @@ func (f *Function) Arity() int {
 	return len(f.Args)
 }
 
-func (f *Function) Call(vv ...Value) (Value, Trampoline) {
+func (f *Function) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
 	callenv := make(map[Symbol]Value)
 	for k, v := range f.Env.Vals {
 		callenv[k] = v

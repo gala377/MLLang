@@ -13,7 +13,7 @@ import (
 )
 
 func echo(t *testing.T, v data.Value) *data.NativeFunc {
-	return data.NewNativeFunc("echo", 1, func(vs ...data.Value) (data.Value, error) {
+	return data.NewNativeFunc("echo", 1, func(_ data.VmProxy, vs ...data.Value) (data.Value, error) {
 		if len(vs) != 1 {
 			t.Errorf("echo expects one value, got %v", vs)
 		} else if !v.Equal(vs[0]) {

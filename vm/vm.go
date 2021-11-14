@@ -352,7 +352,7 @@ func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) (data.Value, data.T
 	argc := len(args)
 	switch {
 	case argc == fn.Arity():
-		return fn.Call(args...)
+		return fn.Call(vm, args...)
 	case argc < fn.Arity():
 		if Debug {
 			fmt.Printf("Partial application %d < %d", argc, fn.Arity())
