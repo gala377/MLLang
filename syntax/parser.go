@@ -292,18 +292,14 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 	}
 	defer p.popIndent(indent)
 	parseStmt := func() (ast.Stmt, bool) {
-		for {
-			log.Printf("%d running wrapped parse", indent)
-			if t := p.matchIndent(indent); !t {
-				log.Println("Indentation does not match")
-				return nil, true
-			}
-			if p.match(token.NewLine) != nil {
-				continue
-			}
-			log.Println("Parse stmt for block")
-			return p.parseStmt()
+		p.skipEmptyLines()
+		log.Printf("%d running wrapped parse", indent)
+		if t := p.matchIndent(indent); !t {
+			log.Println("Indentation does not match")
+			return nil, true
 		}
+		log.Println("Parse stmt for block")
+		return p.parseStmt()
 	}
 	exprs := []ast.Stmt{}
 	var e ast.Stmt = nil
@@ -769,6 +765,7 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			log.Println("No new line, means nothing to do")
 			return true
 		}
+		p.skipEmptyLines()
 		if continuationIndent == -1 {
 			i, err := p.pushNextIndent()
 			if err != nil {
@@ -834,10 +831,11 @@ func (p *Parser) parseListConst(beg span.Position) (*ast.ListConst, bool) {
 			log.Println("No new line, means nothing to do")
 			return true
 		}
+		p.skipEmptyLines()
 		if continuationIndent == -1 {
 			i, err := p.pushNextIndent()
 			if err != nil {
-				p.error(beg, p.position(), "expected indentation as record continuation")
+				p.error(beg, p.position(), "expected indentation as a list continuation.\nMaybe you meant empty list? \"[]\"")
 			}
 			log.Printf("Got new line, indentation for this expression is %d\n", i)
 			continuationIndent = i
@@ -939,16 +937,22 @@ func (p *Parser) check(typ token.Id) *token.Token {
 	return nil
 }
 
+// todo: Maybe we can do something here?
+// We always skip empty lines and if we have new indentation pushed
+// we just skip any indentation that matches it?
 func (p *Parser) match(typ token.Id) *token.Token {
-	if p.curr.Typ == typ {
-		tok := p.curr
+	ist := p.check(typ)
+	if ist != nil {
 		p.bump()
-		return &tok
 	}
-	return nil
+	return ist
 }
 
 func (p *Parser) checkIndent(n int) bool {
+	return p.checkIndentWith(func(v int) bool { return v == n })
+}
+
+func (p *Parser) checkIndentWith(pred func(int) bool) bool {
 	t := p.l.Current()
 	if t.Typ != token.Indent {
 		log.Printf("token is not an indentation %s\n", token.IdToString(t.Typ))
@@ -958,19 +962,23 @@ func (p *Parser) checkIndent(n int) bool {
 	if err != nil {
 		log.Panicf("could not parse indentations value, %s", t.Val)
 	}
-	if val != n {
-		log.Printf("Indent not matching %d != %d", n, val)
+	if !pred(val) {
+		log.Printf("indent not matching the predicate - got: %d", val)
 		return false
 	}
 	return true
 }
 
 func (p *Parser) matchIndent(n int) bool {
-	if !p.checkIndent(n) {
-		return false
+	return p.matchIndentWith(func(v int) bool { return v == n })
+}
+
+func (p *Parser) matchIndentWith(pred func(int) bool) bool {
+	isind := p.checkIndentWith(pred)
+	if isind {
+		p.bump()
 	}
-	p.bump()
-	return true
+	return isind
 }
 
 func (p *Parser) bump() {
@@ -1080,4 +1088,23 @@ func (p *Parser) tryLiftVar(name string) {
 	if rs == Outer {
 		si.Lift()
 	}
+}
+
+func (p *Parser) skipEmptyLines() {
+	for p.skipEmptyLine() {
+	}
+}
+
+func (p *Parser) skipEmptyLine() bool {
+	if p.check(token.Indent) != nil && p.peek().Typ == token.NewLine {
+		p.bump()
+		p.bump()
+		return true
+	}
+	nl := p.check(token.NewLine)
+	if nl != nil && nl.Span.Beg.Column == 0 {
+		p.bump()
+		return true
+	}
+	return false
 }

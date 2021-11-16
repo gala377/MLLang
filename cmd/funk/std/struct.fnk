@@ -2,29 +2,29 @@
 val struct = scope:
   val new = do fields methods:
     val typeid = gensym!
-    
+
     val constr = do vals:
       val passedKeys = map vals fst
-      
+
       foreach fields do field:
         if none? (seq.find passedKeys (eq? field)):
           panic "Not every field has been passed to type constructor"
       foreach vals do fpair:
         if none? (seq.find fields (eq? (fst fpair))):
           panic "Uknown field passed to type constructor"
-      
+
       val this = seq.append vals (`__type__, typeid)
       fold (methods this) this do |this meth|:
         seq.append this (fst meth, snd meth)
       this
-    
+
     {
       new: constr,
       typeid: typeid,
     }
-  
+
   val istype? = do t v -> eq? t.typeid v.__type__
-  
+
   {
     new: new,
     istype?: istype?,
