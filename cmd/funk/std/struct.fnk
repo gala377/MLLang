@@ -13,7 +13,7 @@ val struct = scope:
         if none? (seq.find fields (eq? (fst fpair))):
           panic "Uknown field passed to type constructor"
 
-      val this = seq.append vals (`__type__, typeid)
+      val this = extend vals {__type__: typeid}
       fold (methods this) this do |this meth|:
         seq.append this (fst meth, snd meth)
       this
