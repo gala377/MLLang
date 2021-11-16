@@ -69,3 +69,7 @@ fn min s:
       x
     else:
       acc
+
+fn apply f args = fold args f do |acc x| -> acc x
+
+fn lazyapp f args = do -> apply f args

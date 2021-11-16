@@ -31,6 +31,10 @@ true
 false
 true
 false
+30
+not yet called
+111
+Hello world?
 @SOURCE
 
 val a = 1
@@ -124,3 +128,11 @@ val mycar = Car.new {brand: `toyota, prodYear: 1996}
 io.print mycar.lastMillenia?!
 mycar.prodYear = 2001
 io.print mycar.lastMillenia?!
+
+io.print (apply add (10, 20))
+val suspendedAdd = lazyapp add (50, 61)
+io.print "not yet called"
+io.print suspendedAdd!
+
+val partialApp = apply io.printf ("Hello %s",)
+partialApp `world?
