@@ -443,6 +443,7 @@ func (p *Parser) parsePrimaryExpr() (ast.Expr, bool) {
 	log.Printf("Token is %s\n", token.IdToString(tok.Typ))
 	switch tok.Typ {
 	case token.LParen:
+		// todo: make parenthesis as well as tuple multiline
 		p.bump()
 		node, ok := p.parseExpr()
 		if !ok {
