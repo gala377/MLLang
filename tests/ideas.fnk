@@ -15,7 +15,7 @@ fn Person name age = {
   fullInfo: do -> name,
 }
 
-val jack = Person "Jack" 36
+let jack = Person "Jack" 36
 io.print jack.getAge!
 io.print jack.fullInfo!
 jack.setAge 5
@@ -23,10 +23,10 @@ io.print jack.getAge!
 
 
 fn newtype fields methods:
-  val typeid = gensym!
+  let typeid = gensym!
   
-  val constr = do vals:
-    val passedKeys = map vals fst
+  let constr = do vals:
+    let passedKeys = map vals fst
     
     foreach fields do field:
       if none? (seq.find passedKeys (eq? field)):
@@ -35,7 +35,7 @@ fn newtype fields methods:
       if none? (seq.find fields (eq? (fst fpair))):
         panic "Uknown field passed to type constructor"
     
-    val this = seq.append vals (`__type__, typeid)
+    let this = seq.append vals (`__type__, typeid)
     fold (methods this) this do |this meth|:
       seq.append this (fst meth, snd meth)
     this
@@ -45,14 +45,14 @@ fn newtype fields methods:
     typeid: typeid,
   }
 
-val Student = newtype (`age, `name, `surname, `score) do this -> {
+let Student = newtype (`age, `name, `surname, `score) do this -> {
   getAge: do -> this.age,
   setAge: do age:
     this.age = age,
   passes?: do -> lt? 50 this.score,
 }
 
-val frank = Student.new {
+let frank = Student.new {
   name: "Frank",
   surname: "Herbert",
   age: 40,
@@ -68,14 +68,14 @@ frank.age = "not even an age"
 io.print frank.getAge!
 
 ; runtime error: not every field
-; val frank2 = Student.new {
+; let frank2 = Student.new {
 ;   surname: "Herbert",
 ;   age: 40,
 ;   score: 51,
 ; }
 
 ; runtime error: uknown field
-; val frank3 = Student.new {
+; let frank3 = Student.new {
 ;   name: "Frank",
 ;   surname: "Herbert",
 ;   age: 40,

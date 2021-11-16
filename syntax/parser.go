@@ -63,7 +63,7 @@ func NewParser(source io.Reader) *Parser {
 	}
 	p.stmtSpecialForms = [token.Eof + 1]parseStmtFn{
 		token.While: p.parseWhile,
-		token.Val:   p.parseValDecl,
+		token.Let:   p.parseValDecl,
 	}
 	p.parseTrailingBlocks = true
 	p.scope = NewScope(nil)
@@ -190,7 +190,7 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 func (p *Parser) parseGlobalValDecl() (*ast.GlobalValDecl, bool) {
 	log.Println("Parsing val decl")
 	beg := p.position()
-	if t := p.match(token.Val); t == nil {
+	if t := p.match(token.Let); t == nil {
 		return nil, true
 	}
 	name := p.match(token.Identifier)
@@ -719,7 +719,7 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 	log.Println("Parsing local val decl")
 	beg := p.position()
-	if t := p.match(token.Val); t == nil {
+	if t := p.match(token.Let); t == nil {
 		return nil, true
 	}
 	name := p.match(token.Identifier)

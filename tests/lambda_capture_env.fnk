@@ -12,35 +12,35 @@
 @SOURCE
 
 fn make_adder a:
-  val cap = 5
+  let cap = 5
   do |x|:
     add (add a x) cap
 
-val add1 = make_adder 10
-val add2 = make_adder 100
+let add1 = make_adder 10
+let add2 = make_adder 100
 
-val echo = io.printf "%v"
+let echo = io.printf "%v"
 
 echo (add1 1)
 echo (add2 1)
 
 
 fn make_adder_2 a:
-  val cap = 5
+  let cap = 5
   do |cap|:
     add (add a cap) cap
 
 
-val add3 = make_adder_2 10
-val add4 = make_adder_2 100
+let add3 = make_adder_2 10
+let add4 = make_adder_2 100
 
 echo (add3 1)
 echo (add4 1)
 
 ; modify external capture
 fn external_capture:
-  val cap = 0
-  val f = do:
+  let cap = 0
+  let f = do:
     cap = 7
   f!
   io.print cap
@@ -48,8 +48,8 @@ fn external_capture:
 external_capture!
 
 fn outer_modifies:
-  val i = 0
-  val inner = do:
+  let i = 0
+  let inner = do:
     io.print i
   i = 10
   inner!
@@ -57,7 +57,7 @@ fn outer_modifies:
 outer_modifies!
 
 fn lift_func_args a b:
-  val f = do:
+  let f = do:
     a = add a 1
     b = a
   io.print a

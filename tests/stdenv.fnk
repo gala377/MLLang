@@ -37,39 +37,39 @@ not yet called
 Hello world?
 @SOURCE
 
-val a = 1
+let a = 1
 scope:
-  val a = 10
+  let a = 10
   io.print "Hello"
   io.print "How are you?"
 
 io.print (conv.toString a)
 
-val b = scope:
-  val a = 10
+let b = scope:
+  let a = 10
 
 io.print b
 
 ; works in functions
 fn useScope:
-  val a = 10
+  let a = 10
   scope:
     a = 0
-    val c = 1
+    let c = 1
   io.print a
   ; io.print c - runtime error, c undefined
 useScope!
 
 ; btw last example can be rewritten
 scope:
-  val a = 20
+  let a = 20
   scope:
     a = 0
-    val c = 1
+    let c = 1
   io.print a
 
-val beg = scope
-val end = b ; equals to None
+let beg = scope
+let end = b ; equals to None
 
 ; who wants some pascal?
 beg:
@@ -98,7 +98,7 @@ fn cond pred pos neg:
 
 io.print (filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4))
 
-val fromListRec = conv.toRecord ((`a, 1), (`b, 2))
+let fromListRec = conv.toRecord ((`a, 1), (`b, 2))
 io.print fromListRec.a
 io.print fromListRec.b
 
@@ -114,25 +114,25 @@ io.print (neq? 1 1)
 io.print (zip [`a, `b, `c, `d] [1, 2, 3, 4])
 
 io.print (eq? gensym! gensym!)
-val gs = gensym!
+let gs = gensym!
 io.print (eq? gs gs)
 io.print gs
 io.print (eq? gs (conv.toSymbol "@gesym[3]"))
 
 
-val Car = struct.new (`brand, `prodYear) do this -> {
+let Car = struct.new (`brand, `prodYear) do this -> {
   lastMillenia?: do -> lt? this.prodYear 2000,
 }
 
-val mycar = Car.new {brand: `toyota, prodYear: 1996}
+let mycar = Car.new {brand: `toyota, prodYear: 1996}
 io.print mycar.lastMillenia?!
 mycar.prodYear = 2001
 io.print mycar.lastMillenia?!
 
 io.print (apply add (10, 20))
-val suspendedAdd = lazyapp add (50, 61)
+let suspendedAdd = lazyapp add (50, 61)
 io.print "not yet called"
 io.print suspendedAdd!
 
-val partialApp = apply io.printf ("Hello %s",)
+let partialApp = apply io.printf ("Hello %s",)
 partialApp `world?

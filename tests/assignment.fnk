@@ -7,7 +7,7 @@ Hello
 
 @SOURCE
 
-val b = 10
+let b = 10
 b = 12
 io.print b
 
@@ -18,7 +18,7 @@ global!
 io.print b
 
 fn local:
-  val c = 100
+  let c = 100
   io.print c
   c = 200
   io.print c
@@ -26,8 +26,8 @@ fn local:
 local!
 
 fn nested:
-  val a = 10
-  val f = do:
+  let a = 10
+  let f = do:
     a = 20
   f!
   io.print a

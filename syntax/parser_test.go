@@ -17,7 +17,7 @@ type an = ast.Node
 func TestTopLevelValDecl(t *testing.T) {
 	table := ptable{
 		{
-			"val a = 1",
+			"let a = 1",
 			[]an{
 				&ast.GlobalValDecl{
 					Name: "a",
@@ -28,7 +28,7 @@ func TestTopLevelValDecl(t *testing.T) {
 			},
 		},
 		{
-			"\n\n\nval a = 1\n\n\n",
+			"\n\n\nlet a = 1\n\n\n",
 			[]an{
 				&ast.GlobalValDecl{
 					Name: "a",
@@ -863,7 +863,7 @@ func TestFuncBlockApplication(t *testing.T) {
 func TestLocalVariableDecl(t *testing.T) {
 	table := ptable{
 		{
-			"fn a:\n  val a = 2\n  val a = b\nval c = 1",
+			"fn a:\n  let a = 2\n  let a = b\nlet c = 1",
 			[]an{
 				&ast.FuncDecl{
 					Name: "a",

@@ -24,7 +24,7 @@ func echo(t *testing.T, v data.Value) *data.NativeFunc {
 }
 
 func TestSimpleVm(t *testing.T) {
-	source := "val a = 1\necho a"
+	source := "let a = 1\necho a"
 	echo := echo(t, data.NewInt(1))
 	runTest(t, source, echo)
 }

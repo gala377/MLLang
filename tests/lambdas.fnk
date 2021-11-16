@@ -6,11 +6,11 @@
 
 @SOURCE
 
-val echo = io.printf "%v"
+let echo = io.printf "%v"
 
-val addition = do |a b| -> add a b
+let addition = do |a b| -> add a b
 echo (addition 0 1)
-val getTwo = do -> addition 1 1
+let getTwo = do -> addition 1 1
 
 ; TODO THIS GIVES US SIGSEGV ON COMPILATION
 ; WE HAVE TO DEBUG THIS
@@ -18,7 +18,7 @@ val getTwo = do -> addition 1 1
 
 echo (getTwo!)
 
-val part = addition 2
+let part = addition 2
 echo (part 1)
 echo (part 2)
 

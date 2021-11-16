@@ -8,12 +8,12 @@ Hello "George"
 
 @SOURCE
 
-val greeter = io.printf "Hello %v"
+let greeter = io.printf "Hello %v"
 
 greeter "Frank"
 greeter "Ann"
 greeter "George"
 
-val inc = add 1
+let inc = add 1
 io.print (inc 0)
 io.print (inc 10)

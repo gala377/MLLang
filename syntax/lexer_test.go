@@ -76,10 +76,10 @@ func TestScanningIdent(t *testing.T) {
 			},
 		},
 		{
-			"fn val if else while match let macro",
+			"fn let if else while match let macro",
 			[]it{
 				{"fn", token.Fn, 0, 2},
-				{"val", token.Val, 3, 6},
+				{"let", token.Let, 3, 6},
 				{"if", token.If, 7, 9},
 				{"else", token.Else, 10, 14},
 				{"while", token.While, 15, 20},

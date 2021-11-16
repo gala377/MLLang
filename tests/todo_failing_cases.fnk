@@ -1,16 +1,16 @@
 ; ; parser does not now how to parse
 ; ; indented comments
 ; fn make_adder_2 a:
-;   val cap = 5
+;   let cap = 5
 ;   do |cap|:
 ;     ; indented comment
 ;     add (add a cap) cap
 ;
 ; ; this lambda cannot shadow a variable in inner scope
 ; fn make_lambda:
-;   val outer = None
+;   let outer = None
 ;   do:
 ;     ; shadow variable -> this fails
 ;     ; it's not a bug in a sense but
 ;     ; do we want to have it like that?
-;     val outer = 2
+;     let outer = 2

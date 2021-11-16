@@ -1,7 +1,7 @@
 
 extend seq {
   find: do s pred:
-    val res = filter s pred
+    let res = filter s pred
     if eq? 0 (seq.len res):
       none
     else:

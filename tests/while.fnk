@@ -19,7 +19,7 @@ None
 @SOURCE
 
 
-val i = 0
+let i = 0
 while lt? i 10:
   io.print i
   i = add i 1

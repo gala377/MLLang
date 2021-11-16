@@ -40,7 +40,6 @@ const (
 
 	keywords_beg
 	Fn
-	Val
 	If
 	Else
 	While
@@ -90,7 +89,6 @@ var tokens = [...]string{
 	Quote:        "`",
 
 	Fn:    "fn",
-	Val:   "val",
 	If:    "if",
 	Else:  "else",
 	While: "while",

@@ -4,7 +4,7 @@ fn flip f a b = f b a
 
 fn const a b = a
 
-val const2 = flip const
+let const2 = flip const
 
 fn fst s = seq.get s 0
 
@@ -12,15 +12,15 @@ fn snd s = seq.get s 1
 
 fn neq? a b = not (eq? a b)
 
-val none? = eq? none
+let none? = eq? none
 
-val zero? = eq? 0
+let zero? = eq? 0
 
 fn extend s1 s2 = fold s2 s1 seq.append
 
 fn foreach s body:
-  val i = 0
-  val len = seq.len s
+  let i = 0
+  let len = seq.len s
   while lt? i len:
     body (seq.get s i)
     i = add i 1

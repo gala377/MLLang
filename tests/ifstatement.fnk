@@ -7,12 +7,12 @@ should io.print local 2
 should io.print 4
 @SOURCE
 
-val str = if true:
+let str = if true:
   "should io.print 1"
 else:
   "dont"
 
-val str2 = if false:
+let str2 = if false:
   "dont"
 else:
   "should io.print 2"

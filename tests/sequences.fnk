@@ -17,15 +17,15 @@ fn scope s = s!
 fn pel s i = io.print (seq.get s i)
 
 scope:
-  val ttuple = ("hello", "world", "or something")
-  val pel = pel ttuple
+  let ttuple = ("hello", "world", "or something")
+  let pel = pel ttuple
   pel 0
   pel 2
   pel 1
 
 scope:
-  val tlist = ["now", "we", "work with lists"]
-  val pel = pel tlist
+  let tlist = ["now", "we", "work with lists"]
+  let pel = pel tlist
   pel 0
   pel 1
   seq.set tlist 2 "what?"
@@ -33,21 +33,21 @@ scope:
   pel 2
   pel 3
 
-val splitted = [
+let splitted = [
   1, 2, 3,
   4, 5,
 ]
 io.print splitted
 
 scope:
-  val splitted = [ 1, 2,
+  let splitted = [ 1, 2,
                    3, 4,
                    5, 6,
   ]
   io.print splitted
 
 scope:
-  val splitted = [ 1, 2,
+  let splitted = [ 1, 2,
                    3, 4,
                    5, 6, ]
   io.print splitted
@@ -59,7 +59,7 @@ scope:
     5, 6 ]
 
 scope:
-  val some_list = [
+  let some_list = [
     1,
     2,
     3,

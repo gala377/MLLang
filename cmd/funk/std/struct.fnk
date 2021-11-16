@@ -1,10 +1,10 @@
 
-val struct = scope:
-  val new = do fields methods:
-    val typeid = gensym!
+let struct = scope:
+  let new = do fields methods:
+    let typeid = gensym!
 
-    val constr = do vals:
-      val passedKeys = map vals fst
+    let constr = do vals:
+      let passedKeys = map vals fst
 
       foreach fields do field:
         if none? (seq.find passedKeys (eq? field)):
@@ -13,7 +13,7 @@ val struct = scope:
         if none? (seq.find fields (eq? (fst fpair))):
           panic "Uknown field passed to type constructor"
 
-      val this = extend vals {__type__: typeid}
+      let this = extend vals {__type__: typeid}
       fold (methods this) this do |this meth|:
         seq.append this (fst meth, snd meth)
       this
@@ -23,7 +23,7 @@ val struct = scope:
       typeid: typeid,
     }
 
-  val istype? = do t v -> eq? t.typeid v.__type__
+  let istype? = do t v -> eq? t.typeid v.__type__
 
   {
     new: new,
