@@ -16,8 +16,6 @@ let none? = eq? none
 
 let zero? = eq? 0
 
-fn extend s1 s2 = fold s2 s1 seq.append
-
 fn foreach s body:
   let i = 0
   let len = seq.len s
@@ -41,6 +39,8 @@ fn filter s pred:
     if pred x:
       seq.append acc x
     acc
+
+fn extend s1 s2 = fold s2 s1 seq.append
 
 fn enumerate s:
   snd (fold s (0, []) do |acc x|:
