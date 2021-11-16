@@ -2,7 +2,7 @@
 extend seq {
   find: do s pred:
     let res = filter s pred
-    if eq? 0 (seq.len res):
+    if seq.empty? res:
       none
     else:
       fst res,
