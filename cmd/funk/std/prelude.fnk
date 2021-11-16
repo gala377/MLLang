@@ -16,6 +16,10 @@ let none? = eq? none
 
 let zero? = eq? 0
 
+fn assert val msg:
+  if not val:
+    panic msg
+
 fn foreach s body:
   let i = 0
   let len = seq.len s
@@ -53,8 +57,7 @@ fn zip s1 s2:
     seq.append acc (snd x, seq.get s2 (fst x))
 
 fn max s:
-  if seq.empty? s:
-    panic "sequence passed to max cannot be empty"
+  assert (seq.notempty? s) "sequence passed to min cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? acc x:
       x
@@ -62,8 +65,7 @@ fn max s:
       acc
 
 fn min s:
-  if seq.empty? s:
-    panic "sequence passed to max cannot be empty"
+  assert (seq.notempty? s) "sequence passed to min cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? x acc:
       x

@@ -8,4 +8,5 @@ extend seq {
       fst res,
 
   empty?: do s -> eq? (seq.len s) 0,
+  notempty?: do s -> not (seq.empty? s),
 }
