@@ -53,7 +53,7 @@ fn zip s1 s2:
     seq.append acc (snd x, seq.get s2 (fst x))
 
 fn max s:
-  if zero? (seq.len s):
+  if seq.empty? s:
     panic "sequence passed to max cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? acc x:
@@ -62,7 +62,7 @@ fn max s:
       acc
 
 fn min s:
-  if zero? (seq.len s):
+  if seq.empty? s:
     panic "sequence passed to max cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? x acc:
