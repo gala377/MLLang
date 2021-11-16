@@ -11,11 +11,12 @@ let struct = scope:
           panic "Not every field has been passed to type constructor"
       foreach vals do fpair:
         if none? (seq.find fields (eq? (fst fpair))):
-          panic "Uknown field passed to type constructor"
+          panic "Unknown field passed to type constructor"
 
-      let this = extend vals {__type__: typeid}
-      fold (methods this) this do |this meth|:
-        seq.append this (fst meth, snd meth)
+      let this = scope:
+        let this = extend {} vals
+        extend this {__type__: typeid}
+        extend this (methods this)
       this
 
     {
@@ -23,9 +24,7 @@ let struct = scope:
       typeid: typeid,
     }
 
-  let istype? = do t v -> eq? t.typeid v.__type__
-
   {
     new: new,
-    istype?: istype?,
+    istype?: do t v -> eq? t.typeid v.__type__,
   }
