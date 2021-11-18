@@ -432,11 +432,8 @@ func (vm *Vm) Clone() data.VmProxy {
 	}
 }
 
-func (vm *Vm) RunClosure(c data.Callable) data.Value {
-	if c.Arity() > 0 {
-		panic("Trying to run function that needs arguments. Not suppoerted in RunClosure")
-	}
-	v, t := c.Call(vm)
+func (vm *Vm) RunClosure(c data.Callable, args ...data.Value) data.Value {
+	v, t := c.Call(vm, args...)
 	switch t.Kind {
 	case data.Returned:
 		return v
@@ -444,8 +441,11 @@ func (vm *Vm) RunClosure(c data.Callable) data.Value {
 		panic(fmt.Sprintf("closure returned a top lovel error %s", v))
 	case data.Call:
 		c := t.Code
-		// what to do about return?
-		vm.Interpret(c)
+		v, err := vm.Interpret(c)
+		if err != nil {
+			panic(fmt.Sprintf("error in RunClosure: %s", err))
+		}
+		return v
 	}
 	return data.None
 }

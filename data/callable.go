@@ -24,7 +24,7 @@ type (
 		GenerateSymbol() Symbol
 		Panic(string)
 		Clone() VmProxy
-		RunClosure(Callable) Value
+		RunClosure(Callable, ...Value) Value
 	}
 	NativeFunc struct {
 		fn    func(VmProxy, ...Value) (Value, error)
