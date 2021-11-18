@@ -40,17 +40,17 @@ func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
 		ip:       0,
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
-		globals:  &globals,
-		locals:   &locals,
+		globals:  globals,
+		locals:   locals,
 		source:   source,
 		interner: interner,
 		gensymc:  0,
 	}
 }
 
-func VmWithEnv(source *bytes.Reader, interner *codegen.Interner, env data.Env) Vm {
+func VmWithEnv(source *bytes.Reader, interner *codegen.Interner, env *data.Env) Vm {
 	vm := NewVm(source, interner)
-	vm.globals = &env
+	vm.globals = env
 	return vm
 }
 
@@ -230,7 +230,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			for key, val := range vm.locals.Vals {
 				lenv.Vals[key] = val
 			}
-			l = data.NewLambda(&lenv, l.Args, l.Body)
+			l = data.NewLambda(lenv, l.Args, l.Body)
 			vm.push(l)
 		case isa.PushNone:
 			vm.push(data.None)
@@ -425,7 +425,7 @@ func (vm *Vm) Clone() data.VmProxy {
 		stack:    make([]data.Value, 0),
 		stackTop: 0,
 		globals:  vm.globals,
-		locals:   &loc,
+		locals:   loc,
 		source:   vm.source,
 		interner: vm.interner.Clone(),
 		gensymc:  vm.gensymc,

@@ -127,7 +127,7 @@ func NewFunction(name Symbol, args []Symbol, body *Code) *Function {
 		Name: name,
 		Args: args,
 		Body: body,
-		Env:  &env,
+		Env:  env,
 	}
 }
 
@@ -156,7 +156,7 @@ func (f *Function) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
 	t := Trampoline{
 		Kind: Call,
 		Code: f.Body,
-		Env:  &env,
+		Env:  env,
 	}
 	return None, t
 }

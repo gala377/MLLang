@@ -7,14 +7,14 @@ type Env struct {
 	Vals map[Symbol]Value
 }
 
-func NewEnv() Env {
-	return Env{
+func NewEnv() *Env {
+	return &Env{
 		Vals: make(map[Symbol]Value),
 	}
 }
 
-func EnvFromMap(m map[Symbol]Value) Env {
-	return Env{
+func EnvFromMap(m map[Symbol]Value) *Env {
+	return &Env{
 		Vals: m,
 	}
 }
