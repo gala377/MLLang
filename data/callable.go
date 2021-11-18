@@ -23,6 +23,8 @@ type (
 		CreateSymbol(string) Symbol
 		GenerateSymbol() Symbol
 		Panic(string)
+		Clone() VmProxy
+		RunClosure(Callable) Value
 	}
 	NativeFunc struct {
 		fn    func(VmProxy, ...Value) (Value, error)

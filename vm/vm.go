@@ -95,6 +95,10 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 		switch i {
 		case isa.Return:
 			v := vm.pop()
+			if vm.stackTop == 0 {
+				// top level return
+				return v, nil
+			}
 			env, ok := vm.pop().(*data.Env)
 			if !ok {
 				panic("ICE: on return popped value is not an env")
@@ -411,6 +415,39 @@ func (vm *Vm) GenerateSymbol() data.Symbol {
 	vm.gensymc++
 	str := fmt.Sprintf("@gensym[%d]", vm.gensymc)
 	return data.NewSymbol(&str)
+}
+
+func (vm *Vm) Clone() data.VmProxy {
+	loc := data.NewEnv()
+	return &Vm{
+		code:     nil,
+		ip:       0,
+		stack:    make([]data.Value, 0),
+		stackTop: 0,
+		globals:  vm.globals,
+		locals:   &loc,
+		source:   vm.source,
+		interner: vm.interner.Clone(),
+		gensymc:  vm.gensymc,
+	}
+}
+
+func (vm *Vm) RunClosure(c data.Callable) data.Value {
+	if c.Arity() > 0 {
+		panic("Trying to run function that needs arguments. Not suppoerted in RunClosure")
+	}
+	v, t := c.Call(vm)
+	switch t.Kind {
+	case data.Returned:
+		return v
+	case data.Error:
+		panic(fmt.Sprintf("closure returned a top lovel error %s", v))
+	case data.Call:
+		c := t.Code
+		// what to do about return?
+		vm.Interpret(c)
+	}
+	return data.None
 }
 
 func reverse(s []data.Value) []data.Value {

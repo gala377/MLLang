@@ -23,3 +23,17 @@ func (ir *Interner) Intern(s string) data.InternedString {
 	ir.mapper[s] = i
 	return &s
 }
+
+func (ir *Interner) Clone() *Interner {
+	ss := make([]data.InternedString, 0, len(ir.symbols))
+	copy(ss, ir.symbols)
+	mapper := make(map[string]int)
+	for k, v := range ir.mapper {
+		mapper[k] = v
+	}
+	ni := Interner{
+		symbols: ss,
+		mapper:  mapper,
+	}
+	return &ni
+}
