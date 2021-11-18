@@ -74,6 +74,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"not", 1, not},
 	&funcEntry{"panic", 1, vmPanic},
 	&funcEntry{"gensym", 0, vmGenSym},
+	&funcEntry{"spawn", 1, vmSpawn},
 	&module{
 		Name: "io",
 		Entries: map[string]AsValue{
@@ -83,6 +84,7 @@ var StdEnv = [...]EnvironmentEntry{
 	},
 	&seqModule,
 	&convModule,
+	&timeModule,
 	&funkSource{Source: funkPrelude},
 	&funkSource{Source: funkConv},
 	&funkSource{Source: funkSeq},

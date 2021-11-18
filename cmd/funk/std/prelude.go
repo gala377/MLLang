@@ -82,3 +82,13 @@ func vmPanic(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 func vmGenSym(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	return vm.GenerateSymbol(), nil
 }
+
+func vmSpawn(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	c, ok := vv[0].(data.Callable)
+	if !ok || c.Arity() > 0 {
+		return nil, errors.New("spawn expects a callable of arity 0 to run")
+	}
+	cloned := vm.Clone()
+	go cloned.RunClosure(c)
+	return data.None, nil
+}
