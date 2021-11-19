@@ -237,7 +237,10 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 		case isa.StoreDyn:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
-			vm.globals.Insert(s, vm.pop())
+			err := vm.globals.Set(s, vm.pop())
+			if err != nil {
+				vm.bail(err.Error())
+			}
 		case isa.StoreLocal:
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
@@ -406,7 +409,7 @@ func (vm *Vm) getFunctionAt(i uint16) *data.Closure {
 }
 
 func (vm *Vm) bail(msg string) {
-	line := vm.code.Lines[vm.ip] + 1
+	line := vm.code.Lines[vm.ip]
 	code := getLine(line, vm.source)
 
 	fmt.Printf("\n\nRuntime error at line %d\n\n", line)

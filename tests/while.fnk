@@ -26,7 +26,7 @@ while lt? i 10:
 
 
 fn twoWhiles i a:
-  i2 = i
+  let i2 = i
   while lt? i a:
     io.print i
     i = add i 1

@@ -1,13 +1,7 @@
-@EXPECTED
-First
-Second
-Third
-
-@SOURCE
-spawn:
-  io.print `First
-  time.sleep 2
-  io.print `Third
-time.sleep 1
-io.print `Second
-time.sleep 2
+;spawn:
+;  io.print `First
+;  time.sleep 2
+;  io.print `Third
+;time.sleep 1
+;io.print `Second
+;time.sleep 2

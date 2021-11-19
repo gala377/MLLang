@@ -64,6 +64,19 @@ func NewParser(source io.Reader) *Parser {
 	p.stmtSpecialForms = [token.Eof + 1]parseStmtFn{
 		token.While: p.parseWhile,
 		token.Let:   p.parseValDecl,
+		token.Fn: func() (ast.Stmt, bool) {
+			fn, ok := p.parseLocalFnDecl()
+			if fn == nil || !ok {
+				return nil, ok
+			}
+			decl := ast.ValDecl{
+				Span: fn.Span,
+				Name: fn.Name,
+				Rhs:  fn,
+			}
+			p.scope.InsertVal(&decl)
+			return &decl, true
+		},
 	}
 	p.parseTrailingBlocks = true
 	p.scope = NewScope(nil)

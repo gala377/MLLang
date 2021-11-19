@@ -1,6 +1,9 @@
 package data
 
-import "sync"
+import (
+	"fmt"
+	"sync"
+)
 
 type Env struct {
 	lock sync.RWMutex
@@ -29,6 +32,17 @@ func (e *Env) Insert(s Symbol, v Value) {
 	e.lock.Lock()
 	defer e.lock.Unlock()
 	e.Vals[s] = v
+}
+
+func (e *Env) Set(s Symbol, v Value) error {
+	e.lock.Lock()
+	defer e.lock.Unlock()
+	_, ok := e.Vals[s]
+	if !ok {
+		return fmt.Errorf("unknown name %s", s)
+	}
+	e.Vals[s] = v
+	return nil
 }
 
 func (e *Env) String() string {

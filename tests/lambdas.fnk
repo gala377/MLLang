@@ -25,7 +25,7 @@ let part = addition 2
 echo (part 1)
 echo (part 2)
 
-{
+scope:
   ; local functions can recurse od themselves
   fn local n:
     io.print n
@@ -33,4 +33,4 @@ echo (part 2)
       none
     else:
       local (add n 1)
-}.local 7
+  local 7

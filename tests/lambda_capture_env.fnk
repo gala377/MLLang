@@ -9,6 +9,9 @@
 10
 2
 2
+9
+10
+whats up?
 @SOURCE
 
 fn make_adder a:
@@ -67,3 +70,20 @@ fn lift_func_args a b:
   io.print b
 
 lift_func_args 1 10
+
+;capturing local fn
+scope:
+  fn local n:
+    io.print n
+    if eq? n 10:
+      none
+    else:
+      local (add n 1)
+
+  fn usinglocal:
+    local 9
+
+  let tmp = local
+  local = do s -> io.print "whats up?"
+  tmp 9
+  usinglocal!
