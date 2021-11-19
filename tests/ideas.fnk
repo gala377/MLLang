@@ -86,3 +86,6 @@ io.print frank.getAge!
 fn istype? v cons = eq? v.__type__ cons.typeid
 
 io.print (istype? frank Student)
+
+; get filter nonempty strings
+assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
