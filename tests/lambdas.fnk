@@ -3,7 +3,10 @@
 2
 3
 4
-
+7
+8
+9
+10
 @SOURCE
 
 let echo = io.printf "%v"
@@ -22,3 +25,12 @@ let part = addition 2
 echo (part 1)
 echo (part 2)
 
+{
+  ; local functions can recurse od themselves
+  fn local n:
+    io.print n
+    if eq? n 10:
+      none
+    else:
+      local (add n 1)
+}.local 7
