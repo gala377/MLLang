@@ -48,4 +48,10 @@ extend seq {
     if v:
       return (`break, true)
     false,
+
+  ; Accepts a sequence of sequences and
+  ; joins them together
+  fn concat seqs:
+    fold seqs [] do |acc x|:
+      extend acc x,
 }
