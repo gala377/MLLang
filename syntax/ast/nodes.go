@@ -98,7 +98,12 @@ type (
 
 	RecordConst struct {
 		*span.Span
-		Fields map[string]Expr
+		Fields []RecordField
+	}
+
+	RecordField struct {
+		Key string
+		Val Expr
 	}
 	ListConst struct {
 		*span.Span

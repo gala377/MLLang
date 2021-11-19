@@ -474,9 +474,9 @@ func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
 }
 
 func (e *Emitter) emitRecord(node *ast.RecordConst) {
-	for key, val := range node.Fields {
-		e.emitExpr(val)
-		e.emitSymbol(key)
+	for _, f := range node.Fields {
+		e.emitExpr(f.Val)
+		e.emitSymbol(f.Key)
 	}
 	size := len(node.Fields)
 	if size > math.MaxUint16 {

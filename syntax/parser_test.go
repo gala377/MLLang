@@ -926,14 +926,14 @@ func TestRecordLiteral(t *testing.T) {
 			"{ a: a b, b : 1 }",
 			[]an{
 				&ast.RecordConst{
-					Fields: map[string]ast.Expr{
-						"a": &ast.FuncApplication{
+					Fields: []ast.RecordField{
+						{"a", &ast.FuncApplication{
 							Callee: &ast.Identifier{Name: "a"},
 							Args: []ast.Expr{
 								&ast.Identifier{Name: "b"},
 							},
-						},
-						"b": &ast.IntConst{Val: 1},
+						}},
+						{"b", &ast.IntConst{Val: 1}},
 					},
 				},
 			},
@@ -942,16 +942,16 @@ func TestRecordLiteral(t *testing.T) {
 			"{a: {a: {a: 1}}}",
 			[]an{
 				&ast.RecordConst{
-					Fields: map[string]ast.Expr{
-						"a": &ast.RecordConst{
-							Fields: map[string]ast.Expr{
-								"a": &ast.RecordConst{
-									Fields: map[string]ast.Expr{
-										"a": &ast.IntConst{Val: 1},
+					Fields: []ast.RecordField{
+						{"a", &ast.RecordConst{
+							Fields: []ast.RecordField{
+								{"a", &ast.RecordConst{
+									Fields: []ast.RecordField{
+										{"a", &ast.IntConst{Val: 1}},
 									},
-								},
+								}},
 							},
-						},
+						}},
 					},
 				},
 			},

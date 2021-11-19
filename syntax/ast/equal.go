@@ -156,12 +156,9 @@ func (r *RecordConst) Equal(o Node) bool {
 		if len(r.Fields) != len(or.Fields) {
 			return false
 		}
-		for key, val := range r.Fields {
-			ov, ok := or.Fields[key]
-			if !ok {
-				return false
-			}
-			if !AstEqual(val, ov) {
+		for i, field := range r.Fields {
+			of := or.Fields[i]
+			if field.Key == of.Key && !AstEqual(field.Val, of.Val) {
 				return false
 			}
 		}

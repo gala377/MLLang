@@ -758,7 +758,7 @@ func (p *Parser) parseIdentifier() *ast.Identifier {
 
 func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 	log.Println("Parsing record literal")
-	vals := map[string]ast.Expr{}
+	vals := []ast.RecordField{}
 	continuationIndent := -1
 	tryParseIndent := func() bool {
 		log.Println("Trying to pass possible indent")
@@ -784,19 +784,35 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			break
 		}
 		key := p.parseIdentifier()
-		if key == nil {
-			break
+		if key != nil {
+			log.Printf("Parsing expr for key %s\n", key)
+			p.match(token.Colon)
+			val, ok := p.parseExpr()
+			if val == nil || !ok {
+				p.error(beg, p.position(), "record literal expects an expression as its values")
+				log.Println("Record literal could not parse expression, recovering.")
+				p.recoverWithTokens(token.NewLine)
+				continue
+			}
+			vals = append(vals, ast.RecordField{Key: key.Name, Val: val})
+		} else {
+			// function syntax sugar
+			f, ok := p.parseFnDecl()
+			if !ok {
+				log.Println("Error while parsing fn declaration sugar in record")
+				p.recoverWithTokens(token.Comma, token.RBracket)
+				continue
+			}
+			if f == nil {
+				break
+			}
+			val := &ast.LambdaExpr{
+				Span: f.Span,
+				Body: f.Body,
+				Args: f.Args,
+			}
+			vals = append(vals, ast.RecordField{Key: f.Name, Val: val})
 		}
-		log.Printf("Parsing expr for key %s\n", key)
-		p.match(token.Colon)
-		val, ok := p.parseExpr()
-		if val == nil || !ok {
-			p.error(beg, p.position(), "record literal expects an expression as its values")
-			log.Println("Record literal could not parse expression, recovering.")
-			p.recoverWithTokens(token.NewLine)
-			continue
-		}
-		vals[key.Name] = val
 		if p.match(token.Comma) == nil {
 			break
 		}

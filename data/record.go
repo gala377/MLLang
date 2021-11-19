@@ -28,8 +28,8 @@ func EmptyRecord() *Record {
 func (r *Record) String() string {
 	var b strings.Builder
 	b.WriteRune('{')
-	for key, val := range r.fields {
-		b.WriteString(fmt.Sprintf("%v=%v, ", key, val))
+	for _, key := range r.keys {
+		b.WriteString(fmt.Sprintf("%v=%v, ", key, r.fields[key]))
 	}
 	b.WriteRune('}')
 	return b.String()
