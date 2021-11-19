@@ -1,5 +1,6 @@
 
 extend seq {
+  ; could be optimized to short-circuit
   fn find s pred:
     let res = filter s pred
     if seq.empty? res:
@@ -11,8 +12,8 @@ extend seq {
 
   fn notempty? s = not (seq.empty? s),
 
-  ; needs to be anonymous so it does not requrse on itself
-  ; when calling eq? from prelude
+  ; needs to be anonymous so it does not recurse on itself
+  ; when trying to call eq? from prelude
   eq?: do a b:
     if not (eq? (seq.len a) (seq.len b)):
       false
@@ -22,4 +23,8 @@ extend seq {
           false
         else:
           eq? (fst v) (snd v)
+
+  ; both could be optimized to short-circuit
+  and: do -> fold s true and
+  or: do -> fold s false or
 }

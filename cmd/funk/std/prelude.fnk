@@ -51,8 +51,7 @@ fn enumerate s:
     (add (fst acc) 1, seq.append (snd acc) (fst acc, x)))
 
 fn zip s1 s2:
-  if neq? (seq.len s1) (seq.len s2):
-    panic "only sequences of equal lenght can be zipped"
+  assert (eq? (seq.len s1) (seq.len s2)) "only sequences of equal lenght can be zipped"
   fold (enumerate s1) [] do |acc x|:
     seq.append acc (snd x, seq.get s2 (fst x))
 

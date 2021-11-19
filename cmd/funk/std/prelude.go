@@ -141,3 +141,29 @@ func isRecord(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	_, ok := vv[0].(*data.Record)
 	return data.NewBool(ok), nil
 }
+
+func boolAnd(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a, b := vv[0], vv[1]
+	ab, ok := a.(data.Bool)
+	if !ok {
+		return nil, errors.New("and only works on booleans")
+	}
+	bb, ok := b.(data.Bool)
+	if !ok {
+		return nil, errors.New("and only works on booleans")
+	}
+	return data.NewBool(ab.Val && bb.Val), nil
+}
+
+func boolOr(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a, b := vv[0], vv[1]
+	ab, ok := a.(data.Bool)
+	if !ok {
+		return nil, errors.New("or only works on booleans")
+	}
+	bb, ok := b.(data.Bool)
+	if !ok {
+		return nil, errors.New("or only works on booleans")
+	}
+	return data.NewBool(ab.Val && bb.Val), nil
+}
