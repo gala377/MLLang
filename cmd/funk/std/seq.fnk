@@ -1,5 +1,8 @@
 
 extend seq {
+  ; Same as prelude's foreach but can be short cuircuted
+  ; by returning `break symbol or tuple (`break, retval).
+  ; Im the former case returns none in the latter returns 'retval'
   fn foreach s body:
     let len = seq.len s
     let i = 0
@@ -10,15 +13,16 @@ extend seq {
       else if (tuple? ret):
         if eq? `break (fst ret):
           return snd ret
-      i = add i 1,
+      i = add i 1
+    ret,
 
-  ; could be optimized to short-circuit
+  ; Searchers sequence based on predicate.
+  ; Returns first element matching the predicate.
+  ; Returns "none" value if no element matched the predicate.
   fn find s pred:
-    let res = filter s pred
-    if seq.empty? res:
-      none
-    else:
-      fst res,
+    seq.foreach s do el:
+      if pred el:
+        (`break, el),
 
   fn empty? s = eq? (seq.len s) 0,
 
@@ -28,15 +32,20 @@ extend seq {
   ; when trying to call eq? from prelude
   eq?: do a b:
     if not (eq? (seq.len a) (seq.len b)):
-      false
-    else:
-      fold (zip a b) true do |acc v|:
-        if not acc:
-          false
-        else:
-          eq? (fst v) (snd v),
+      return false
+    seq.foreach (zip a b) do |vals|:
+      if not (eq? (fst vals) (snd vals)):
+        (`break, false)
+      else:
+        true,
 
   ; both could be optimized to short-circuit
-  and: do -> fold s true and,
-  or: do -> fold s false or,
+  and: do s -> seq.foreach s do v:
+    if not v:
+      return (`break, false)
+    true,
+  or: do s -> seq.foreach s do v:
+    if v:
+      return (`break, true)
+    false,
 }

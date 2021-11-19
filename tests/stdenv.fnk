@@ -151,8 +151,9 @@ map [
   record? {},
 ] do v -> assert v "predicate failed"
 
+
 assert (seq.eq? [1, 2, 3] (1, 2, 3)) "seq.equal fails"
-assert (not (seq.eq? [1, 2, 3] (3, 2, 1))) "seq.equal fails"
+assert (not (seq.eq? [1, 2, 3] (3, 2, 1))) "not seq.equal fails"
 
 assert (seq.eq? (records.keys {a: 1, b: 2, c: 3}) (`a, `b, `c)) "record keys failed"
 assert (seq.eq? (records.vals {a: 1, b: 2, c: 3}) (1, 2, 3)) "record values failed"
@@ -166,3 +167,8 @@ let res = seq.foreach [1, 2, 3] do x:
  if eq? x 2:
    return (`break, `found)
 assert (eq? res `found) 'seq.foreach returned wrong value'
+
+assert (seq.and [true, true, true]) "seq.and fails"
+assert (not (seq.and [true, true, false, true])) "not seq.and fails"
+assert (seq.or [false, true, false]) "seq.or fails"
+assert (not (seq.or [false, false, false, false])) "not seq.or fails"
