@@ -70,7 +70,7 @@ scope:
   io.print a
 
 let beg = scope
-let end = b ; equals to None
+let end = none
 
 ; who wants some pascal?
 beg:
