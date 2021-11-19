@@ -35,6 +35,15 @@ false
 not yet called
 111
 Hello world?
+true
+true
+true
+true
+true
+true
+true
+true
+true
 @SOURCE
 
 let a = 1
@@ -136,3 +145,15 @@ io.print suspendedAdd!
 
 let partialApp = apply io.printf ("Hello %s",)
 partialApp `world?
+
+map [
+  int? 1,
+  list? [],
+  tuple? (),
+  seq? (),
+  string? "",
+  symbol? `s,
+  function? function?,
+  float? 1.,
+  bool? true,
+] io.print

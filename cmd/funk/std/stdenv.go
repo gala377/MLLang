@@ -75,6 +75,15 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"panic", 1, vmPanic},
 	&funcEntry{"gensym", 0, vmGenSym},
 	&funcEntry{"spawn", 1, vmSpawn},
+	&funcEntry{"int?", 1, isInt},
+	&funcEntry{"list?", 1, isList},
+	&funcEntry{"tuple?", 1, isTuple},
+	&funcEntry{"seq?", 1, isSeq},
+	&funcEntry{"string?", 1, isString},
+	&funcEntry{"symbol?", 1, isSymbol},
+	&funcEntry{"function?", 1, isFunction},
+	&funcEntry{"float?", 1, isFloat},
+	&funcEntry{"bool?", 1, isBool},
 	&module{
 		Name: "io",
 		Entries: map[string]AsValue{

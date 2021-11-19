@@ -92,3 +92,47 @@ func vmSpawn(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	go cloned.RunClosure(c)
 	return data.None, nil
 }
+
+func isInt(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Int)
+	return data.NewBool(ok), nil
+}
+
+func isList(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(*data.List)
+	return data.NewBool(ok), nil
+}
+func isTuple(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(*data.Tuple)
+	return data.NewBool(ok), nil
+}
+
+func isSeq(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Sequence)
+	return data.NewBool(ok), nil
+}
+
+func isString(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.String)
+	return data.NewBool(ok), nil
+}
+
+func isSymbol(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Symbol)
+	return data.NewBool(ok), nil
+}
+
+func isFunction(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Callable)
+	return data.NewBool(ok), nil
+}
+
+func isFloat(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Float)
+	return data.NewBool(ok), nil
+}
+
+func isBool(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(data.Bool)
+	return data.NewBool(ok), nil
+}
