@@ -62,8 +62,9 @@ func NewParser(source io.Reader) *Parser {
 		},
 	}
 	p.stmtSpecialForms = [token.Eof + 1]parseStmtFn{
-		token.While: p.parseWhile,
-		token.Let:   p.parseValDecl,
+		token.While:  p.parseWhile,
+		token.Let:    p.parseValDecl,
+		token.Return: p.parseReturn,
 		token.Fn: func() (ast.Stmt, bool) {
 			fn, ok := p.parseLocalFnDecl()
 			if fn == nil || !ok {
@@ -812,6 +813,23 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 	}
 	p.scope.InsertVal(&node)
 	return &node, ok
+}
+
+func (p *Parser) parseReturn() (ast.Stmt, bool) {
+	beg := p.position()
+	if p.match(token.Return) == nil {
+		return nil, true
+	}
+	v, ok := p.parseExpr()
+	span := span.NewSpan(beg, p.position())
+	if v == nil {
+		v = &ast.NoneConst{Span: &span}
+	}
+	ret := &ast.Return{
+		Span: &span,
+		Val:  v,
+	}
+	return ret, ok
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {

@@ -35,6 +35,7 @@ false
 not yet called
 111
 Hello world?
+1
 @SOURCE
 
 let a = 1
@@ -155,3 +156,13 @@ assert (not (seq.eq? [1, 2, 3] (3, 2, 1))) "seq.equal fails"
 
 assert (seq.eq? (records.keys {a: 1, b: 2, c: 3}) (`a, `b, `c)) "record keys failed"
 assert (seq.eq? (records.vals {a: 1, b: 2, c: 3}) (1, 2, 3)) "record values failed"
+
+seq.foreach [1, 2, 3] do x:
+  if eq? x 2:
+    return `break
+  io.print x
+
+let res = seq.foreach [1, 2, 3] do x:
+ if eq? x 2:
+   return (`break, `found)
+assert (eq? res `found) 'seq.foreach returned wrong value'

@@ -1,5 +1,17 @@
 
 extend seq {
+  fn foreach s body:
+    let len = seq.len s
+    let i = 0
+    while lt? i len:
+      let ret = (body (seq.get s i))
+      if eq? ret `break:
+        return
+      else if (tuple? ret):
+        if eq? `break (fst ret):
+          return snd ret
+      i = add i 1,
+
   ; could be optimized to short-circuit
   fn find s pred:
     let res = filter s pred
@@ -22,9 +34,9 @@ extend seq {
         if not acc:
           false
         else:
-          eq? (fst v) (snd v)
+          eq? (fst v) (snd v),
 
   ; both could be optimized to short-circuit
-  and: do -> fold s true and
-  or: do -> fold s false or
+  and: do -> fold s true and,
+  or: do -> fold s false or,
 }

@@ -167,6 +167,11 @@ type (
 		Lhs      Expr
 		Property Identifier
 	}
+
+	Return struct {
+		*span.Span
+		Val Expr
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -176,6 +181,7 @@ func (v *ValDecl) stmtNode()    {}
 func (w *WhileStmt) stmtNode()  {}
 func (s *StmtExpr) stmtNode()   {}
 func (a *Assignment) stmtNode() {}
+func (r *Return) stmtNode()     {}
 
 func (b *Block) exprNode()           {}
 func (f *FuncApplication) exprNode() {}
@@ -288,6 +294,10 @@ func (a *Access) NodeSpan() *span.Span {
 
 func (s *Symbol) NodeSpan() *span.Span {
 	return s.Span
+}
+
+func (r *Return) NodeSpan() *span.Span {
+	return r.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -420,5 +430,9 @@ func (a *Access) String() string {
 }
 
 func (s *Symbol) String() string {
-	return fmt.Sprintf("SymbolLit{%s}", &s.Val)
+	return fmt.Sprintf("SymbolLit{%s}", s.Val)
+}
+
+func (r *Return) String() string {
+	return fmt.Sprintf("Return{%s}", r.Val)
 }

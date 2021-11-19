@@ -50,6 +50,7 @@ const (
 	False
 	Do
 	None
+	Return
 	keywords_end
 
 	operators_beg
@@ -88,16 +89,17 @@ var tokens = [...]string{
 	Access:       ".",
 	Quote:        "`",
 
-	Fn:    "fn",
-	If:    "if",
-	Else:  "else",
-	While: "while",
-	Match: "match",
-	Let:   "let",
-	Macro: "macro",
-	True:  "true",
-	False: "false",
-	None:  "none",
+	Fn:     "fn",
+	If:     "if",
+	Else:   "else",
+	While:  "while",
+	Match:  "match",
+	Let:    "let",
+	Macro:  "macro",
+	True:   "true",
+	False:  "false",
+	None:   "none",
+	Return: "return",
 
 	Assignment:  "=",
 	Exclamation: "!",

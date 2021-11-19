@@ -162,6 +162,8 @@ func (e *Emitter) emitStmt(node ast.Stmt) {
 		e.emitAssignment(v)
 	case *ast.WhileStmt:
 		e.emitWhile(v)
+	case *ast.Return:
+		e.emitReturn(v)
 	default:
 		log.Printf("Stmt node is %v", node)
 		e.error(node.NodeSpan(), "Stmt node cannot be emitted. Not supported")
@@ -542,6 +544,11 @@ func (e *Emitter) emitWhile(node *ast.WhileStmt) {
 	e.patchJump(jpos, off)
 }
 
+func (e *Emitter) emitReturn(node *ast.Return) {
+	e.emitExpr(node.Val)
+	e.emitByte(isa.Return)
+}
+
 // emitStmtBlock emits a list of statements.
 // In contrary to normal block this one does
 // not push a value at the end.
@@ -559,6 +566,8 @@ func (e *Emitter) emitBlock(node *ast.Block) {
 	switch v := last.(type) {
 	case *ast.StmtExpr:
 		e.emitExpr(v.Expr)
+	case *ast.Return:
+		e.emitReturn(v)
 	default:
 		e.emitStmt(v)
 		e.emitByte(isa.PushNone)
