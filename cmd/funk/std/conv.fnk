@@ -1,5 +1,5 @@
 
 extend conv {
-  toRecord: do s -> fold s {} seq.append,
-  toList: do s -> fold s [] seq.append,
+  fn toRecord s = fold s {} seq.append,
+  fn toList s = fold s [] seq.append,
 }

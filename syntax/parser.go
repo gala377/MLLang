@@ -138,9 +138,6 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 		p.recover()
 		return nil, false
 	}
-	if !p.scope.IsGlobal() {
-		panic("ICE: expected global scope")
-	}
 	p.scope.Insert(name.Name)
 
 	p.openScope()

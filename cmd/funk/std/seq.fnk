@@ -1,15 +1,17 @@
 
 extend seq {
-  find: do s pred:
+  fn find s pred:
     let res = filter s pred
     if seq.empty? res:
       none
     else:
       fst res,
 
-  empty?: do s -> eq? (seq.len s) 0,
-  notempty?: do s -> not (seq.empty? s),
-  eq?: do a b:
+  fn empty? s = eq? (seq.len s) 0,
+
+  fn notempty? s = not (seq.empty? s),
+
+  fn eq? a b:
     if not (eq? (seq.len a) (seq.len b)):
       false
     else:

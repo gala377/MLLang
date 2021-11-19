@@ -1,6 +1,5 @@
 
-let records = scope:
-  {
-    keys: do rec -> map rec fst,
-    vals: do rec -> map rec snd,
-  }
+let records = {
+  keys: flip map fst,
+  vals: flip map snd,
+}

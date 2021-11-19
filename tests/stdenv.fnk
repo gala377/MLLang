@@ -121,7 +121,7 @@ io.print (eq? gs (conv.toSymbol "@gesym[3]"))
 
 
 let Car = struct.new (`brand, `prodYear) do this -> {
-  lastMillenia?: do -> lt? this.prodYear 2000,
+  fn lastMillenia? = lt? this.prodYear 2000,
 }
 
 let mycar = Car.new {brand: `toyota, prodYear: 1996}

@@ -26,5 +26,5 @@ let struct = scope:
 
   {
     new: new,
-    istype?: do t v -> eq? t.typeid v.__type__,
+    fn istype? t v = eq? t.typeid v.__type__,
   }
