@@ -136,3 +136,8 @@ func isBool(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	_, ok := vv[0].(data.Bool)
 	return data.NewBool(ok), nil
 }
+
+func isRecord(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	_, ok := vv[0].(*data.Record)
+	return data.NewBool(ok), nil
+}

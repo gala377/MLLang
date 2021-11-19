@@ -44,6 +44,7 @@ true
 true
 true
 true
+true
 @SOURCE
 
 let a = 1
@@ -156,4 +157,5 @@ map [
   function? function?,
   float? 1.,
   bool? true,
+  record? {},
 ] io.print

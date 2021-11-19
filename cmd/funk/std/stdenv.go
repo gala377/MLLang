@@ -84,6 +84,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"function?", 1, isFunction},
 	&funcEntry{"float?", 1, isFloat},
 	&funcEntry{"bool?", 1, isBool},
+	&funcEntry{"record?", 1, isRecord},
 	&module{
 		Name: "io",
 		Entries: map[string]AsValue{
