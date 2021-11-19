@@ -1,0 +1,6 @@
+
+let records = scope:
+  {
+    keys: do rec -> map rec fst,
+    vals: do rec -> map rec snd,
+  }

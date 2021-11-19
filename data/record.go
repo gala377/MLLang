@@ -10,12 +10,19 @@ type Record struct {
 	keys   []Symbol
 }
 
-func NewRecord(fields map[Symbol]Value) *Record {
+func RecordFromMap(fields map[Symbol]Value) *Record {
 	keys := make([]Symbol, 0, len(fields))
 	for k := range fields {
 		keys = append(keys, k)
 	}
 	return &Record{fields, keys}
+}
+
+func EmptyRecord() *Record {
+	return &Record{
+		fields: make(map[Symbol]Value),
+		keys:   make([]Symbol, 0),
+	}
 }
 
 func (r *Record) String() string {
@@ -41,6 +48,10 @@ func (r *Record) GetField(s Symbol) (Value, bool) {
 }
 
 func (r *Record) SetField(s Symbol, v Value) {
+	_, ok := r.fields[s]
+	if !ok {
+		r.keys = append(r.keys, s)
+	}
 	r.fields[s] = v
 }
 

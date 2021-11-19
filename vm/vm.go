@@ -279,16 +279,24 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			l := data.NewTuple(reverse(vals))
 			vm.push(l)
 		case isa.MakeRecord:
+			type Pair struct {
+				k data.Symbol
+				v data.Value
+			}
 			size := int(vm.readShort())
-			vals := map[data.Symbol]data.Value{}
+			pairs := make([]Pair, 0, size)
 			for i := 0; i < size; i++ {
 				key, ok := vm.pop().(data.Symbol)
 				if !ok {
 					vm.bail("record fields have to be symbols")
 				}
-				vals[key] = vm.pop()
+				pairs = append(pairs, Pair{key, vm.pop()})
 			}
-			vm.push(data.NewRecord(vals))
+			rec := data.EmptyRecord()
+			for i := size - 1; i >= 0; i-- {
+				rec.SetField(pairs[i].k, pairs[i].v)
+			}
+			vm.push(rec)
 		case isa.GetField:
 			name := vm.getSymbolAt(vm.readShort())
 			rec, ok := vm.pop().(*data.Record)

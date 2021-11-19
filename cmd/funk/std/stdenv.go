@@ -48,7 +48,7 @@ func (m *module) Inject(vm *vm.Vm) {
 	for key, val := range m.Entries {
 		fields[vm.CreateSymbol(key)] = val.AsValue(vm)
 	}
-	vm.AddToGlobals(m.Name, data.NewRecord(fields))
+	vm.AddToGlobals(m.Name, data.RecordFromMap(fields))
 }
 
 func (fs *funkSource) Inject(vm *vm.Vm) {
@@ -96,8 +96,9 @@ var StdEnv = [...]EnvironmentEntry{
 	&convModule,
 	&timeModule,
 	&httpModule,
-	&funkSource{Source: funkPrelude},
-	&funkSource{Source: funkConv},
-	&funkSource{Source: funkSeq},
-	&funkSource{Source: funkStruct},
+	&funkSource{funkPrelude},
+	&funkSource{funkConv},
+	&funkSource{funkSeq},
+	&funkSource{funkStruct},
+	&funkSource{funkRecords},
 }

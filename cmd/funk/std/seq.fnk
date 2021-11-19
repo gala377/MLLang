@@ -9,4 +9,13 @@ extend seq {
 
   empty?: do s -> eq? (seq.len s) 0,
   notempty?: do s -> not (seq.empty? s),
+  eq?: do a b:
+    if not (eq? (seq.len a) (seq.len b)):
+      false
+    else:
+      fold (zip a b) true do |acc v|:
+        if not acc:
+          false
+        else:
+          eq? (fst v) (snd v)
 }

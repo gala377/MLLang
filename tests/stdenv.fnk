@@ -35,16 +35,6 @@ false
 not yet called
 111
 Hello world?
-true
-true
-true
-true
-true
-true
-true
-true
-true
-true
 @SOURCE
 
 let a = 1
@@ -158,4 +148,10 @@ map [
   float? 1.,
   bool? true,
   record? {},
-] io.print
+] do v -> assert v "predicate failed"
+
+assert (seq.eq? [1, 2, 3] (1, 2, 3)) "seq.equal fails"
+assert (not (seq.eq? [1, 2, 3] (3, 2, 1))) "seq.equal fails"
+
+assert (seq.eq? (records.keys {a: 1, b: 2, c: 3}) (`a, `b, `c)) "record keys failed"
+assert (seq.eq? (records.vals {a: 1, b: 2, c: 3}) (1, 2, 3)) "record values failed"
