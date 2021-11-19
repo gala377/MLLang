@@ -57,7 +57,7 @@ func printCode(c *data.Code) {
 	fmt.Println(isa.DisassembleCode(c))
 	for _, c := range c.Consts {
 		switch v := c.(type) {
-		case *data.Function:
+		case *data.Closure:
 			name := ""
 			if v.Name.Inner() != nil {
 				name = *v.Name.Inner()

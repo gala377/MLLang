@@ -11,7 +11,9 @@ extend seq {
 
   fn notempty? s = not (seq.empty? s),
 
-  fn eq? a b:
+  ; needs to be anonymous so it does not requrse on itself
+  ; when calling eq? from prelude
+  eq?: do a b:
     if not (eq? (seq.len a) (seq.len b)):
       false
     else:

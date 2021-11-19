@@ -230,7 +230,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			for key, val := range vm.locals.Vals {
 				lenv.Vals[key] = val
 			}
-			l = data.NewLambda(lenv, l.Args, l.Body)
+			l = data.NewLambda(l.Name, lenv, l.Args, l.Body)
 			vm.push(l)
 		case isa.PushNone:
 			vm.push(data.None)
@@ -396,13 +396,13 @@ func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
 	return data.Symbol{}
 }
 
-func (vm *Vm) getFunctionAt(i uint16) *data.Function {
+func (vm *Vm) getFunctionAt(i uint16) *data.Closure {
 	s := vm.code.GetConstant2(i)
-	if as, ok := s.(*data.Function); ok {
+	if as, ok := s.(*data.Closure); ok {
 		return as
 	}
 	vm.bail("expected constant to be a function")
-	return &data.Function{}
+	return &data.Closure{}
 }
 
 func (vm *Vm) bail(msg string) {

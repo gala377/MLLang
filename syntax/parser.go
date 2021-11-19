@@ -115,7 +115,7 @@ func (p *Parser) Parse() []ast.Node {
 
 func (p *Parser) parseTopLevelDecl() (ast.Decl, bool) {
 	log.Println("Parsing top level decl")
-	fnode, ok := p.parseFnDecl()
+	fnode, ok := p.parseGlobalFnDecl()
 	if fnode != nil || !ok {
 		return fnode, ok
 	}
@@ -126,8 +126,8 @@ func (p *Parser) parseTopLevelDecl() (ast.Decl, bool) {
 	return nil, true
 }
 
-func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
-	log.Println("Parse fn decl")
+func (p *Parser) parseGlobalFnDecl() (*ast.FuncDecl, bool) {
+	log.Println("Parse global fn decl")
 	beg := p.position()
 	if t := p.match(token.Fn); t == nil {
 		return nil, true
@@ -139,7 +139,9 @@ func (p *Parser) parseFnDecl() (*ast.FuncDecl, bool) {
 		return nil, false
 	}
 	p.scope.Insert(name.Name)
-
+	if !p.scope.IsGlobal() {
+		panic("ICE: Expected global scope")
+	}
 	p.openScope()
 	defer p.closeScope()
 
@@ -713,6 +715,63 @@ func (p *Parser) parseLambda() (ast.Expr, bool) {
 
 }
 
+func (p *Parser) parseLocalFnDecl() (*ast.LambdaExpr, bool) {
+	log.Println("Parse local fn decl")
+	beg := p.position()
+	if t := p.match(token.Fn); t == nil {
+		return nil, true
+	}
+	name := p.parseIdentifier()
+	if name == nil {
+		p.error(beg, p.position(), "expected function name")
+		p.recover()
+		return nil, false
+	}
+	p.openScope()
+	p.scope.Insert(name.Name)
+	defer p.closeScope()
+
+	args := []*ast.FuncDeclArg{}
+	for arg := p.parseIdentifier(); arg != nil; arg = p.parseIdentifier() {
+		farg := &ast.FuncDeclArg{Span: arg.Span, Name: arg.Name}
+		args = append(args, farg)
+		p.scope.InsertFuncArg(farg)
+	}
+	var fbody ast.Expr
+	body, ok := p.parseBlock()
+	if !ok {
+		return nil, false
+	}
+	if body == nil {
+		if t := p.match(token.Assignment); t == nil {
+			p.error(beg, p.position(), "expected colon or assignment in function definition")
+			p.recover()
+			return nil, false
+		} else {
+			ebody, ok := p.parseExpr()
+			if !ok {
+				return nil, false
+			}
+			if ebody == nil {
+				p.error(beg, p.position(), "expected expression as a function body")
+				p.recover()
+				return nil, false
+			}
+			fbody = ebody
+		}
+	} else {
+		fbody = body
+	}
+	span := span.NewSpan(beg, p.position())
+	fn := ast.LambdaExpr{
+		Span: &span,
+		Name: name.Name,
+		Args: args,
+		Body: fbody,
+	}
+	return &fn, true
+}
+
 func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 	log.Println("Parsing local val decl")
 	beg := p.position()
@@ -794,7 +853,7 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			vals = append(vals, ast.RecordField{Key: key.Name, Val: val})
 		} else {
 			// function syntax sugar
-			f, ok := p.parseFnDecl()
+			f, ok := p.parseLocalFnDecl()
 			if !ok {
 				log.Println("Error while parsing fn declaration sugar in record")
 				p.recoverWithTokens(token.Comma, token.RBracket)
@@ -803,12 +862,7 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			if f == nil {
 				break
 			}
-			val := &ast.LambdaExpr{
-				Span: f.Span,
-				Body: f.Body,
-				Args: f.Args,
-			}
-			vals = append(vals, ast.RecordField{Key: f.Name, Val: val})
+			vals = append(vals, ast.RecordField{Key: f.Name, Val: f})
 		}
 		if p.match(token.Comma) == nil {
 			break

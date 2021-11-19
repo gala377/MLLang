@@ -37,7 +37,7 @@ type (
 		fn   Callable
 	}
 
-	Function struct {
+	Closure struct {
 		Args []Symbol
 		Name Symbol
 		Env  *Env
@@ -121,9 +121,9 @@ func (f *PartialApp) Equal(o Value) bool {
 	return false
 }
 
-func NewFunction(name Symbol, args []Symbol, body *Code) *Function {
+func NewFunction(name Symbol, args []Symbol, body *Code) *Closure {
 	env := NewEnv()
-	return &Function{
+	return &Closure{
 		Name: name,
 		Args: args,
 		Body: body,
@@ -131,26 +131,29 @@ func NewFunction(name Symbol, args []Symbol, body *Code) *Function {
 	}
 }
 
-func NewLambda(env *Env, args []Symbol, body *Code) *Function {
-	return &Function{
-		Name: Symbol{nil},
+func NewLambda(name Symbol, env *Env, args []Symbol, body *Code) *Closure {
+	return &Closure{
+		Name: name,
 		Args: args,
 		Body: body,
 		Env:  env,
 	}
 }
 
-func (f *Function) Arity() int {
+func (f *Closure) Arity() int {
 	return len(f.Args)
 }
 
-func (f *Function) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
+func (f *Closure) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
 	callenv := make(map[Symbol]Value)
 	for k, v := range f.Env.Vals {
 		callenv[k] = v
 	}
 	for i, arg := range f.Args {
 		callenv[arg] = vv[i]
+	}
+	if f.Name.Inner() != nil {
+		callenv[f.Name] = f
 	}
 	env := EnvFromMap(callenv)
 	t := Trampoline{
@@ -161,15 +164,15 @@ func (f *Function) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
 	return None, t
 }
 
-func (f *Function) String() string {
+func (f *Closure) String() string {
 	if f.Name.Inner() == nil {
 		return "<anonymous function>"
 	}
 	return fmt.Sprintf("<function %s>", *f.Name.Inner())
 }
 
-func (f *Function) Equal(o Value) bool {
-	if of, ok := o.(*Function); ok {
+func (f *Closure) Equal(o Value) bool {
+	if of, ok := o.(*Closure); ok {
 		return f == of
 	}
 	return false

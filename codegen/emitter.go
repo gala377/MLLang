@@ -430,6 +430,12 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	le := NewEmitter(e.interner)
 	le.scope = e.scope.Derive()
+	name := data.NewSymbol(nil)
+	if node.Name != "" {
+		// todo: probably will need lifting information
+		le.scope.Insert(node.Name)
+		name = data.NewSymbol(e.interner.Intern(node.Name))
+	}
 	fargs := make([]data.Symbol, 0, len(node.Args))
 	for _, arg := range node.Args {
 		le.scope.InsertFuncArg(arg)
@@ -443,7 +449,7 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	le.emitByte(isa.Return)
 	e.errors = append(e.errors, le.errors...)
 	code := le.result
-	l := data.NewLambda(nil, fargs, code)
+	l := data.NewLambda(name, nil, fargs, code)
 	index := e.result.AddConstant(l)
 	if index > math.MaxUint16 {
 		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")

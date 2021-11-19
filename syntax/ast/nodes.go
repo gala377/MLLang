@@ -135,6 +135,10 @@ type (
 
 	LambdaExpr struct {
 		*span.Span
+		// does not really make sense as lambas should be anonymous
+		// but we use it to mark local named functions that can recurse on
+		// themselves.
+		Name string
 		Args []*FuncDeclArg
 		Body Expr
 	}
