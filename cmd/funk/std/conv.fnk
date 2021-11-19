@@ -2,4 +2,18 @@
 extend conv {
   fn toRecord s = fold s {} seq.append,
   fn toList s = fold s [] seq.append,
+
+  fn toBool v:
+    if bool? v:
+      v
+    else if seq? v:
+      not (seq.empty? v)
+    else if int? v:
+      not (eq? v 0)
+    else if none? v:
+      false
+    else if symbol? v:
+      true
+    else:
+     panic "cannot convert to bool",
 }

@@ -28,3 +28,7 @@ func (s String) Get(i Int) (Value, error) {
 	v := NewInt(int(s.Val[i.Val]))
 	return v, nil
 }
+
+func (s String) Len() int {
+	return len(s.Val)
+}
