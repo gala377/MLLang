@@ -223,7 +223,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail(fmt.Sprintf("variable %s undefined", s))
 			}
 			vm.push(v)
-		case isa.Lambda:
+		case isa.Closure:
 			arg := vm.readShort()
 			l := vm.getFunctionAt(arg)
 			lenv := data.NewEnv()

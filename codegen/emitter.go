@@ -376,7 +376,7 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.line = int(node.Beg.Line)
-	e.emitByte(isa.Lambda)
+	e.emitByte(isa.Closure)
 	e.emitBytes(args...)
 	// assign to global variable
 	index = e.result.AddConstant(fname)
@@ -465,7 +465,7 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
-	e.emitByte(isa.Lambda)
+	e.emitByte(isa.Closure)
 	e.emitBytes(args...)
 }
 

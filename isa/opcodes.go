@@ -19,7 +19,7 @@ const (
 	Pop
 	DefGlobal
 	DefLocal
-	Lambda
+	Closure
 	PushNone
 	MakeCell
 	MakeList
@@ -27,4 +27,6 @@ const (
 	MakeRecord
 	GetField
 	SetField
+	ResumeContinuation
+	CaptureContinuation
 )
