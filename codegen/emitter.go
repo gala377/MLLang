@@ -282,6 +282,7 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 	e.emitExpr(node.RValue)
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
+	e.line = int(node.Beg.Line)
 	e.emitByte(instr)
 	e.emitBytes(args...)
 }
@@ -301,6 +302,7 @@ func (e *Emitter) emitApplication(node *ast.FuncApplication) {
 		e.emitBytes(isa.Call, byte(255))
 		return
 	}
+	e.line = int(node.Beg.Line)
 	as := byte(argc)
 	e.emitBytes(isa.Call, as)
 }
@@ -333,6 +335,7 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 		e.error(node.NodeSpan(), "More constants that uint16 can hold. That is not supported.")
 		return
 	}
+	e.line = int(node.Beg.Line)
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefGlobal)
@@ -372,6 +375,7 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
+	e.line = int(node.Beg.Line)
 	e.emitByte(isa.Lambda)
 	e.emitBytes(args...)
 	// assign to global variable
@@ -414,6 +418,7 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 		return
 	}
 	e.emitExpr(node.Rhs)
+	e.line = int(node.Beg.Line)
 	index, err := e.addSymbol(node.Name)
 	if err != nil {
 		e.error(node.NodeSpan(), err.Error())
@@ -449,6 +454,7 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 	// todo: implicit return might not always be needed but then
 	// we will never get there if there is an explicit one
 	le.emitByte(isa.Return)
+	e.line = int(node.Beg.Line)
 	e.errors = append(e.errors, le.errors...)
 	code := le.result
 	l := data.NewLambda(name, nil, fargs, code)
@@ -475,6 +481,7 @@ func (e *Emitter) emitSequence(instr isa.Op, node ast.SequenceLiteral) {
 			fmt.Sprintf("sequence literals can only support max of %d elements", math.MaxUint16))
 		return
 	}
+	e.line = int(node.NodeSpan().Beg.Line)
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(instr)
@@ -493,6 +500,7 @@ func (e *Emitter) emitRecord(node *ast.RecordConst) {
 			fmt.Sprintf("Record literals can only support max of %d elements", math.MaxUint16))
 		return
 	}
+	e.line = int(node.Beg.Line)
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(isa.MakeRecord)

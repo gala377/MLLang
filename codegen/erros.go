@@ -36,7 +36,7 @@ func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
 	s := bufio.NewScanner(source)
 	s.Split(bufio.ScanLines)
 	var text []string
-	for i := uint(1); s.Scan(); i++ {
+	for i := uint(0); s.Scan(); i++ {
 		if i >= line {
 			text = append(text, s.Text())
 		}
@@ -45,7 +45,7 @@ func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
 		}
 	}
 	code := strings.Join(text, "\n")
-	fmt.Printf("Error at line %d, column %d\n", line, col)
+	fmt.Printf("Error at line %d, column %d\n", line+1, col)
 	fmt.Printf("%s\n\n", code)
 	fmt.Println(srcerr.Error())
 }

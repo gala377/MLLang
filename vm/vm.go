@@ -409,7 +409,11 @@ func (vm *Vm) getFunctionAt(i uint16) *data.Closure {
 }
 
 func (vm *Vm) bail(msg string) {
-	line := vm.code.Lines[vm.ip]
+	ip := vm.ip
+	if ip >= len(vm.code.Lines) {
+		ip = len(vm.code.Lines) - 1
+	}
+	line := vm.code.Lines[ip] + 1
 	code := getLine(line, vm.source)
 
 	fmt.Printf("\n\nRuntime error at line %d\n\n", line)

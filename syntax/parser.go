@@ -1085,6 +1085,9 @@ func (p *Parser) bump() {
 }
 
 func (p *Parser) currentIndent() int {
+	if len(p.indents) == 0 {
+		return 0
+	}
 	return p.indents[len(p.indents)-1]
 }
 
