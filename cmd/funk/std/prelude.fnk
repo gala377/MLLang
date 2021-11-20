@@ -74,3 +74,12 @@ fn min s:
 fn apply f args = fold args f do |acc x| -> acc x
 
 fn lazyapp f args = do -> apply f args
+
+fn suspend comp:
+  let called = false
+  let ret = none
+  do:
+    if not called:
+      ret = comp!
+      called = true
+    ret
