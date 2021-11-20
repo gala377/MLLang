@@ -896,6 +896,10 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 			vals = append(vals, ast.RecordField{Key: f.Name, Val: f})
 		}
 		if p.match(token.Comma) == nil {
+			if p.check(token.NewLine) != nil {
+				p.error(beg, p.position(), "missing comma (,) in record literal")
+				continue
+			}
 			break
 		}
 	}
