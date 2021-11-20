@@ -258,6 +258,7 @@ func (h *Handle) Equal(o Node) bool {
 				return false
 			}
 		}
+		return true
 	}
 	return false
 }
