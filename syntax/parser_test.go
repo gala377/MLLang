@@ -927,13 +927,13 @@ func TestRecordLiteral(t *testing.T) {
 			[]an{
 				&ast.RecordConst{
 					Fields: []ast.RecordField{
-						{"a", &ast.FuncApplication{
+						{Key: "a", Val: &ast.FuncApplication{
 							Callee: &ast.Identifier{Name: "a"},
 							Args: []ast.Expr{
 								&ast.Identifier{Name: "b"},
 							},
 						}},
-						{"b", &ast.IntConst{Val: 1}},
+						{Key: "b", Val: &ast.IntConst{Val: 1}},
 					},
 				},
 			},
@@ -943,11 +943,11 @@ func TestRecordLiteral(t *testing.T) {
 			[]an{
 				&ast.RecordConst{
 					Fields: []ast.RecordField{
-						{"a", &ast.RecordConst{
+						{Key: "a", Val: &ast.RecordConst{
 							Fields: []ast.RecordField{
-								{"a", &ast.RecordConst{
+								{Key: "a", Val: &ast.RecordConst{
 									Fields: []ast.RecordField{
-										{"a", &ast.IntConst{Val: 1}},
+										{Key: "a", Val: &ast.IntConst{Val: 1}},
 									},
 								}},
 							},
@@ -1006,6 +1006,61 @@ func TestParsingAccess(t *testing.T) {
 						Args: []ast.Expr{},
 					},
 					Property: ast.Identifier{Name: "f"},
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
+func TestParsingHandle(t *testing.T) {
+	table := ptable{
+		{
+			"handle:\n 1\nwith:\n 2\nwith:\n 3\n",
+			[]an{
+				&ast.Handle{
+					Body: &ast.Block{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+						},
+					},
+					Arms: []*ast.WithClause{
+						{
+							Body: &ast.Block{
+								Instr: []ast.Stmt{
+									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
+								},
+							},
+						},
+						{
+							Body: &ast.Block{
+								Instr: []ast.Stmt{
+									&ast.StmtExpr{Expr: &ast.IntConst{Val: 3}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			"handle:\n 1\nwith:\n 2",
+			[]an{
+				&ast.Handle{
+					Body: &ast.Block{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+						},
+					},
+					Arms: []*ast.WithClause{
+						{
+							Body: &ast.Block{
+								Instr: []ast.Stmt{
+									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
+								},
+							},
+						},
+					},
 				},
 			},
 		},
