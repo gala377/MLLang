@@ -20,3 +20,21 @@ func (f Float) Equal(o Value) bool {
 	}
 	return false
 }
+
+func (f Float) Cast(as NumKind) Number {
+	switch as {
+	case FloatKind:
+		return f
+	case IntKind:
+		return NewInt(int(f.Val))
+	}
+	panic("unreachable")
+}
+
+func (f Float) Kind() NumKind {
+	return FloatKind
+}
+
+func (f Float) Neg() Value {
+	return NewFloat(-f.Val)
+}

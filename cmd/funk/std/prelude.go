@@ -17,36 +17,62 @@ var funkStruct []byte
 
 func add(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	a1, a2 := vv[0], vv[1]
-	i1, ok := a1.(data.Int)
+	i1, ok := a1.(data.Number)
 	if !ok {
-		return nil, fmt.Errorf("can only add integers")
+		return nil, fmt.Errorf("can only add numbers")
 	}
-	i2, ok := a2.(data.Int)
+	i2, ok := a2.(data.Number)
 	if !ok {
-		return nil, fmt.Errorf("can only add integers")
+		return nil, fmt.Errorf("can only add numbers")
 	}
-	return data.NewInt(i1.Val + i2.Val), nil
+	return data.CallNumOp(i1, data.AddOp, i2), nil
 }
 
 func sub(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	a1, a2 := vv[0], vv[1]
-	i1, ok := a1.(data.Int)
+	i1, ok := a1.(data.Number)
 	if !ok {
-		return nil, fmt.Errorf("can only sub integers")
+		return nil, fmt.Errorf("can only sub numbers")
 	}
-	i2, ok := a2.(data.Int)
+	i2, ok := a2.(data.Number)
 	if !ok {
-		return nil, fmt.Errorf("can only sub integers")
+		return nil, fmt.Errorf("can only sub numbers")
 	}
-	return data.NewInt(i1.Val - i2.Val), nil
+	return data.CallNumOp(i1, data.SubOpp, i2), nil
+}
+
+func mul(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a1, a2 := vv[0], vv[1]
+	i1, ok := a1.(data.Number)
+	if !ok {
+		return nil, fmt.Errorf("can only mul numbers")
+	}
+	i2, ok := a2.(data.Number)
+	if !ok {
+		return nil, fmt.Errorf("can only mul numbers")
+	}
+	return data.CallNumOp(i1, data.MulOp, i2), nil
+}
+
+func div(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a1, a2 := vv[0], vv[1]
+	i1, ok := a1.(data.Number)
+	if !ok {
+		return nil, fmt.Errorf("can only div numbers")
+	}
+	i2, ok := a2.(data.Number)
+	if !ok {
+		return nil, fmt.Errorf("can only div numbers")
+	}
+	return data.CallNumOp(i1, data.DevideOp, i2), nil
 }
 
 func neg(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
-	i1, ok := vv[0].(data.Int)
+	i1, ok := vv[0].(data.Number)
 	if !ok {
-		return nil, fmt.Errorf("can only negate integers")
+		return nil, fmt.Errorf("can only negate numbers")
 	}
-	return data.NewInt(-i1.Val), nil
+	return i1.Neg(), nil
 }
 
 func printf(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
