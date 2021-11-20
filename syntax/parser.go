@@ -53,10 +53,16 @@ func NewParser(source io.Reader) *Parser {
 	p.indents = []int{0}
 	p.errors = make([]SyntaxError, 0)
 	p.exprSpecialForms = [token.Eof + 1]parseExprFn{
-		token.Do: p.parseLambda,
-		token.If: p.parseIf,
+		token.Do:     p.parseLambda,
+		token.If:     p.parseIf,
+		token.Handle: p.parseHandle,
 		token.Else: func() (ast.Expr, bool) {
 			p.error(p.position(), p.position(), "else expected only after while")
+			p.recover()
+			return nil, false
+		},
+		token.With: func() (ast.Expr, bool) {
+			p.error(p.position(), p.position(), "with expected only after handle")
 			p.recover()
 			return nil, false
 		},
@@ -595,8 +601,7 @@ func (p *Parser) parseIf() (ast.Expr, bool) {
 	}
 	if cond == nil {
 		p.error(beg, p.position(), "if expects an expression as its condition")
-		p.recover()
-		return nil, false
+		p.recoverWithTokens(token.Colon)
 	}
 	body, ok := p.parseBlock()
 	if !ok {
@@ -605,11 +610,12 @@ func (p *Parser) parseIf() (ast.Expr, bool) {
 	if body == nil {
 		p.error(beg, p.position(), "if expects a block as its body")
 		p.recover()
-		return nil, false
+		return nil, true
 	}
 	elseb, ok := p.parseElse()
 	if !ok {
-		return nil, false
+		p.recover()
+		return nil, true
 	}
 	span := span.NewSpan(beg, p.position())
 	node := ast.IfExpr{
@@ -638,12 +644,62 @@ func (p *Parser) parseElse() (ast.Expr, bool) {
 	return p.parseBlock()
 }
 
+func (p *Parser) parseHandle() (ast.Expr, bool) {
+	log.Println("Parsing handle")
+	beg := p.position()
+	if p.match(token.Handle) == nil {
+		log.Println("not a handle")
+		return nil, true
+	}
+	body, ok := p.parseBlock()
+	if !ok {
+		return nil, false
+	}
+	if body == nil {
+		p.error(beg, p.position(), "handle expects a block as its body")
+		return nil, true
+	}
+	ww := make([]*ast.WithClause, 0, 1)
+	cw, ok := p.parseWith()
+	for cw != nil {
+		if !ok {
+			p.error(beg, p.position(), "handle expects at least one with")
+			return nil, true
+		}
+		ww = append(ww, cw)
+		cw, ok = p.parseWith()
+	}
+	span := span.NewSpan(beg, p.position())
+	return &ast.Handle{
+		Span: &span,
+		Body: body,
+		Arms: ww,
+	}, true
+}
+
+func (p *Parser) parseWith() (*ast.WithClause, bool) {
+	beg := p.position()
+	if p.match(token.With) == nil {
+		if !p.checkIndent(p.currentIndent()) {
+			return nil, true
+		}
+		if p.peek().Typ != token.With {
+			return nil, true
+		}
+		p.bump()
+		p.bump()
+	}
+	b, ok := p.parseBlock()
+	span := span.NewSpan(beg, p.position())
+	return &ast.WithClause{Span: &span, Body: b}, ok
+}
+
 func (p *Parser) parseLambda() (ast.Expr, bool) {
 	log.Println("Parsing lambda")
 	beg := p.position()
 	p.openScope()
 	defer p.closeScope()
-	if t := p.match(token.Do); t == nil {
+	if p.match(token.Do) == nil {
 		log.Println("Not a lambda")
 		return nil, true
 	}

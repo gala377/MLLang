@@ -175,13 +175,13 @@ type (
 
 	Handle struct {
 		*span.Span
-		body *Block
-		arms []*WithClause
+		Body *Block
+		Arms []*WithClause
 	}
 
 	WithClause struct {
 		*span.Span
-		body *Block
+		Body *Block
 	}
 )
 

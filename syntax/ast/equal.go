@@ -247,14 +247,14 @@ func (a *Symbol) Equal(o Node) bool {
 
 func (h *Handle) Equal(o Node) bool {
 	if oh, ok := o.(*Handle); ok {
-		if !AstEqual(h.body, oh.body) {
+		if !AstEqual(h.Body, oh.Body) {
 			return false
 		}
-		if len(h.arms) != len(oh.arms) {
+		if len(h.Arms) != len(oh.Arms) {
 			return false
 		}
-		for i, ha := range h.arms {
-			if !AstEqual(ha.body, oh.arms[i].body) {
+		for i, ha := range h.Arms {
+			if !AstEqual(ha.Body, oh.Arms[i].Body) {
 				return false
 			}
 		}
