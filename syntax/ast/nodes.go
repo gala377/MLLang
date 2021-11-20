@@ -172,6 +172,17 @@ type (
 		*span.Span
 		Val Expr
 	}
+
+	Handle struct {
+		*span.Span
+		body *Block
+		arms []*WithClause
+	}
+
+	WithClause struct {
+		*span.Span
+		body *Block
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -199,6 +210,7 @@ func (b *BoolConst) exprNode()       {}
 func (n *NoneConst) exprNode()       {}
 func (a *Access) exprNode()          {}
 func (s *Symbol) exprNode()          {}
+func (h *Handle) exprNode()          {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -298,6 +310,10 @@ func (s *Symbol) NodeSpan() *span.Span {
 
 func (r *Return) NodeSpan() *span.Span {
 	return r.Span
+}
+
+func (h *Handle) NodeSpan() *span.Span {
+	return h.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -435,4 +451,8 @@ func (s *Symbol) String() string {
 
 func (r *Return) String() string {
 	return fmt.Sprintf("Return{%s}", r.Val)
+}
+
+func (h *Handle) String() string {
+	return "handle string unsupported"
 }

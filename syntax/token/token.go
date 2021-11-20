@@ -51,6 +51,8 @@ const (
 	Do
 	None
 	Return
+	Handle
+	With
 	keywords_end
 
 	operators_beg
@@ -100,6 +102,8 @@ var tokens = [...]string{
 	False:  "false",
 	None:   "none",
 	Return: "return",
+	Handle: "handle",
+	With:   "with",
 
 	Assignment:  "=",
 	Exclamation: "!",

@@ -244,3 +244,20 @@ func (a *Symbol) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (h *Handle) Equal(o Node) bool {
+	if oh, ok := o.(*Handle); ok {
+		if !AstEqual(h.body, oh.body) {
+			return false
+		}
+		if len(h.arms) != len(oh.arms) {
+			return false
+		}
+		for i, ha := range h.arms {
+			if !AstEqual(ha.body, oh.arms[i].body) {
+				return false
+			}
+		}
+	}
+	return false
+}
