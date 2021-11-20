@@ -69,6 +69,8 @@ func (fs *funkSource) Inject(vm *vm.Vm) {
 
 var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"add", 2, add},
+	&funcEntry{"sub", 2, sub},
+	&funcEntry{"neg", 1, neg},
 	&funcEntry{"lt?", 2, lessThan},
 	&funcEntry{"eq?", 2, equal},
 	&funcEntry{"not", 1, not},

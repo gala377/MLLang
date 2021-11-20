@@ -28,6 +28,27 @@ func add(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	return data.NewInt(i1.Val + i2.Val), nil
 }
 
+func sub(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a1, a2 := vv[0], vv[1]
+	i1, ok := a1.(data.Int)
+	if !ok {
+		return nil, fmt.Errorf("can only sub integers")
+	}
+	i2, ok := a2.(data.Int)
+	if !ok {
+		return nil, fmt.Errorf("can only sub integers")
+	}
+	return data.NewInt(i1.Val - i2.Val), nil
+}
+
+func neg(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	i1, ok := vv[0].(data.Int)
+	if !ok {
+		return nil, fmt.Errorf("can only negate integers")
+	}
+	return data.NewInt(-i1.Val), nil
+}
+
 func printf(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	format, val := vv[0], vv[1]
 	sfmt, ok := format.(data.String)

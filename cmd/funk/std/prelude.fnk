@@ -12,6 +12,10 @@ fn snd s = seq.get s 1
 
 fn neq? a b = not (eq? a b)
 
+let inc = add 1
+
+let dec = flip sub 1
+
 let none? = eq? none
 
 let zero? = eq? 0
