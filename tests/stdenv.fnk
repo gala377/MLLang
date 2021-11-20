@@ -174,3 +174,9 @@ assert (seq.or [false, true, false]) "seq.or fails"
 assert (not (seq.or [false, false, false, false])) "not seq.or fails"
 
 assert (seq.eq? (seq.concat [[1, 2], [3], [4, 5]]) [1,2,3,4,5]) "seq.concat fails"
+
+assert (int? (add 1 1)) none
+assert (float? (add 1. 1.)) none
+assert (float? (mul 1. 1)) none
+assert (int? (div 3 2)) none
+assert (float? (div 3 2.)) none
