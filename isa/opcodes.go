@@ -27,6 +27,7 @@ const (
 	MakeRecord
 	GetField
 	SetField
-	ResumeContinuation
-	CaptureContinuation
+	CResume
+	CCapture
+	CPrompt
 )

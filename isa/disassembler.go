@@ -33,6 +33,9 @@ var instNames = [...]string{
 	MakeRecord:  "MakeRecord",
 	GetField:    "GetField",
 	SetField:    "SetField",
+	CResume:     "CResume",
+	CCapture:    "CCapture",
+	CPrompt:     "CPrompt",
 }
 
 const opCount = len(instNames)
@@ -61,6 +64,9 @@ var instArguments = [opCount]int{
 	MakeRecord:  2,
 	GetField:    2,
 	SetField:    2,
+	CResume:     0,
+	CCapture:    0,
+	CPrompt:     0,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string
