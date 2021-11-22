@@ -486,5 +486,5 @@ func getLine(line int, r seekReader) string {
 			return sc.Text()
 		}
 	}
-	panic("could not find given line")
+	return "could not find given line"
 }

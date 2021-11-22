@@ -150,7 +150,7 @@ func isList(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	return data.NewBool(ok), nil
 }
 func isTuple(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
-	_, ok := vv[0].(*data.Tuple)
+	_, ok := vv[0].(data.Tuple)
 	return data.NewBool(ok), nil
 }
 

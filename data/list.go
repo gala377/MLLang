@@ -22,7 +22,7 @@ func (l *List) String() string {
 	b.WriteRune('[')
 	for i, val := range l.values {
 		b.WriteString(val.String())
-		if i == (l.size + 1) {
+		if i == (l.size - 1) {
 			break
 		}
 		b.WriteString(", ")

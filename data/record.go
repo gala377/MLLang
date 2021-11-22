@@ -67,12 +67,12 @@ func (r *Record) Get(i Int) (Value, error) {
 }
 
 func (r *Record) Append(v Value) error {
-	at, ok := v.(*Tuple)
-	err := fmt.Errorf("records has to append tuples (symbol, value)")
+	at, ok := v.(Tuple)
+	err := fmt.Errorf("records has to append tuples (symbol, value), got: %v", v)
 	if !ok {
 		return err
 	}
-	if at.size != 2 {
+	if at.Len() != 2 {
 		return err
 	}
 	k, ok := at.values[0].(Symbol)

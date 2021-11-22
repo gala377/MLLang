@@ -1,13 +1,13 @@
-@EXPECTED
-1
-2
-3
-4
-7
-8
-9
-10
-@SOURCE
+; @EXPECTED
+; 1
+; 2
+; 3
+; 4
+; 7
+; 8
+; 9
+; 10
+; @SOURCE
 
 let echo = io.printf "%v"
 
