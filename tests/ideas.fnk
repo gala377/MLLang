@@ -6,8 +6,10 @@ true
 5
 not even an age
 true
+11
+not integer
 @SOURCE
-; classes like in js
+classes like in js
 fn Person name age = {
   getAge: do -> age,
   setAge: do |new|:
@@ -89,3 +91,40 @@ io.print (istype? frank Student)
 
 ; get filter nonempty strings
 assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
+
+; todo
+; syntactic sugar for records {a, b} = {a: a, b: b}
+; tuples should not have double dereference as those are immutable
+
+fn multimethod selector:
+  let meths = []
+  {
+    fn create = do args:
+      let selected = selector args
+      let s = seq.get selected 0
+      let margs = seq.get selected 1
+      let ret = seq.foreach meths do m:
+        if (eq? (seq.get m 0) s):
+          let impl = seq.get m 1
+          let val = apply impl margs
+          return (`break, (`found, val))
+      if none? ret:
+        panic "no multimethod implementation found"
+      seq.get ret 1,
+
+    fn instance v m:
+      seq.append meths (v, m),
+  }
+
+let meth = multimethod do args -> [
+  int? (seq.get args 0),
+  (seq.get args 0, seq.get args 1),
+]
+
+let foo = meth.create!
+
+meth.instance true do |a b| -> add a b
+meth.instance false do |a b| -> io.print "not integer"
+
+io.print (foo (1, 10))
+foo (none, none)
