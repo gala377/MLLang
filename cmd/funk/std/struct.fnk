@@ -21,10 +21,10 @@ let struct = scope:
 
     {
       new: constr,
-      typeid: typeid,
+      typeid,
     }
 
   {
-    new: new,
+    new,
     fn istype? t v = eq? t.typeid v.__type__,
   }

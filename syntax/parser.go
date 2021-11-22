@@ -929,15 +929,25 @@ func (p *Parser) parseRecordConst(beg span.Position) (*ast.RecordConst, bool) {
 		key := p.parseIdentifier()
 		if key != nil {
 			log.Printf("Parsing expr for key %s\n", key)
-			p.match(token.Colon)
-			val, ok := p.parseExpr()
-			if val == nil || !ok {
-				p.error(beg, p.position(), "record literal expects an expression as its values")
-				log.Println("Record literal could not parse expression, recovering.")
-				p.recoverWithTokens(token.NewLine)
-				continue
+			if p.match(token.Colon) == nil {
+				// maybe same name variable sugar?
+				if p.check(token.Comma) != nil || p.check(token.RBracket) != nil {
+					vals = append(vals, ast.RecordField{Key: key.Name, Val: key})
+				} else {
+					p.error(beg, p.position(), "missing colon \":\" after key in record literal")
+					p.recoverWithTokens(token.NewLine, token.RBracket)
+					continue
+				}
+			} else {
+				val, ok := p.parseExpr()
+				if val == nil || !ok {
+					p.error(beg, p.position(), "record literal expects an expression as its values")
+					log.Println("Record literal could not parse expression, recovering.")
+					p.recoverWithTokens(token.NewLine, token.RBracket)
+					continue
+				}
+				vals = append(vals, ast.RecordField{Key: key.Name, Val: val})
 			}
-			vals = append(vals, ast.RecordField{Key: key.Name, Val: val})
 		} else {
 			// function syntax sugar
 			f, ok := p.parseLocalFnDecl()

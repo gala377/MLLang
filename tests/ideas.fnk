@@ -11,10 +11,10 @@ not integer
 @SOURCE
 ; classes like in js
 fn Person name age = {
-  getAge: do -> age,
-  setAge: do |new|:
+  fn getAge = age,
+  fn setAge new:
     age = new,
-  fullInfo: do -> name,
+  fn fullInfo = name,
 }
 
 let jack = Person "Jack" 36
@@ -43,15 +43,17 @@ fn newtype fields methods:
     this
   
   {
+    typeid,
     new: constr,
-    typeid: typeid,
   }
 
 let Student = newtype (`age, `name, `surname, `score) do this -> {
-  getAge: do -> this.age,
-  setAge: do age:
+  fn getAge = this.age,
+
+  fn setAge age:
     this.age = age,
-  passes?: do -> lt? 50 this.score,
+
+  fn passes? = lt? 50 this.score,
 }
 
 let frank = Student.new {
@@ -91,10 +93,6 @@ io.print (istype? frank Student)
 
 ; get filter nonempty strings
 assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
-
-; todo
-; syntactic sugar for records {a, b} = {a: a, b: b}
-; tuples should not have double dereference as those are immutable
 
 fn multimethod selector:
   let meths = []
