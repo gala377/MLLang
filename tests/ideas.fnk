@@ -9,7 +9,7 @@ true
 11
 not integer
 @SOURCE
-classes like in js
+; classes like in js
 fn Person name age = {
   getAge: do -> age,
   setAge: do |new|:
@@ -116,15 +116,15 @@ fn multimethod selector:
       seq.append meths (v, m),
   }
 
-let meth = multimethod do args -> [
+let foom_ = multimethod do args -> [
   int? (seq.get args 0),
   (seq.get args 0, seq.get args 1),
 ]
 
-let foo = meth.create!
+let foo = foom_.create!
 
-meth.instance true do |a b| -> add a b
-meth.instance false do |a b| -> io.print "not integer"
+foom_.instance true do |a b| -> add a b
+foom_.instance false do |a b| -> io.print "not integer"
 
 io.print (foo (1, 10))
 foo (none, none)
