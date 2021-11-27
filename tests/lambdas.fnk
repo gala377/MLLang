@@ -1,23 +1,20 @@
-; @EXPECTED
-; 1
-; 2
-; 3
-; 4
-; 7
-; 8
-; 9
-; 10
-; @SOURCE
+@EXPECTED
+1
+2
+3
+4
+7
+8
+9
+10
+6
+@SOURCE
 
 let echo = io.printf "%v"
 
 let addition = do |a b| -> add a b
 echo (addition 0 1)
 let getTwo = do -> addition 1 1
-
-; TODO THIS GIVES US SIGSEGV ON COMPILATION
-; WE HAVE TO DEBUG THIS
-; echo getTwo!
 
 echo (getTwo!)
 
@@ -34,3 +31,8 @@ scope:
     else:
       local (add n 1)
   local 7
+
+; Function returing lambdas are equvalent
+; to function with arguments
+fn add3 a = do b -> do c -> sum (a, b, c)
+io.print (add3 1 2 3)

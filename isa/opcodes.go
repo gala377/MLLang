@@ -7,6 +7,8 @@ const (
 	Constant
 	Constant2
 	Call
+	Call0
+	Call1
 	Jump
 	JumpIfFalse
 	JumpBack

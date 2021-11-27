@@ -287,7 +287,7 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 	e.emitBytes(args...)
 }
 
-func (e *Emitter) emitApplication(node *ast.FuncApplication) {
+func (e *Emitter) emitApplicationDeprecated(node *ast.FuncApplication) {
 	e.emitExpr(node.Callee)
 	for _, a := range node.Args {
 		e.emitExpr(a)
@@ -305,6 +305,25 @@ func (e *Emitter) emitApplication(node *ast.FuncApplication) {
 	e.line = int(node.Beg.Line)
 	as := byte(argc)
 	e.emitBytes(isa.Call, as)
+}
+
+func (e *Emitter) emitApplication(node *ast.FuncApplication) {
+	e.emitExpr(node.Callee)
+	if len(node.Args) == 0 && node.Block == nil {
+		e.line = int(node.Beg.Line)
+		e.emitByte(isa.Call0)
+		return
+	}
+	for _, a := range node.Args {
+		e.emitExpr(a)
+		e.line = int(node.Beg.Line)
+		e.emitByte(isa.Call1)
+	}
+	if node.Block != nil {
+		e.emitLambda(node.Block)
+		e.line = int(node.Beg.Line)
+		e.emitByte(isa.Call1)
+	}
 }
 
 func (e *Emitter) emitDeclaration(node ast.Decl) {

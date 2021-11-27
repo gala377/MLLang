@@ -170,6 +170,25 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			vm.locals.Insert(s, vm.pop())
+		case isa.Call0:
+			callee, ok := vm.pop().(data.Callable)
+			if !ok {
+				vm.bail(fmt.Sprintf("Cannot call %s", callee))
+			}
+			if callee.Arity() != 0 {
+				vm.bail("Expected nullary callable")
+			}
+			vm.handleCall(callee.Call(vm))
+		case isa.Call1:
+			arg := vm.pop()
+			callee, ok := vm.pop().(data.Callable)
+			if !ok {
+				vm.bail(fmt.Sprintf("Cannot apply %s", callee))
+			}
+			if callee.Arity() == 0 {
+				vm.bail("Expected non nullary callable")
+			}
+			vm.handleCall(vm.apply1(callee, arg))
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -388,6 +407,40 @@ func (vm *Vm) applyFunc(fn data.Callable, args []data.Value) (data.Value, data.T
 		return nil, data.Trampoline{}
 	}
 	panic("unreachable")
+}
+
+// Specialised func application for applying only 1 argument.
+// Allows to skip allocation of slice for arguments.
+func (vm *Vm) apply1(fn data.Callable, arg data.Value) (data.Value, data.Trampoline) {
+	switch {
+	case fn.Arity() == 1:
+		return fn.Call(vm, arg)
+	case fn.Arity() > 1:
+		if Debug {
+			fmt.Printf("Partial application 1 < %d", fn.Arity())
+		}
+		return data.PartialApp1(fn, arg), data.ReturnTramp
+	case fn.Arity() < 1:
+		vm.bail("supplied more arguments than the function takes")
+		return nil, data.Trampoline{}
+	}
+	panic("unreachable")
+}
+
+func (vm *Vm) handleCall(v data.Value, t data.Trampoline) {
+	switch t.Kind {
+	case data.Returned:
+		vm.push(v)
+	case data.Call:
+		vm.push(data.Int{Val: vm.ip})
+		vm.push(vm.code)
+		vm.push(vm.locals)
+		vm.ip = 0
+		vm.code = t.Code
+		vm.locals = t.Env
+	case data.Error:
+		vm.bail(v.String())
+	}
 }
 
 func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
