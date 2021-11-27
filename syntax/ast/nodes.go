@@ -181,7 +181,10 @@ type (
 
 	WithClause struct {
 		*span.Span
-		Body *Block
+		Effect       *Identifier
+		Arg          *Identifier
+		Continuation *Identifier
+		Body         *Block
 	}
 )
 
@@ -454,5 +457,15 @@ func (r *Return) String() string {
 }
 
 func (h *Handle) String() string {
-	return "handle string unsupported"
+	repr := fmt.Sprintf("Handle{\n%s\n}\n", h.Body)
+	for _, arm := range h.Arms {
+		repr += fmt.Sprintf("With{Effect{%s} Arg{%s}", arm.Effect, arm.Arg)
+		if arm.Continuation != nil {
+			repr += fmt.Sprintf(" -> {%s}", arm.Continuation)
+		}
+		repr += "} Body {\n"
+		repr += arm.Body.String()
+		repr += "\n}\n"
+	}
+	return repr
 }

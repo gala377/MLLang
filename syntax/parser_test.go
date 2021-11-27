@@ -1016,7 +1016,7 @@ func TestParsingAccess(t *testing.T) {
 func TestParsingHandle(t *testing.T) {
 	table := ptable{
 		{
-			"handle:\n 1\nwith:\n 2\nwith:\n 3\n",
+			"handle:\n 1\nwith e1 a1 -> k:\n 2\nwith e2 a2:\n 3\n",
 			[]an{
 				&ast.Handle{
 					Body: &ast.Block{
@@ -1026,6 +1026,9 @@ func TestParsingHandle(t *testing.T) {
 					},
 					Arms: []*ast.WithClause{
 						{
+							Effect:       &ast.Identifier{Name: "e1"},
+							Arg:          &ast.Identifier{Name: "a1"},
+							Continuation: &ast.Identifier{Name: "k"},
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
 									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
@@ -1033,6 +1036,9 @@ func TestParsingHandle(t *testing.T) {
 							},
 						},
 						{
+							Effect:       &ast.Identifier{Name: "e2"},
+							Arg:          &ast.Identifier{Name: "a2"},
+							Continuation: nil,
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
 									&ast.StmtExpr{Expr: &ast.IntConst{Val: 3}},
@@ -1044,7 +1050,7 @@ func TestParsingHandle(t *testing.T) {
 			},
 		},
 		{
-			"handle:\n 1\nwith:\n 2",
+			"handle:\n 1\nwith e a -> k:\n 2",
 			[]an{
 				&ast.Handle{
 					Body: &ast.Block{
@@ -1054,6 +1060,9 @@ func TestParsingHandle(t *testing.T) {
 					},
 					Arms: []*ast.WithClause{
 						{
+							Effect:       &ast.Identifier{Name: "e"},
+							Arg:          &ast.Identifier{Name: "a"},
+							Continuation: &ast.Identifier{Name: "k"},
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
 									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
