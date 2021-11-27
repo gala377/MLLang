@@ -97,6 +97,20 @@ func NewPartialApp(c Callable, vv ...Value) *PartialApp {
 	}
 }
 
+func PartialApp1(c Callable, arg Value) *PartialApp {
+	if c.Arity() <= 1 {
+		panic("ICE: parial application on function that should be called")
+	}
+	if p, ok := c.(*PartialApp); ok {
+		p.args = append(p.args, arg)
+		return p
+	}
+	return &PartialApp{
+		args: []Value{arg},
+		fn:   c,
+	}
+}
+
 func (f *PartialApp) Arity() int {
 	return f.fn.Arity() - len(f.args)
 }
