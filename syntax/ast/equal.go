@@ -1,5 +1,9 @@
 package ast
 
+import (
+	"log"
+)
+
 type NodeEqual interface {
 	Node
 	Equal(Node) bool
@@ -8,6 +12,9 @@ type NodeEqual interface {
 func AstEqual(n1 Node, n2 Node) bool {
 	if n1 == nil {
 		return n2 == nil
+	}
+	if n2 == nil {
+		return false
 	}
 	cmp, ok := n1.(NodeEqual)
 	if !ok {
@@ -190,6 +197,12 @@ func (l *LetExpr) Equal(o Node) bool {
 
 func (i *Identifier) Equal(o Node) bool {
 	if oi, ok := o.(*Identifier); ok {
+		if i == nil {
+			return oi == nil
+		}
+		if oi == nil {
+			return false
+		}
 		return i.Name == oi.Name
 	}
 	return false
@@ -248,13 +261,29 @@ func (a *Symbol) Equal(o Node) bool {
 func (h *Handle) Equal(o Node) bool {
 	if oh, ok := o.(*Handle); ok {
 		if !AstEqual(h.Body, oh.Body) {
+			log.Printf("Handler Bodies differ")
 			return false
 		}
 		if len(h.Arms) != len(oh.Arms) {
+			log.Printf("Len of arms differ")
 			return false
 		}
 		for i, ha := range h.Arms {
-			if !AstEqual(ha.Body, oh.Arms[i].Body) {
+			oa := oh.Arms[i]
+			if !AstEqual(ha.Arg, oa.Arg) {
+				log.Print("Arg differ")
+				return false
+			}
+			if !AstEqual(ha.Effect, oa.Effect) {
+				log.Print("Effect differ")
+				return false
+			}
+			if !AstEqual(ha.Continuation, oa.Continuation) {
+				log.Print("Continuation differ")
+				return false
+			}
+			if !AstEqual(ha.Body, oa.Body) {
+				log.Print("Bodies differ")
 				return false
 			}
 		}

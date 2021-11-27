@@ -689,9 +689,39 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		p.bump()
 		p.bump()
 	}
+	effect := p.parseIdentifier()
+	if effect == nil {
+		p.error(beg, p.position(), "Expected effect to handle in with clause")
+		p.recoverWithTokens(token.Colon)
+	}
+	arg := p.parseIdentifier()
+	if arg == nil {
+		p.error(beg, p.position(), "expected effect's value name")
+		p.recoverWithTokens(token.Colon)
+	}
+	var cont *ast.Identifier = nil
+	if p.match(token.Arrow) != nil {
+		cont = p.parseIdentifier()
+		if cont == nil {
+			p.error(beg, p.position(), "Expected name for the continuation")
+			p.recoverWithTokens(token.Colon)
+		}
+	}
 	b, ok := p.parseBlock()
+	if b == nil && ok {
+		p.error(beg, p.position(), "Expected block as with stmt's body")
+		p.recoverWithTokens(token.NewLine)
+		p.match(token.NewLine)
+		return nil, true
+	}
 	span := span.NewSpan(beg, p.position())
-	return &ast.WithClause{Span: &span, Body: b}, ok
+	return &ast.WithClause{
+		Span:         &span,
+		Effect:       effect,
+		Arg:          arg,
+		Continuation: cont,
+		Body:         b,
+	}, ok
 }
 
 func (p *Parser) parseLambda() (ast.Expr, bool) {
