@@ -30,6 +30,9 @@ let multimethod = {
         firstCall,
 
       fn instance v m:
-        seq.append meths (v, m),
+        ; we assign so that call to instance will
+        ; always return `none` and we will not leak
+        ; methods list
+        let _ = seq.append meths (v, m),
     },
 }
