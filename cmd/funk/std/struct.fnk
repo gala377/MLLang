@@ -14,8 +14,11 @@ let struct = scope:
           panic "Unknown field passed to type constructor"
 
       let this = scope:
-        let this = extend {} vals
-        extend this {__type__: typeid}
+        let this = vals {__type__: typeid}
+        ; we need to use `extend` here because methods
+        ; captured the reference to the record so
+        ; we need modify `this` in place instead of
+        ; copying with record update syntax
         extend this (methods this)
       this
 

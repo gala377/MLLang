@@ -92,3 +92,28 @@ func (r *Record) Append(v Value) error {
 func (r *Record) Len() int {
 	return len(r.keys)
 }
+
+// Callable interface {
+// 	Value
+// 	Arity() int
+// 	Call(VmProxy, ...Value) (Value, Trampoline)
+// }
+
+func (r *Record) Arity() int {
+	return 1
+}
+
+func (r *Record) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
+	arg, ok := vv[0].(*Record)
+	if !ok {
+		return NewString("records can only be merged with records"), ErrorTramp
+	}
+	res := EmptyRecord()
+	for _, k := range r.keys {
+		res.SetField(k, r.fields[k])
+	}
+	for _, k := range arg.keys {
+		res.SetField(k, arg.fields[k])
+	}
+	return res, ReturnTramp
+}

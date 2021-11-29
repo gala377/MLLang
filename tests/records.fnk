@@ -37,3 +37,9 @@ io.print (retRecord!.question? ())
 ; set nested
 nested.inner.more_inner.value = 3
 io.print nested.inner.more_inner.value
+
+; merging records
+scope:
+  let a = { foo: 1, bar: 2 }
+  let b = { baz: 3, bar: 4 }
+  assert (seq.eq? (a b) {foo: 1, bar: 4, baz: 3}) "Record merging failed"
