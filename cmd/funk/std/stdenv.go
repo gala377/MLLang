@@ -96,6 +96,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&convModule,
 	&timeModule,
 	&httpModule,
+	&inspectModule,
 	&funkSource{funkPrelude},
 	&funkSource{funkConv},
 	&funkSource{funkSeq},

@@ -94,35 +94,79 @@ io.print (istype? frank Student)
 ; get filter nonempty strings
 assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
 
+; fn multimethod selector:
+;   let meths = []
+;   {
+;     fn create = do args:
+;       let selected = selector args
+;       let s = seq.get selected 0
+;       let margs = seq.get selected 1
+;       let ret = seq.foreach meths do m:
+;         if (eq? (seq.get m 0) s):
+;           let impl = seq.get m 1
+;           let val = apply impl margs
+;           return (`break, (`found, val))
+;       if none? ret:
+;         panic "no multimethod implementation found"
+;       seq.get ret 1,
+; 
+;     fn instance v m:
+;       seq.append meths (v, m),
+;   }
+; 
+; let foom_ = multimethod do args -> [
+;   int? (seq.get args 0),
+;   (seq.get args 0, seq.get args 1),
+; ]
+; 
+; let foo = foom_.create!
+; 
+; foom_.instance true do |a b| -> add a b
+; foom_.instance false do |a b| -> io.print "not integer"
+; 
+; io.print (foo (1, 10))
+; foo (none, none)
+
+
 fn multimethod selector:
   let meths = []
+  let arity = inspect.arity selector
+  fn callWithArgs args:
+    let key = apply selector args
+    let f = seq.find meths do el -> eq? key (fst el)
+    if none? f:
+      panic "no multimethod instance found"
+    f = snd f
+    apply f args
+
+  fn createNextCall args:
+    do arg:
+      seq.append args arg
+      if eq? (seq.len args) arity:
+        return callWithArgs args
+      createNextCall args
   {
-    fn create = do args:
-      let selected = selector args
-      let s = seq.get selected 0
-      let margs = seq.get selected 1
-      let ret = seq.foreach meths do m:
-        if (eq? (seq.get m 0) s):
-          let impl = seq.get m 1
-          let val = apply impl margs
-          return (`break, (`found, val))
-      if none? ret:
-        panic "no multimethod implementation found"
-      seq.get ret 1,
+    fn create:
+      fn firstCall arg:
+        let args = [arg]
+        if eq? arity 1:
+          return callWithArgs args
+        createNextCall args
+      firstCall,
 
     fn instance v m:
       seq.append meths (v, m),
   }
 
-let foom_ = multimethod do args -> [
-  int? (seq.get args 0),
-  (seq.get args 0, seq.get args 1),
-]
+
+
+let foom_ = multimethod do |a b| -> int? a
 
 let foo = foom_.create!
 
 foom_.instance true do |a b| -> add a b
 foom_.instance false do |a b| -> io.print "not integer"
 
-io.print (foo (1, 10))
-foo (none, none)
+io.print (foo 1 10)
+foo none none
+
