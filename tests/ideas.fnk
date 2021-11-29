@@ -128,39 +128,7 @@ assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "
 ; foo (none, none)
 
 
-fn multimethod selector:
-  let meths = []
-  let arity = inspect.arity selector
-  fn callWithArgs args:
-    let key = apply selector args
-    let f = seq.find meths do el -> eq? key (fst el)
-    if none? f:
-      panic "no multimethod instance found"
-    f = snd f
-    apply f args
-
-  fn createNextCall args:
-    do arg:
-      seq.append args arg
-      if eq? (seq.len args) arity:
-        return callWithArgs args
-      createNextCall args
-  {
-    fn create:
-      fn firstCall arg:
-        let args = [arg]
-        if eq? arity 1:
-          return callWithArgs args
-        createNextCall args
-      firstCall,
-
-    fn instance v m:
-      seq.append meths (v, m),
-  }
-
-
-
-let foom_ = multimethod do |a b| -> int? a
+let foom_ = multimethod.new do |a b| -> int? a
 
 let foo = foom_.create!
 

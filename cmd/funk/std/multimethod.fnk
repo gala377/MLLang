@@ -1,0 +1,35 @@
+
+let multimethod = {
+  fn new selector:
+    let arity = inspect.arity selector
+    if zero? arity:
+      panic "Multimethod's arity cannot be 0"
+    let meths = []
+
+    fn callWithArgs args:
+      let key = apply selector args
+      let f = seq.find meths do el -> eq? key (fst el)
+      if none? f:
+        panic "no multimethod instance found"
+      apply (snd f) args
+
+    fn createNextCall args:
+      do arg:
+        seq.append args arg
+        if eq? (seq.len args) arity:
+          return callWithArgs args
+        createNextCall args
+
+    {
+      fn create:
+        fn firstCall arg:
+          let args = [arg]
+          if eq? arity 1:
+            return callWithArgs args
+          createNextCall args
+        firstCall,
+
+      fn instance v m:
+        seq.append meths (v, m),
+    },
+}

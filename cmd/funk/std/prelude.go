@@ -15,6 +15,9 @@ var funkPrelude []byte
 //go:embed struct.fnk
 var funkStruct []byte
 
+//go:embed multimethod.fnk
+var funkMultimethod []byte
+
 func add(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	a1, a2 := vv[0], vv[1]
 	i1, ok := a1.(data.Number)

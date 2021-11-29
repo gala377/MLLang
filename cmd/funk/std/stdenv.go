@@ -103,4 +103,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{funkStruct},
 	&funkSource{funkRecords},
 	&funkSource{funkIo},
+	&funkSource{funkMultimethod},
 }
