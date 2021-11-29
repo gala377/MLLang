@@ -75,25 +75,6 @@ func neg(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	return i1.Neg(), nil
 }
 
-func printf(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
-	format, val := vv[0], vv[1]
-	sfmt, ok := format.(data.String)
-	if !ok {
-		return nil, fmt.Errorf("first argument to printf has to be a string")
-	}
-	fmt.Printf(sfmt.Val+"\n", val)
-	return data.None, nil
-}
-
-func print(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
-	val := vv[0]
-	msg := val.String()
-	if s, ok := val.(data.String); ok {
-		msg = s.Val
-	}
-	fmt.Println(msg)
-	return data.None, nil
-}
 func lessThan(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 	a, b := vv[0], vv[1]
 	ai, ok := a.(data.Int)

@@ -91,13 +91,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"record?", 1, isRecord},
 	&funcEntry{"or", 2, boolOr},
 	&funcEntry{"and", 2, boolAnd},
-	&module{
-		Name: "io",
-		Entries: map[string]AsValue{
-			"print":  &funcEntry{"print", 1, print},
-			"printf": &funcEntry{"printf", 2, printf},
-		},
-	},
+	&ioModule,
 	&seqModule,
 	&convModule,
 	&timeModule,
@@ -107,4 +101,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{funkSeq},
 	&funkSource{funkStruct},
 	&funkSource{funkRecords},
+	&funkSource{funkIo},
 }
