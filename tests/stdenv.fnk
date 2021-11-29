@@ -183,12 +183,10 @@ assert (float? (div 3 2.)) none
 
 
 scope:
-  let fooMethod = multimethod.new do |a b| -> int? a
+  let foo = methods.new do |a b| -> int? a
 
-  let foo = fooMethod.create!
-
-  fooMethod.instance true do |a b| -> add a b
-  fooMethod.instance false do |a b| -> "not integer"
+  methods.impl foo true do |a b| -> add a b
+  methods.impl foo false do |a b| -> "not integer"
 
   assert (eq? (foo 1 10) 11) "multimethod dispatch fail"
   assert (eq? (foo none 10) "not integer") "multimethod dispatch fail"

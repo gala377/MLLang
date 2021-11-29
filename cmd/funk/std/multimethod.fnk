@@ -1,14 +1,16 @@
+let methods = scope:
+  let registered_methods = []
 
-let multimethod = {
   fn new selector:
     let arity = inspect.arity selector
     if zero? arity:
       panic "Multimethod's arity cannot be 0"
-    let meths = []
+
+    let implementations = []
 
     fn callWithArgs args:
       let key = apply selector args
-      let f = seq.find meths do el -> eq? key (fst el)
+      let f = seq.find implementations do el -> eq? key (fst el)
       if none? f:
         panic "no multimethod instance found"
       apply (snd f) args
@@ -20,19 +22,31 @@ let multimethod = {
           return callWithArgs args
         createNextCall args
 
-    {
-      fn create:
-        fn firstCall arg:
-          let args = [arg]
-          if eq? arity 1:
-            return callWithArgs args
-          createNextCall args
-        firstCall,
+    fn firstCall arg:
+      let args = [arg]
+      if eq? arity 1:
+        return callWithArgs args
+      createNextCall args
 
-      fn instance v m:
-        ; we assign so that call to instance will
-        ; always return `none` and we will not leak
-        ; methods list
-        let _ = seq.append meths (v, m),
-    },
-}
+    fn instance v m:
+      ; we assign so that call to instance will
+      ; always return `none` and we will not leak
+      ; methods list
+      let _ = seq.append implementations (v, m)
+
+    seq.append registered_methods {
+      key: firstCall,
+      instance,
+      arity,
+    }
+    return firstCall
+
+  fn impl meth key body:
+    let m = seq.find registered_methods do m -> eq? meth (m.key)
+    if none? m:
+      panic "not a multimethod"
+    if neq? m.arity (inspect.arity body):
+      panic "method's body arity does not match"
+    m.instance key body
+
+  {new, impl}
