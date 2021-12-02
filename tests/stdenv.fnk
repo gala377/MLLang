@@ -195,3 +195,5 @@ scope:
   let foo2 = foo none
   assert (eq? (foo1 10) 11) "multimethod dispatch fail"
   assert (eq? (foo2 10) "not integer") "multimethod dispatch fail"
+
+

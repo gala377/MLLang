@@ -14,7 +14,7 @@ var recordsModule = module{
 	Name: "records",
 	Entries: map[string]AsValue{
 		"getField":  &funcEntry{"getField", 3, getField},
-		"hasField?": &funcEntry{"hasField", 2, hasField},
+		"hasField?": &funcEntry{"hasField?", 2, hasField},
 	},
 }
 

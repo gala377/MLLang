@@ -4,32 +4,90 @@ let iter = scope:
   fn makeSeqIterator s:
     let len = seq.len s
     let curr = 0
-    {
-        fn hasNext?:
-          return neq? curr len,
-
-        fn getNext:
-          if eq? len curr:
-            panic "fetching item past iterator"
-          else:
-            let ret = seq.get s curr
-            curr = inc curr
-            ret,
+    let it = {
+      fn getNext:
+        if eq? curr len:
+          return iter.STOP_ITER
+        let ret = seq.get s curr
+        curr = inc curr
+        ret,
     }
+    it.iterator = do -> it
+    return it
 
   {
+    STOP_ITER: `STOP_ITER_MARKER,
+
     fn make iterable:
-      if and (record? iterable) (records.hasField? iterable `iterator):
-        return iterable.iterator!
+      if record? iterable:
+        if records.hasField? iterable `iterator:
+          return iterable.iterator!
       if seq? iterable:
         return makeSeqIterator iterable
       panic "expected iterable sequence",
 
-    fn hasNext? it = it.hasNext?!,
+    fn next it = it.getNext!,
 
-    fn next it:
-      if iter.hasNext?!:
-        (it.getNext!, it)
-      else:
-        none
+    fn foreach iterable body:
+      let it = iter.make iterable
+      let curr = iter.next it
+      while not (eq? curr iter.STOP_ITER):
+        body curr
+        curr = iter.next it,
+
+    fn fold iterable init body:
+      iter.foreach iterable do x:
+        init = body init x
+      init,
+
+    fn map it body:
+      it = iter.make it
+      let miter = {
+        fn getNext:
+          let res = iter.next it
+          if eq? res iter.STOP_ITER:
+            return res
+          body res,
+      }
+      miter.iterator = do -> miter
+      miter,
+
+    fn enumerate it:
+      let counter = 0
+      iter.map it do x:
+        let ret = (counter, x)
+        counter = inc counter
+        ret,
+
+    fn zip it1 it2:
+      it1 = iter.make it1
+      it2 = iter.make it2
+      let zipiter = {
+        fn getNext:
+          let n1 = iter.next it1
+          let n2 = iter.next it2
+          if or (eq? n1 iter.STOP_ITER) (eq? n2 iter.STOP_ITER):
+            return iter.STOP_ITER
+          (n1, n2),
+      }
+      zipiter.iterator = do -> zipiter
+      zipiter,
+
+    fn filter it pred:
+      it = iter.make it
+      let filteriter = {
+        fn getNext:
+          let n = iter.next it
+          if eq? n iter.STOP_ITER:
+            return iter.STOP_ITER
+          while not (pred n):
+            n = iter.next it
+            if eq? n iter.STOP_ITER:
+              return iter.STOP_ITER
+          n,
+      }
+      filteriter.iterator = do -> filteriter
+      filteriter,
+
+    fn toList it = iter.fold it [] seq.append,
   }

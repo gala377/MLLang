@@ -1,0 +1,47 @@
+@EXPECTED
+1
+2
+3
+4
+5
+6
+making map
+made map
+map
+filter
+1
+map
+filter
+4
+map
+filter
+9
+map
+filter
+map
+filter
+map
+filter
+
+@SOURCE
+
+let tests = [1, 2, 3, 4, 5, 6]
+
+iter.foreach tests io.print
+assert (seq.eq? (iter.toList (iter.map (iter.make tests) inc)) [2, 3, 4, 5, 6, 7]) "map failed"
+
+io.print "making map"
+let power = iter.map tests do x:
+  io.print "map"
+  mul x x
+
+let powerlessthan = iter.filter power do x:
+  io.print "filter"
+  lt? x 10
+
+io.print "made map"
+
+iter.foreach powerlessthan io.print
+
+iter.foreach (iter.zip tests tests) do x:
+  assert (eq? (fst x) (snd x)) "asertion failed"

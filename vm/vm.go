@@ -183,7 +183,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			arg := vm.pop()
 			callee, ok := vm.pop().(data.Callable)
 			if !ok {
-				vm.bail(fmt.Sprintf("Cannot apply %s", callee))
+				vm.bail(fmt.Sprintf("Cannot apply %v", callee))
 			}
 			if callee.Arity() == 0 {
 				vm.bail("Expected non nullary callable")
