@@ -87,3 +87,38 @@ fn suspend comp:
       ret = comp!
       called = true
     ret
+
+extend prelude {
+  scope,
+  flip,
+  const,
+  const2,
+  fst,
+  snd,
+  neq?,
+  inc,
+  dec,
+  none?,
+  zero?,
+  assert,
+  foreach,
+  fold,
+  sum,
+  map,
+  filter,
+  extend,
+  enumerate,
+  zip,
+  max,
+  min,
+  apply,
+  lazyapp,
+  suspend,
+  io,
+  seq,
+  conv,
+  time,
+  http,
+  inspect,
+  records,
+}
