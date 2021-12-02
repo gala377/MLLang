@@ -1,0 +1,35 @@
+
+
+let iter = scope:
+  fn makeSeqIterator s:
+    let len = seq.len s
+    let curr = 0
+    {
+        fn hasNext?:
+          return neq? curr len,
+
+        fn getNext:
+          if eq? len curr:
+            panic "fetching item past iterator"
+          else:
+            let ret = seq.get s curr
+            curr = inc curr
+            ret,
+    }
+
+  {
+    fn make iterable:
+      if and (record? iterable) (records.hasField? iterable `iterator):
+        return iterable.iterator!
+      if seq? iterable:
+        return makeSeqIterator iterable
+      panic "expected iterable sequence",
+
+    fn hasNext? it = it.hasNext?!,
+
+    fn next it:
+      if iter.hasNext?!:
+        (it.getNext!, it)
+      else:
+        none
+  }
