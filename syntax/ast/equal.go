@@ -291,3 +291,10 @@ func (h *Handle) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (e *EffectDecl) Equal(o Node) bool {
+	if oe, ok := o.(*EffectDecl); ok {
+		return oe.Name == e.Name
+	}
+	return false
+}

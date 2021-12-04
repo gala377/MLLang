@@ -47,6 +47,11 @@ type (
 		Lift bool
 	}
 
+	EffectDecl struct {
+		*span.Span
+		Name string
+	}
+
 	StmtExpr struct {
 		Expr
 	}
@@ -190,6 +195,7 @@ type (
 
 func (g *GlobalValDecl) declNode() {}
 func (f *FuncDecl) declNode()      {}
+func (e *EffectDecl) declNode()    {}
 
 func (v *ValDecl) stmtNode()    {}
 func (w *WhileStmt) stmtNode()  {}
@@ -233,6 +239,10 @@ func (f *FuncDecl) NodeSpan() *span.Span {
 
 func (v *ValDecl) NodeSpan() *span.Span {
 	return v.Span
+}
+
+func (e *EffectDecl) NodeSpan() *span.Span {
+	return e.Span
 }
 
 func (s *StmtExpr) NodeSpan() *span.Span {
@@ -335,6 +345,10 @@ func (f *FuncDecl) String() string {
 	msg += "} "
 	msg += f.Body.String()
 	return msg
+}
+
+func (e *EffectDecl) String() string {
+	return fmt.Sprintf("EffectDecl{%s}", e.Name)
 }
 
 func (b *Block) String() string {

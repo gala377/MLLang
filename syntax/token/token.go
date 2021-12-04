@@ -53,6 +53,7 @@ const (
 	Return
 	Handle
 	With
+	Effect
 	keywords_end
 
 	operators_beg
@@ -104,6 +105,7 @@ var tokens = [...]string{
 	Return: "return",
 	Handle: "handle",
 	With:   "with",
+	Effect: "effect",
 
 	Assignment:  "=",
 	Exclamation: "!",
