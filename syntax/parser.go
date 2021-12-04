@@ -84,6 +84,7 @@ func NewParser(source io.Reader) *Parser {
 			p.scope.InsertVal(&decl)
 			return &decl, true
 		},
+		token.Effect: p.parseEffectDecl,
 	}
 	p.parseTrailingBlocks = true
 	p.scope = NewScope(nil)
@@ -142,6 +143,10 @@ func (p *Parser) parseTopLevelDecl() (ast.Decl, bool) {
 	vnode, ok := p.parseGlobalValDecl()
 	if vnode != nil || !ok {
 		return vnode, ok
+	}
+	enode, ok := p.parseTopLevelEffectDecl()
+	if enode != nil || !ok {
+		return enode, ok
 	}
 	return nil, true
 }
@@ -235,6 +240,27 @@ func (p *Parser) parseGlobalValDecl() (*ast.GlobalValDecl, bool) {
 	}
 	p.scope.Insert(node.Name)
 	return &node, ok
+}
+
+func (p *Parser) parseTopLevelEffectDecl() (*ast.EffectDecl, bool) {
+	beg := p.position()
+	if p.match(token.Effect) == nil {
+		return nil, true
+	}
+	name := p.parseIdentifier()
+	if name == nil {
+		p.error(beg, p.position(), "Expected idnetifier as an effect name")
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	if !p.scope.IsGlobal() {
+		panic("ICE: expected global scope")
+	}
+	p.scope.Insert(name.Name)
+	return &ast.EffectDecl{
+		Name: name.Name,
+		Span: &span,
+	}, true
 }
 
 func (p *Parser) parseTopLevelStmt() (ast.Stmt, bool) {
@@ -899,6 +925,10 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 	}
 	p.scope.InsertVal(&node)
 	return &node, ok
+}
+
+func (p *Parser) parseEffectDecl() (ast.Stmt, bool) {
+	panic("Local effects unsupported")
 }
 
 func (p *Parser) parseReturn() (ast.Stmt, bool) {
