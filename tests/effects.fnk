@@ -1,0 +1,29 @@
+@EXPECTED
+hello
+
+@SOURCE
+
+effect None
+
+; handler that performs no effects does not execute withs
+handle:
+  io.print "hello"
+with None v:
+  io.print "Hello again"
+
+; handler return values
+let a = handle:
+  "should return"
+with None a:
+  "should not return"
+
+assert (eq? a "should return") "effect assertion failed"
+
+; returns return from handler not from function
+fn inFunction:
+  let a = handle:
+    return 1
+  with None _:
+    return 2
+  add a 100
+assert (eq? inFunction! 101) "function returned wrong value"
