@@ -10,7 +10,7 @@ type (
 	Handler struct {
 		// Maps effect types to handlers
 		// Handlers have to be functions accepting either one or 2 arguments
-		Clauses map[*Type]Value
+		Clauses map[*Type]Callable
 	}
 )
 
@@ -18,7 +18,7 @@ func NewType(name Symbol) *Type {
 	return &Type{name}
 }
 
-func NewHandler(clauses map[*Type]Value) *Handler {
+func NewHandler(clauses map[*Type]Callable) *Handler {
 	return &Handler{clauses}
 }
 
@@ -31,6 +31,15 @@ func (e *Type) Equal(o Value) bool {
 		return e == ov
 	}
 	return false
+}
+
+func (e *Type) Arity() int {
+	return 1
+}
+
+func (e *Type) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
+	arg := vv[0]
+	return NewTuple([]Value{e, arg}), EffectTramp
 }
 
 func (e *Handler) String() string {

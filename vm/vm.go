@@ -340,9 +340,12 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			rec.SetField(name, val)
 		case isa.InstallHandler:
 			argc := vm.readShort()
-			arms := map[*data.Type]data.Value{}
+			arms := map[*data.Type]data.Callable{}
 			for i := 0; i < int(argc); i++ {
-				hfunc := vm.pop()
+				hfunc, ok := vm.pop().(data.Callable)
+				if !ok {
+					vm.bail("ICE: with clause handler is not a callable")
+				}
 				typ, ok := vm.pop().(*data.Type)
 				if !ok {
 					vm.bail("Handler can only switch on effect types")
@@ -447,19 +450,65 @@ func (vm *Vm) apply1(fn data.Callable, arg data.Value) (data.Value, data.Trampol
 	panic("unreachable")
 }
 
-func (vm *Vm) handleCall(v data.Value, t data.Trampoline) {
-	switch t.Kind {
-	case data.Returned:
-		vm.push(v)
-	case data.Call:
-		vm.push(data.Int{Val: vm.ip})
-		vm.push(vm.code)
-		vm.push(vm.locals)
-		vm.ip = 0
-		vm.code = t.Code
-		vm.locals = t.Env
-	case data.Error:
-		vm.bail(v.String())
+func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline) {
+	for {
+		switch tramp.Kind {
+		case data.Returned:
+			vm.push(retval)
+		case data.Call:
+			vm.push(data.Int{Val: vm.ip})
+			vm.push(vm.code)
+			vm.push(vm.locals)
+			vm.ip = 0
+			vm.code = tramp.Code
+			vm.locals = tramp.Env
+		case data.Error:
+			vm.bail(retval.String())
+		case data.Effect:
+			args, ok := retval.(data.Tuple)
+			if !ok {
+				vm.bail("ICE: expected tuple of (type, arg) when performing an effect. Not a tuple")
+			}
+			typ, ok := vm.unsafeTupleGet(args, 0).(*data.Type)
+			if !ok {
+				vm.bail("ICE: expected tuple of (type, arg) when performing an effect. Not a type")
+			}
+			arg := vm.unsafeTupleGet(args, 1)
+			retval, tramp = vm.handleEffect(typ, arg)
+			continue
+		}
+		break
+	}
+}
+
+func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Trampoline) {
+	// captured reversed stack
+	rstack := []data.Value{}
+	// either bails or returns new function to call
+	for {
+		if vm.stackTop == 0 {
+			vm.bail(fmt.Sprintf("Unhandled effect %s with val %s", typ, arg))
+		}
+		sv := vm.pop()
+		handler, ok := sv.(*data.Handler)
+		if ok {
+			for ty, h := range handler.Clauses {
+				if typ.Equal(ty) {
+					switch h.Arity() {
+					case 1:
+						return h.Call(vm, arg)
+					case 2:
+						// todo
+						vm.bail("Passing continuations to effects unsupported")
+						fmt.Printf("Stack %v", rstack)
+
+					default:
+						vm.bail("ICE: unsupported arity of effect handling clause")
+					}
+				}
+			}
+		}
+		rstack = append(rstack, sv)
 	}
 }
 
@@ -536,6 +585,14 @@ func (vm *Vm) RunClosure(c data.Callable, args ...data.Value) data.Value {
 		return v
 	}
 	return data.None
+}
+
+func (vm *Vm) unsafeTupleGet(t data.Tuple, i int) data.Value {
+	v, err := t.Get(data.NewInt(i))
+	if err != nil {
+		vm.bail("ICE: tried to take a value from tuple past its indices")
+	}
+	return v
 }
 
 func reverse(s []data.Value) []data.Value {

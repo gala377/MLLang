@@ -46,9 +46,16 @@ type (
 )
 
 const (
+	// Immedietaly returns with value returned with trampoline
 	Returned ReturnKind = iota
+	// Executes code with environment returned in the trampoline
 	Call
 	TailCall
+	// Performs an effect, value returned alongside this trampline
+	// has to be a tuple of (effect type, effect value)
+	Effect
+	// Immediately executes error in the vm with the message
+	// taken from the value returned alongside this trampoline
 	Error
 )
 
@@ -194,3 +201,4 @@ func (f *Closure) Equal(o Value) bool {
 
 var ReturnTramp = Trampoline{Kind: Returned}
 var ErrorTramp = Trampoline{Kind: Error}
+var EffectTramp = Trampoline{Kind: Effect}
