@@ -494,6 +494,30 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 		if ok {
 			for ty, h := range handler.Clauses {
 				if typ.Equal(ty) {
+					// last 3 values on the stack are function frame we want to restore
+					// we pushed                 ip, code, locals
+					// so on the rstack we have: locals, code, ip
+					// we need to restore it
+					last := len(rstack)
+					env, ok := rstack[last-3].(*data.Env)
+					if !ok {
+						panic("ICE: on return popped value is not an env")
+					}
+					code, ok := rstack[last-2].(*data.Code)
+					if !ok {
+						panic("ICE: on return popped value is not a code")
+					}
+					ip, ok := rstack[last-1].(data.Int)
+					if !ok {
+						panic("ICE: on return popped value is not an ip")
+					}
+					vm.ip = ip.Val
+					vm.locals = env
+					vm.code = code
+					if vm.code.Instrs[vm.ip] != isa.PopHandler {
+						panic("ICE: expected instruction pointer to be pointing to PopHandler op")
+					}
+					vm.ip++
 					switch h.Arity() {
 					case 1:
 						return h.Call(vm, arg)

@@ -1,7 +1,9 @@
-@EXPECTED
-hello
-
-@SOURCE
+; @EXPECTED
+; hello
+; hello
+; I am handling None
+; 
+; @SOURCE
 
 effect None
 
@@ -27,3 +29,24 @@ fn inFunction:
     return 2
   add a 100
 assert (eq? inFunction! 101) "function returned wrong value"
+
+effect Some
+
+; handler that performs no effects does not execute withs
+handle:
+  io.print "hello"
+  None none
+  io.print "hello again"
+with None v:
+  io.print "I am handling None"
+with Some v:
+  io.print "I am handling Some"
+
+; returns return from handler not from function
+fn inFunction2:
+  let a = handle:
+    return None none
+  with None _:
+    return 2
+  add a 100
+assert (eq? inFunction2! 102) "function returned wrong value"
