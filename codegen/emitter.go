@@ -314,6 +314,8 @@ func (e *Emitter) emitDeclaration(node ast.Decl) {
 		e.emitGlobalVariableDecl(v)
 	case *ast.FuncDecl:
 		e.emitFuncDeclaration(v)
+	case *ast.EffectDecl:
+		e.emitGlobalEffectDecl(v)
 	default:
 		panic("unreachable")
 	}
@@ -337,6 +339,29 @@ func (e *Emitter) emitGlobalVariableDecl(node *ast.GlobalValDecl) {
 		return
 	}
 	e.line = int(node.Beg.Line)
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(index))
+	e.emitByte(isa.DefGlobal)
+	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitGlobalEffectDecl(node *ast.EffectDecl) {
+	if !e.scope.IsGlobal() {
+		panic("ICE: trying to emit global effect declration not in global scope")
+	}
+	if e.scope.Lookup(node.Name) != nil {
+		e.error(node.Span, fmt.Sprintf("redeclaration of name %s", node.Name))
+		return
+	}
+	e.scope.Insert(node.Name)
+	iname := e.interner.Intern(node.Name)
+	s := data.NewSymbol(iname)
+	e.emitConstant(data.NewType(s))
+	index, err := e.addSymbol(node.Name)
+	if err != nil {
+		e.error(node.Span, fmt.Sprintf("Cannot emit effect name %s", err))
+		return
+	}
 	args := []byte{0, 0}
 	binary.BigEndian.PutUint16(args, uint16(index))
 	e.emitByte(isa.DefGlobal)
