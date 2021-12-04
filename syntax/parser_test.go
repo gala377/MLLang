@@ -1077,6 +1077,20 @@ func TestParsingHandle(t *testing.T) {
 	matchAstWithTable(t, &table)
 }
 
+func TestParsingEffects(t *testing.T) {
+	table := ptable{
+		{
+			"effect a\n",
+			[]an{
+				&ast.EffectDecl{
+					Name: "a",
+				},
+			},
+		},
+	}
+	matchAstWithTable(t, &table)
+}
+
 func matchAstWithTable(t *testing.T, table *ptable) {
 	for _, test := range *table {
 		t.Run(test.source, func(t *testing.T) {
