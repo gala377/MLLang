@@ -345,7 +345,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				hfunc := vm.pop()
 				typ, ok := vm.pop().(*data.Type)
 				if !ok {
-					vm.bail("ICE: expected type for handler creation")
+					vm.bail("Handler can only switch on effect types")
 				}
 				arms[typ] = hfunc
 			}
