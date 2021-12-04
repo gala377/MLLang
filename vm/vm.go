@@ -338,6 +338,26 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("field can only be accessed on a record")
 			}
 			rec.SetField(name, val)
+		case isa.InstallHandler:
+			argc := vm.readShort()
+			arms := map[*data.Type]data.Value{}
+			for i := 0; i < int(argc); i++ {
+				hfunc := vm.pop()
+				typ, ok := vm.pop().(*data.Type)
+				if !ok {
+					vm.bail("ICE: expected type for handler creation")
+				}
+				arms[typ] = hfunc
+			}
+			handler := data.NewHandler(arms)
+			vm.push(handler)
+		case isa.PopHandler:
+			ret := vm.pop()
+			_, ok := vm.pop().(*data.Handler)
+			if !ok {
+				vm.bail("ICE PopHandler did not pop a handler")
+			}
+			vm.push(ret)
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))

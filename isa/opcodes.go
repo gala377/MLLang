@@ -32,4 +32,7 @@ const (
 	CResume
 	CCapture
 	CPrompt
+	InstallHandler
+	PopHandler
+	PerformEffect
 )

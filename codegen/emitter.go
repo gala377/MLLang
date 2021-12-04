@@ -144,6 +144,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitAccess(v)
 	case *ast.Symbol:
 		e.emitSymbol(v.Val)
+	case *ast.Handle:
+		e.emitHandler(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -285,26 +287,6 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 	e.line = int(node.Beg.Line)
 	e.emitByte(instr)
 	e.emitBytes(args...)
-}
-
-func (e *Emitter) emitApplicationDeprecated(node *ast.FuncApplication) {
-	e.emitExpr(node.Callee)
-	for _, a := range node.Args {
-		e.emitExpr(a)
-	}
-	argc := len(node.Args)
-	if node.Block != nil {
-		argc += 1
-		e.emitLambda(node.Block)
-	}
-	if argc > 255 {
-		e.error(node.NodeSpan(), "Function application with more than 255 arguments is not supported")
-		e.emitBytes(isa.Call, byte(255))
-		return
-	}
-	e.line = int(node.Beg.Line)
-	as := byte(argc)
-	e.emitBytes(isa.Call, as)
 }
 
 func (e *Emitter) emitApplication(node *ast.FuncApplication) {
@@ -569,6 +551,43 @@ func (e *Emitter) emitWhile(node *ast.WhileStmt) {
 	e.patchJump(jb, jb-lbeg)
 	off := e.result.Len() - jpos
 	e.patchJump(jpos, off)
+}
+
+func (e *Emitter) emitHandler(node *ast.Handle) {
+	for _, arm := range node.Arms {
+		typ := arm.Effect
+		e.emitExpr(typ)
+		args := []*ast.FuncDeclArg{{
+			Span: arm.Arg.Span,
+			Name: arm.Arg.Name,
+		}}
+		if arm.Continuation != nil {
+			args = append(args, &ast.FuncDeclArg{
+				Span: arm.Continuation.Span,
+				Name: arm.Continuation.Name,
+			})
+		}
+		e.emitLambda(&ast.LambdaExpr{
+			Span: arm.Body.Span,
+			Args: args,
+			Body: arm.Body,
+		})
+	}
+	if len(node.Arms) > math.MaxUint16 {
+		e.error(node.Span, "More handler arms than uint16 can hold, that is unsupported")
+		return
+	}
+	args := []byte{0, 0}
+	binary.BigEndian.PutUint16(args, uint16(len(node.Arms)))
+	e.emitByte(isa.InstallHandler)
+	e.emitBytes(args...)
+	e.emitLambda(&ast.LambdaExpr{
+		Span: node.Body.Span,
+		Args: []*ast.FuncDeclArg{},
+		Body: node.Body,
+	})
+	e.emitByte(isa.Call0)
+	e.emitByte(isa.PopHandler)
 }
 
 func (e *Emitter) emitReturn(node *ast.Return) {
