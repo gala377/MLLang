@@ -7,6 +7,8 @@ Before some
 indirection
 Before some
 no direction
+indirection
+Before some
 @SOURCE
 
 effect None
@@ -97,3 +99,23 @@ fn nestedHandlers2:
     add val 100
 
 assert (eq? nestedHandlers2! 20) "nested handlers 2 failed"
+
+
+fn nestedHandlers3:
+  fn indirection:
+    handle:
+      io.print "Before some"
+      some 10
+    with Some a:
+      some (add a 10)
+
+  handle:
+    io.print "indirection"
+    let a = indirection!
+    io.print "no direction"
+    a
+  with Some val:
+    add val 100
+
+
+assert (eq? nestedHandlers3! 120) "nested handlers 2 failed"
