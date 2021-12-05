@@ -60,6 +60,7 @@ const (
 	Assignment
 	Exclamation
 	Arrow
+	Dollar
 	operators_end
 
 	Eof
@@ -110,6 +111,7 @@ var tokens = [...]string{
 	Assignment:  "=",
 	Exclamation: "!",
 	Arrow:       "->",
+	Dollar:      "$",
 
 	Eof: "EOF",
 }

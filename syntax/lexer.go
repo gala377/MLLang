@@ -156,6 +156,8 @@ func (l *Lexer) scanNextToken() token.Token {
 		case ',':
 			tok.Typ = token.Comma
 		case '|':
+			// todo: if another opearator character follows then it's
+			// a operator. So for exampl |> |+|
 			tok.Typ = token.Pipe
 		case '.':
 			tok.Typ = token.Access

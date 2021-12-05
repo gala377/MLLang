@@ -307,7 +307,7 @@ func (p *Parser) parseExpr() (ast.Expr, bool) {
 	t := p.curr
 	parseSpecialForm := p.exprSpecialForms[t.Typ]
 	if parseSpecialForm == nil {
-		return p.parseFunctionApp()
+		return p.parseBinaryExpression()
 	}
 	res, ok := parseSpecialForm()
 	if ok && res == nil {
@@ -315,6 +315,34 @@ func (p *Parser) parseExpr() (ast.Expr, bool) {
 		panic("chosen parse expr function could not parse an expr")
 	}
 	return res, ok
+}
+
+func (p *Parser) parseBinaryExpression() (ast.Expr, bool) {
+	beg := p.position()
+	fapp, ok := p.parseFunctionApp()
+	if fapp == nil || !ok {
+		return fapp, ok
+	}
+	applications := []ast.Expr{fapp}
+	for p.match(token.Dollar) != nil {
+		fapp, ok := p.parseFunctionApp()
+		if fapp == nil || !ok {
+			p.error(beg, p.position(), "expected expression after binary operator")
+			return fapp, ok
+		}
+		applications = append(applications, fapp)
+	}
+	app := applications[len(applications)-1]
+	for i := len(applications) - 2; i >= 0; i-- {
+		napp := applications[i]
+		span := span.NewSpan(napp.NodeSpan().Beg, app.NodeSpan().End)
+		app = &ast.FuncApplication{
+			Span:   &span,
+			Callee: napp,
+			Args:   []ast.Expr{app},
+		}
+	}
+	return app, true
 }
 
 func (p *Parser) parseBlock() (*ast.Block, bool) {
