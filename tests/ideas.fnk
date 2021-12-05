@@ -5,47 +5,48 @@ effect Yield
 
 fn yield a = Yield a
 
-fn iterate s = do -> foreach s yield
+scope:
+  fn iterate s = do -> foreach s yield
 
-fn collect acc it:
-  handle:
-    it!
-  with Yield val -> resume:
-    seq.append acc val
-    collect acc do -> resume none
-  acc
-
-fn map it body:
-  do:
+  fn collect acc it:
     handle:
       it!
     with Yield val -> resume:
-      yield (body val)
-      (map (do -> resume none) body)!
+      seq.append acc val
+      collect acc do -> resume none
+    acc
 
-fn enumerate it:
-  fn loop c it:
+  fn map it body:
+    do:
+      handle:
+        it!
+      with Yield val -> resume:
+        yield (body val)
+        (map (do -> resume none) body)!
+
+  fn enumerate it:
+    fn loop c it:
+      handle:
+        it!
+      with Yield val -> resume:
+        yield (c, val)
+        loop (inc c) do -> resume none
+    do -> loop 0 it
+
+  fn filter it pred = do:
     handle:
       it!
     with Yield val -> resume:
-      yield (c, val)
-      loop (inc c) do -> resume none
-  do -> loop 0 it
+      if pred val:
+        yield val
+      (filter (do -> resume none) pred)!
 
-fn filter it pred = do:
-  handle:
-    it!
-  with Yield val -> resume:
-    if pred val:
-      yield val
-    (filter (do -> resume none) pred)!
+  let xs = iterate (seq.range 10)
+  let i1 = enumerate (map xs do a -> mul a a)
+  let it = filter i1 do arg -> zero? (mod (fst arg) 2)
 
-let xs = iterate (seq.range 10)
-let i1 = enumerate (map xs do a -> mul a a)
-let it = filter i1 do arg -> zero? (mod (fst arg) 2)
-
-let coll = collect [] it
-; assert (seq.eq? coll [(0, 0), (2, 4), (4, 16), (6, 36), (8, 64)]) "Effect iterators failed"
+  let coll = collect [] it
+  assert (seq.eq? coll [(0, 0), (2, 4), (4, 16), (6, 36), (8, 64)]) "Effect iterators failed"
 
 
 effect ExecCond
@@ -55,12 +56,11 @@ fn condition body:
   let ret = handle:
     body!
   with ExecCond f:
-    io.print "case worked"
     executed = true
     f!
   if not executed:
     panic "no matching arm"
-  io.print ret
+  assert (eq? ret "Hello") "hello failed"
 
 fn case pred body:
   if pred:
