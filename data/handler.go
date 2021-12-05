@@ -52,3 +52,7 @@ func (e *Handler) Equal(o Value) bool {
 	}
 	return false
 }
+
+func HandlerCapturesContinuation(h Callable) bool {
+	return h.Arity() == 2
+}

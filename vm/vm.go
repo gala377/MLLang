@@ -486,8 +486,12 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 		if handler, ok := sv.(*data.Handler); ok {
 			for ty, h := range handler.Clauses {
 				if typ.Equal(ty) {
-					// capture stack
-					len := vm.stackTop - curr
+					len := 4
+					if data.HandlerCapturesContinuation(h) {
+						// does use the continuation so we need to capture whole stack
+						// instead of just handler and stack frame
+						len = vm.stackTop - curr
+					}
 					stack := make([]data.Value, len)
 					if copied := copy(stack, vm.stack[curr:]); copied != len {
 						vm.bail("ICE: Could not copy the stack")
