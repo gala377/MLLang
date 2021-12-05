@@ -1,7 +1,6 @@
 ; get filter nonempty strings
 assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
 
-
 effect Yield
 
 fn yield a = Yield a
@@ -45,4 +44,34 @@ let xs = iterate (seq.range 10)
 let i1 = enumerate (map xs do a -> mul a a)
 let it = filter i1 do arg -> zero? (mod (fst arg) 2)
 
-assert (eq? (collect [] it) [(0, 0), (2, 4), (4, 16), (6, 36), (8, 64)]) "Effect iterators failed"
+let coll = collect [] it
+; assert (seq.eq? coll [(0, 0), (2, 4), (4, 16), (6, 36), (8, 64)]) "Effect iterators failed"
+
+
+effect ExecCond
+
+fn condition body:
+  let executed = false
+  let ret = handle:
+    body!
+  with ExecCond f:
+    io.print "case worked"
+    executed = true
+    f!
+  if not executed:
+    panic "no matching arm"
+  io.print ret
+
+fn case pred body:
+  if pred:
+    ExecCond body
+
+fn default body = ExecCond body
+
+condition:
+  case (eq? 1 2):
+    io.print "does not execute"
+  case (eq? "a" 1):
+    io.print "nope"
+  default:
+    "Hello"

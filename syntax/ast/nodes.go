@@ -187,8 +187,8 @@ type (
 	WithClause struct {
 		*span.Span
 		Effect       *Identifier
-		Arg          *Identifier
-		Continuation *Identifier
+		Arg          *FuncDeclArg
+		Continuation *FuncDeclArg
 		Body         *Block
 	}
 )
@@ -473,9 +473,9 @@ func (r *Return) String() string {
 func (h *Handle) String() string {
 	repr := fmt.Sprintf("Handle{\n%s\n}\n", h.Body)
 	for _, arm := range h.Arms {
-		repr += fmt.Sprintf("With{Effect{%s} Arg{%s}", arm.Effect, arm.Arg)
+		repr += fmt.Sprintf("With{Effect{%s} Arg{%s}", arm.Effect, arm.Arg.Name)
 		if arm.Continuation != nil {
-			repr += fmt.Sprintf(" -> {%s}", arm.Continuation)
+			repr += fmt.Sprintf(" -> {%s}", arm.Continuation.Name)
 		}
 		repr += "} Body {\n"
 		repr += arm.Body.String()

@@ -677,7 +677,9 @@ func (p *Parser) parseHandle() (ast.Expr, bool) {
 		log.Println("not a handle")
 		return nil, true
 	}
+	p.openScope()
 	body, ok := p.parseBlock()
+	p.closeScope()
 	if !ok {
 		return nil, false
 	}
@@ -720,17 +722,31 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		p.error(beg, p.position(), "Expected effect to handle in with clause")
 		p.recoverWithTokens(token.Colon)
 	}
-	arg := p.parseIdentifier()
-	if arg == nil {
+	p.openScope()
+	argid := p.parseIdentifier()
+	arg := &ast.FuncDeclArg{}
+	if argid == nil {
 		p.error(beg, p.position(), "expected effect's value name")
 		p.recoverWithTokens(token.Colon)
+	} else {
+		arg.Span = argid.Span
+		arg.Name = argid.Name
+		p.scope.InsertFuncArg(arg)
 	}
-	var cont *ast.Identifier = nil
+	defer p.closeScope()
+	p.scope.InsertFuncArg(arg)
+	var cont *ast.FuncDeclArg = nil
 	if p.match(token.Arrow) != nil {
-		cont = p.parseIdentifier()
-		if cont == nil {
+		contid := p.parseIdentifier()
+		if contid == nil {
 			p.error(beg, p.position(), "Expected name for the continuation")
 			p.recoverWithTokens(token.Colon)
+		} else {
+			cont = &ast.FuncDeclArg{
+				Span: contid.Span,
+				Name: contid.Name,
+			}
+			p.scope.InsertFuncArg(cont)
 		}
 	}
 	b, ok := p.parseBlock()

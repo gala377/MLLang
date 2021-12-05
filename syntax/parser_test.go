@@ -1027,8 +1027,8 @@ func TestParsingHandle(t *testing.T) {
 					Arms: []*ast.WithClause{
 						{
 							Effect:       &ast.Identifier{Name: "e1"},
-							Arg:          &ast.Identifier{Name: "a1"},
-							Continuation: &ast.Identifier{Name: "k"},
+							Arg:          &ast.FuncDeclArg{Name: "a1"},
+							Continuation: &ast.FuncDeclArg{Name: "k"},
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
 									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
@@ -1037,7 +1037,7 @@ func TestParsingHandle(t *testing.T) {
 						},
 						{
 							Effect:       &ast.Identifier{Name: "e2"},
-							Arg:          &ast.Identifier{Name: "a2"},
+							Arg:          &ast.FuncDeclArg{Name: "a2"},
 							Continuation: nil,
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
@@ -1061,8 +1061,8 @@ func TestParsingHandle(t *testing.T) {
 					Arms: []*ast.WithClause{
 						{
 							Effect:       &ast.Identifier{Name: "e"},
-							Arg:          &ast.Identifier{Name: "a"},
-							Continuation: &ast.Identifier{Name: "k"},
+							Arg:          &ast.FuncDeclArg{Name: "a"},
+							Continuation: &ast.FuncDeclArg{Name: "k"},
 							Body: &ast.Block{
 								Instr: []ast.Stmt{
 									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},

@@ -270,7 +270,7 @@ func (h *Handle) Equal(o Node) bool {
 		}
 		for i, ha := range h.Arms {
 			oa := oh.Arms[i]
-			if !AstEqual(ha.Arg, oa.Arg) {
+			if ha.Arg.Name != oa.Arg.Name {
 				log.Print("Arg differ")
 				return false
 			}
@@ -278,9 +278,17 @@ func (h *Handle) Equal(o Node) bool {
 				log.Print("Effect differ")
 				return false
 			}
-			if !AstEqual(ha.Continuation, oa.Continuation) {
-				log.Print("Continuation differ")
+			if ha.Continuation == nil && oa.Continuation != nil {
 				return false
+			}
+			if ha.Continuation != nil && oa.Continuation == nil {
+				return false
+			}
+			if ha.Continuation != nil && oa.Continuation != nil {
+				if ha.Continuation.Name != oa.Continuation.Name {
+					log.Print("Continuation differ")
+					return false
+				}
 			}
 			if !AstEqual(ha.Body, oa.Body) {
 				log.Print("Bodies differ")
