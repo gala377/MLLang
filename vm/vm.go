@@ -102,15 +102,15 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			env, ok := vm.pop().(*data.Env)
 			if !ok {
-				panic("ICE: on return popped value is not an env")
+				panic("IEE: on return popped value is not an env")
 			}
 			code, ok := vm.pop().(*data.Code)
 			if !ok {
-				panic("ICE: on return popped value is not a code")
+				panic("IEE: on return popped value is not a code")
 			}
 			ip, ok := vm.pop().(data.Int)
 			if !ok {
-				panic("ICE: on return popped value is not an ip")
+				panic("IEE: on return popped value is not an ip")
 			}
 			vm.locals = env
 			vm.code = code
@@ -274,7 +274,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if ac, ok := c.(*data.Cell); ok {
 				vm.push(ac.Get())
 			} else {
-				vm.bail("ICE: LoadDeref used not on cell")
+				vm.bail("IEE: LoadDeref used not on cell")
 			}
 		case isa.StoreDeref:
 			arg := vm.readShort()
@@ -283,7 +283,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if ac, ok := c.(*data.Cell); ok {
 				ac.Set(vm.pop())
 			} else {
-				vm.bail("ICE: StoreDeref used not on cell")
+				vm.bail("IEE: StoreDeref used not on cell")
 			}
 		case isa.MakeList:
 			size := int(vm.readShort())
@@ -345,7 +345,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			for i := 0; i < int(argc); i++ {
 				hfunc, ok := vm.pop().(data.Callable)
 				if !ok {
-					vm.bail("ICE: with clause handler is not a callable")
+					vm.bail("IEE: with clause handler is not a callable")
 				}
 				typ, ok := vm.pop().(*data.Type)
 				if !ok {
@@ -359,7 +359,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			ret := vm.pop()
 			_, ok := vm.pop().(*data.Handler)
 			if !ok {
-				vm.bail("ICE PopHandler did not pop a handler")
+				vm.bail("IEE PopHandler did not pop a handler")
 			}
 			vm.push(ret)
 		default:
@@ -468,15 +468,40 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline) {
 		case data.Effect:
 			args, ok := retval.(data.Tuple)
 			if !ok {
-				vm.bail("ICE: expected tuple of (type, arg) when performing an effect. Not a tuple")
+				vm.bail("IEE: expected tuple of (type, arg) when performing an effect. Not a tuple")
 			}
 			typ, ok := vm.unsafeTupleGet(args, 0).(*data.Type)
 			if !ok {
-				vm.bail("ICE: expected tuple of (type, arg) when performing an effect. Not a type")
+				vm.bail("IEE: expected tuple of (type, arg) when performing an effect. Not a type")
 			}
 			arg := vm.unsafeTupleGet(args, 1)
 			retval, tramp = vm.handleEffect(typ, arg)
 			continue
+		case data.RestoreContinuation:
+			// push current data
+			vm.push(data.Int{Val: vm.ip})
+			vm.push(vm.code)
+			vm.push(vm.locals)
+			args, ok := retval.(data.Tuple)
+			if !ok {
+				vm.bail("IEE: Expected continuation stack and argument")
+			}
+			// restore stored stack
+			wstack, ok := vm.unsafeTupleGet(args, 1).(*data.List)
+			if !ok {
+				vm.bail("IEE: Expected continuation stack")
+			}
+			stack := wstack.RawValues()
+			vm.stack = append(vm.stack, stack...)
+			vm.stackTop = len(vm.stack)
+			// push continuation argument
+			vm.push(vm.unsafeTupleGet(args, 0))
+			// restore registers
+			vm.ip = tramp.Ip // ip or ip + 1?
+			vm.code = tramp.Code
+			vm.locals = tramp.Env
+		default:
+			vm.bail("IEE: cannot handle this call kind")
 		}
 		break
 	}
@@ -496,12 +521,12 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 					}
 					stack := make([]data.Value, len)
 					if copied := copy(stack, vm.stack[curr:]); copied != len {
-						vm.bail("ICE: Could not copy the stack")
+						vm.bail("IEE: Could not copy the stack")
 					}
 					// throw away other stack frames
 					vm.stack = vm.stack[:curr]
 					vm.stackTop = curr
-					return vm.runHandler(stack, h, arg)
+					return vm.runHandler(stack, h, arg, handler)
 				}
 			}
 		}
@@ -510,7 +535,7 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 	panic("unreachable")
 }
 
-func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value) (data.Value, data.Trampoline) {
+func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, handler *data.Handler) (data.Value, data.Trampoline) {
 	// first value on the stack is a handler
 	// then there is a function frame of function where the
 	// handler has been called.
@@ -518,33 +543,35 @@ func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value) (d
 	// we pushed                 ip, code, locals
 	ip, ok := stack[1].(data.Int)
 	if !ok {
-		panic("ICE: on return popped value is not an ip")
+		panic("IEE: on return popped value is not an ip")
 	}
 	code, ok := stack[2].(*data.Code)
 	if !ok {
-		panic("ICE: on return popped value is not a code")
+		panic("IEE: on return popped value is not a code")
 	}
 	env, ok := stack[3].(*data.Env)
 	if !ok {
-		panic("ICE: on return popped value is not an env")
+		panic("IEE: on return popped value is not an env")
 	}
+	sip := vm.ip
+	slocals := vm.locals
+	scode := vm.code
 	vm.ip = ip.Val
 	vm.locals = env
 	vm.code = code
 	if vm.code.Instrs[vm.ip] != isa.PopHandler {
-		panic("ICE: expected instruction pointer to be pointing to PopHandler op")
+		panic("IEE: expected instruction pointer to be pointing to PopHandler op")
 	}
-	vm.ip++
+	vm.ip++ // Skip PopHandler instruction as handler is no longer on the stack
 	switch h.Arity() {
 	case 1:
 		return h.Call(vm, arg)
 	case 2:
-		// todo
-		vm.bail("Passing continuations to effects unsupported")
-		fmt.Printf("Stack %v", stack)
-
+		stack = stack[4:]
+		k := data.NewContinuation(stack, handler, sip, scode, slocals)
+		return h.Call(vm, arg, k)
 	default:
-		vm.bail("ICE: unsupported arity of effect handling clause")
+		vm.bail("IEE: unsupported arity of effect handling clause")
 	}
 	panic("Unreachable")
 }
@@ -627,7 +654,7 @@ func (vm *Vm) RunClosure(c data.Callable, args ...data.Value) data.Value {
 func (vm *Vm) unsafeTupleGet(t data.Tuple, i int) data.Value {
 	v, err := t.Get(data.NewInt(i))
 	if err != nil {
-		vm.bail("ICE: tried to take a value from tuple past its indices")
+		vm.bail("IEE: tried to take a value from tuple past its indices")
 	}
 	return v
 }

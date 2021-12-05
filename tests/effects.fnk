@@ -9,6 +9,8 @@ Before some
 no direction
 indirection
 Before some
+100
+1111
 @SOURCE
 
 effect None
@@ -119,3 +121,30 @@ fn nestedHandlers3:
 
 
 assert (eq? nestedHandlers3! 120) "nested handlers 2 failed"
+
+effect Ask
+
+; restoring with value
+handle:
+  io.print (Ask ())
+with Ask _ -> k:
+  k 100
+
+
+fn ask = Ask none
+
+; restoring from deeply nested functions
+fn nestedHandlers4:
+  fn inner body:
+    handle:
+      body!
+    with None _:
+      1
+  let res = handle:
+    let a  = inner:
+      add 1000 nothing!
+    sum (1000, a, ask!)
+  with Ask _ -> k:
+    add 100 (k 10)
+  io.print res
+nestedHandlers4!

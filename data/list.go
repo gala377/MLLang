@@ -64,3 +64,7 @@ func (l *List) Append(v Value) error {
 func (l *List) Len() int {
 	return l.size
 }
+
+func (l *List) RawValues() []Value {
+	return l.values
+}

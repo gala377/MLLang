@@ -10,6 +10,7 @@ type (
 
 	Trampoline struct {
 		Kind ReturnKind
+		Ip   int
 		Code *Code
 		Env  *Env
 	}
@@ -43,6 +44,14 @@ type (
 		Env  *Env
 		Body *Code
 	}
+
+	Continuation struct {
+		Handler *Handler
+		Code    *Code
+		Ip      int
+		Env     *Env
+		Stack   []Value
+	}
 )
 
 const (
@@ -54,6 +63,9 @@ const (
 	// Performs an effect, value returned alongside this trampline
 	// has to be a tuple of (effect type, effect value)
 	Effect
+	// Restores continuation by extending the stack with the list
+	// of values returned alongside this continuation.
+	RestoreContinuation
 	// Immediately executes error in the vm with the message
 	// taken from the value returned alongside this trampoline
 	Error
@@ -197,6 +209,42 @@ func (f *Closure) Equal(o Value) bool {
 		return f == of
 	}
 	return false
+}
+
+func NewContinuation(stack []Value, handler *Handler, ip int, code *Code, env *Env) *Continuation {
+	return &Continuation{
+		Stack:   stack,
+		Handler: handler,
+		Code:    code,
+		Ip:      ip,
+		Env:     env,
+	}
+}
+
+func (c *Continuation) Arity() int {
+	return 1
+}
+
+func (c *Continuation) Call(_ VmProxy, vv ...Value) (Value, Trampoline) {
+	// return arg and stored stack
+	ret := NewTuple([]Value{vv[0], NewList(c.Stack)})
+	return ret, Trampoline{
+		Kind: RestoreContinuation,
+		Ip:   c.Ip,
+		Env:  c.Env,
+		Code: c.Code,
+	}
+}
+
+func (c *Continuation) Equal(o Value) bool {
+	if ov, ok := o.(*Continuation); ok {
+		return ov == c
+	}
+	return false
+}
+
+func (c *Continuation) String() string {
+	return "<captured continuation>"
 }
 
 var ReturnTramp = Trampoline{Kind: Returned}
