@@ -485,55 +485,72 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 	// captured reversed stack
 	rstack := []data.Value{}
 	// either bails or returns new function to call
-	for {
-		if vm.stackTop == 0 {
-			vm.bail(fmt.Sprintf("Unhandled effect %s with val %s", typ, arg))
-		}
+	for vm.stackTop > 0 {
+		// TODO: optimize this loop
+		// we can go through the stack without
+		// popping values
+		// then, when finding the handler we can do somehting like
+		//
+		//   stack := make([]data.Value, 0, vm.stackTop - curr)
+		//   copy(vm.stack[curr:], stack)
+		//   vm.stack = vm.stack[:curr]
+		//
+		// and stack is no longer reversed which is a plus for us.
+		// Note that a copy here is necessary. Otherwise appending
+		// to vm stack will overwrite captured stack as slices are
+		// references.
 		sv := vm.pop()
 		handler, ok := sv.(*data.Handler)
 		if ok {
 			for ty, h := range handler.Clauses {
 				if typ.Equal(ty) {
-					// last 3 values on the stack are function frame we want to restore
-					// we pushed                 ip, code, locals
-					// so on the rstack we have: locals, code, ip
-					// we need to restore it
-					last := len(rstack)
-					env, ok := rstack[last-3].(*data.Env)
-					if !ok {
-						panic("ICE: on return popped value is not an env")
-					}
-					code, ok := rstack[last-2].(*data.Code)
-					if !ok {
-						panic("ICE: on return popped value is not a code")
-					}
-					ip, ok := rstack[last-1].(data.Int)
-					if !ok {
-						panic("ICE: on return popped value is not an ip")
-					}
-					vm.ip = ip.Val
-					vm.locals = env
-					vm.code = code
-					if vm.code.Instrs[vm.ip] != isa.PopHandler {
-						panic("ICE: expected instruction pointer to be pointing to PopHandler op")
-					}
-					vm.ip++
-					switch h.Arity() {
-					case 1:
-						return h.Call(vm, arg)
-					case 2:
-						// todo
-						vm.bail("Passing continuations to effects unsupported")
-						fmt.Printf("Stack %v", rstack)
-
-					default:
-						vm.bail("ICE: unsupported arity of effect handling clause")
-					}
+					return vm.runHandler(rstack, h, arg)
 				}
 			}
 		}
 		rstack = append(rstack, sv)
 	}
+	vm.bail(fmt.Sprintf("Unhandled effect %s with val %s", typ, arg))
+	panic("unreachable")
+}
+
+func (vm *Vm) runHandler(rstack []data.Value, h data.Callable, arg data.Value) (data.Value, data.Trampoline) {
+	// last 3 values on the stack are function frame we want to restore
+	// we pushed                 ip, code, locals
+	// so on the rstack we have: locals, code, ip
+	// we need to restore it
+	last := len(rstack)
+	env, ok := rstack[last-3].(*data.Env)
+	if !ok {
+		panic("ICE: on return popped value is not an env")
+	}
+	code, ok := rstack[last-2].(*data.Code)
+	if !ok {
+		panic("ICE: on return popped value is not a code")
+	}
+	ip, ok := rstack[last-1].(data.Int)
+	if !ok {
+		panic("ICE: on return popped value is not an ip")
+	}
+	vm.ip = ip.Val
+	vm.locals = env
+	vm.code = code
+	if vm.code.Instrs[vm.ip] != isa.PopHandler {
+		panic("ICE: expected instruction pointer to be pointing to PopHandler op")
+	}
+	vm.ip++
+	switch h.Arity() {
+	case 1:
+		return h.Call(vm, arg)
+	case 2:
+		// todo
+		vm.bail("Passing continuations to effects unsupported")
+		fmt.Printf("Stack %v", rstack)
+
+	default:
+		vm.bail("ICE: unsupported arity of effect handling clause")
+	}
+	panic("Unreachable")
 }
 
 func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
