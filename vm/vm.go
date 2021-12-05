@@ -17,12 +17,11 @@ var Debug = true
 
 type (
 	Vm struct {
-		code *data.Code
-		// global instruction pointer or per function instruction pointer?
-		ip int
-		// modules []*module ? map[symbol]*module?
-		// thisModule *module
-		stack    []data.Value
+		code  *data.Code
+		ip    int
+		stack []data.Value
+		// shows how many elements are currently in the stack.
+		// stackTop == 0 means an empty stack
 		stackTop int
 		globals  *data.Env
 		locals   *data.Env
@@ -38,7 +37,7 @@ func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
 	return Vm{
 		code:     nil,
 		ip:       0,
-		stack:    make([]data.Value, 0),
+		stack:    make([]data.Value, 0, 1024),
 		stackTop: 0,
 		globals:  globals,
 		locals:   locals,
@@ -482,55 +481,46 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline) {
 }
 
 func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Trampoline) {
-	// captured reversed stack
-	rstack := []data.Value{}
-	// either bails or returns new function to call
-	for vm.stackTop > 0 {
-		// TODO: optimize this loop
-		// we can go through the stack without
-		// popping values
-		// then, when finding the handler we can do somehting like
-		//
-		//   stack := make([]data.Value, 0, vm.stackTop - curr)
-		//   copy(vm.stack[curr:], stack)
-		//   vm.stack = vm.stack[:curr]
-		//
-		// and stack is no longer reversed which is a plus for us.
-		// Note that a copy here is necessary. Otherwise appending
-		// to vm stack will overwrite captured stack as slices are
-		// references.
-		sv := vm.pop()
-		handler, ok := sv.(*data.Handler)
-		if ok {
+	for curr := vm.stackTop - 1; curr > -1; curr-- {
+		sv := vm.stack[curr]
+		if handler, ok := sv.(*data.Handler); ok {
 			for ty, h := range handler.Clauses {
 				if typ.Equal(ty) {
-					return vm.runHandler(rstack, h, arg)
+					// capture stack
+					len := vm.stackTop - curr
+					stack := make([]data.Value, len)
+					if copied := copy(stack, vm.stack[curr:]); copied != len {
+						vm.bail("ICE: Could not copy the stack")
+					}
+					// throw away other stack frames
+					vm.stack = vm.stack[:curr]
+					vm.stackTop = curr
+					return vm.runHandler(stack, h, arg)
 				}
 			}
 		}
-		rstack = append(rstack, sv)
 	}
 	vm.bail(fmt.Sprintf("Unhandled effect %s with val %s", typ, arg))
 	panic("unreachable")
 }
 
-func (vm *Vm) runHandler(rstack []data.Value, h data.Callable, arg data.Value) (data.Value, data.Trampoline) {
-	// last 3 values on the stack are function frame we want to restore
+func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value) (data.Value, data.Trampoline) {
+	// first value on the stack is a handler
+	// then there is a function frame of function where the
+	// handler has been called.
+	// We need to retrieve it for the handling function.
 	// we pushed                 ip, code, locals
-	// so on the rstack we have: locals, code, ip
-	// we need to restore it
-	last := len(rstack)
-	env, ok := rstack[last-3].(*data.Env)
+	ip, ok := stack[1].(data.Int)
 	if !ok {
-		panic("ICE: on return popped value is not an env")
+		panic("ICE: on return popped value is not an ip")
 	}
-	code, ok := rstack[last-2].(*data.Code)
+	code, ok := stack[2].(*data.Code)
 	if !ok {
 		panic("ICE: on return popped value is not a code")
 	}
-	ip, ok := rstack[last-1].(data.Int)
+	env, ok := stack[3].(*data.Env)
 	if !ok {
-		panic("ICE: on return popped value is not an ip")
+		panic("ICE: on return popped value is not an env")
 	}
 	vm.ip = ip.Val
 	vm.locals = env
@@ -545,7 +535,7 @@ func (vm *Vm) runHandler(rstack []data.Value, h data.Callable, arg data.Value) (
 	case 2:
 		// todo
 		vm.bail("Passing continuations to effects unsupported")
-		fmt.Printf("Stack %v", rstack)
+		fmt.Printf("Stack %v", stack)
 
 	default:
 		vm.bail("ICE: unsupported arity of effect handling clause")
