@@ -15,6 +15,8 @@ import (
 
 var Debug = true
 
+const FUNC_FRAME_SIZE = 3
+
 type (
 	Vm struct {
 		code  *data.Code
@@ -486,7 +488,7 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 		if handler, ok := sv.(*data.Handler); ok {
 			for ty, h := range handler.Clauses {
 				if typ.Equal(ty) {
-					len := 4
+					len := FUNC_FRAME_SIZE + 1 // handler and function frame
 					if data.HandlerCapturesContinuation(h) {
 						// does use the continuation so we need to capture whole stack
 						// instead of just handler and stack frame
