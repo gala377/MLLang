@@ -22,7 +22,7 @@ scope:
         it!
       with Yield val -> resume:
         yield (body val)
-        (map (do -> resume none) body)!
+        call $ map (do -> resume none) body
 
   fn enumerate it:
     fn loop c it:
@@ -39,10 +39,10 @@ scope:
     with Yield val -> resume:
       if pred val:
         yield val
-      (filter (do -> resume none) pred)!
+      call $ filter (do -> resume none) pred
 
-  let xs = iterate (seq.range 10)
-  let i1 = enumerate (map xs do a -> mul a a)
+  let xs = iterate $ seq.range 10
+  let i1 = enumerate $ map xs do a -> mul a a
   let it = filter i1 do arg -> zero? (mod (fst arg) 2)
 
   let coll = collect [] it

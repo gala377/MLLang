@@ -1,5 +1,7 @@
 fn scope b = b!
 
+fn call f = f!
+
 fn flip f a b = f b a
 
 fn const a b = a
@@ -90,6 +92,7 @@ fn suspend comp:
 
 extend prelude {
   scope,
+  call,
   flip,
   const,
   const2,
