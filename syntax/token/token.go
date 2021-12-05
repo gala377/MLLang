@@ -43,9 +43,7 @@ const (
 	If
 	Else
 	While
-	Match
 	Let
-	Macro
 	True
 	False
 	Do
@@ -89,7 +87,6 @@ var tokens = [...]string{
 	Indent:       "INDENT",
 	NewLine:      "NEWLINE",
 	Operator:     "OPERATOR",
-	Do:           "do",
 	Access:       ".",
 	Quote:        "`",
 
@@ -97,9 +94,7 @@ var tokens = [...]string{
 	If:     "if",
 	Else:   "else",
 	While:  "while",
-	Match:  "match",
 	Let:    "let",
-	Macro:  "macro",
 	True:   "true",
 	False:  "false",
 	None:   "none",
@@ -107,6 +102,7 @@ var tokens = [...]string{
 	Handle: "handle",
 	With:   "with",
 	Effect: "effect",
+	Do:     "do",
 
 	Assignment:  "=",
 	Exclamation: "!",

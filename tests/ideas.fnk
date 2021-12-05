@@ -50,28 +50,79 @@ scope:
 
 
 effect ExecCond
+scope:
+  fn condition body:
+    let executed = false
+    let ret = handle:
+      body!
+    with ExecCond f:
+      executed = true
+      f!
+    if not executed:
+      panic "no matching arm"
+    assert (eq? ret "Hello") "hello failed"
 
-fn condition body:
-  let executed = false
-  let ret = handle:
-    body!
-  with ExecCond f:
-    executed = true
-    f!
-  if not executed:
-    panic "no matching arm"
-  assert (eq? ret "Hello") "hello failed"
+  fn case pred body:
+    if pred:
+      ExecCond body
 
-fn case pred body:
-  if pred:
-    ExecCond body
+  fn default body = ExecCond body
 
-fn default body = ExecCond body
+  condition:
+    case (eq? 1 2):
+      io.print "does not execute"
+    case (eq? "a" 1):
+      io.print "nope"
+    default:
+      "Hello"
 
-condition:
-  case (eq? 1 2):
-    io.print "does not execute"
-  case (eq? "a" 1):
-    io.print "nope"
-  default:
-    "Hello"
+effect ExecMatch
+
+scope:
+  fn matchPattern pat val:
+    if not $ function? pat:
+      pat = if not $ seq? pat:
+        let eqPattern = do v a:
+          if eq? a v:
+            return (v,)
+        eqPattern pat
+      else:
+        let seqPattern = do patterns a:
+          if not $ eq? (seq.len patterns) (seq.len a):
+            return none
+          let ret = map (zip patterns a) $ apply matchPattern
+          if seq.or $ map ret none?:
+            return none
+          seq.concat ret
+        seqPattern pat
+    pat val
+
+  fn match arg body:
+    handle:
+      body!
+    with ExecMatch req -> resume:
+      let pat = fst req
+      let cbody = snd req
+      let mres = matchPattern pat arg
+      if none? mres:
+        match arg do -> resume none
+      else:
+        if neq? (seq.len mres) $ inspect.arity cbody:
+          panic "Arity mismatched"
+        apply cbody mres
+
+  fn case patf body = ExecMatch (patf, body)
+
+  fn any a = (a,)
+
+  match (1, 2):
+    case 1 do i:
+      io.printf "matched integer %v" i
+    case 2 do i:
+      io.printf "matched integer %v" i
+    case (1, any) do |a b|:
+      io.printf "matched one and %v" b
+    case (any, any) do |a b|:
+      io.printf "matched any 2 element sequence %v" (a, b)
+    case any do a:
+      io.printf "It matched in catch all %v" a
