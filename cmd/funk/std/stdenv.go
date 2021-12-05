@@ -73,6 +73,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"mul", 2, mul},
 	&funcEntry{"div", 2, div},
 	&funcEntry{"neg", 1, neg},
+	&funcEntry{"mod", 2, modulo},
 	&funcEntry{"lt?", 2, lessThan},
 	&funcEntry{"eq?", 2, equal},
 	&funcEntry{"not", 1, not},

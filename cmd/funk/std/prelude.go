@@ -29,6 +29,7 @@ var preludeModule = module{
 		"mul":       &funcEntry{"mul", 2, mul},
 		"div":       &funcEntry{"div", 2, div},
 		"neg":       &funcEntry{"neg", 1, neg},
+		"mod":       &funcEntry{"mod", 2, modulo},
 		"lt?":       &funcEntry{"lt?", 2, lessThan},
 		"eq?":       &funcEntry{"eq?", 2, equal},
 		"not":       &funcEntry{"not", 1, not},
@@ -100,6 +101,18 @@ func div(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
 		return nil, fmt.Errorf("can only div numbers")
 	}
 	return data.CallNumOp(i1, data.DevideOp, i2), nil
+}
+
+func modulo(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a1, ok := vv[0].(data.Int)
+	if !ok {
+		return nil, fmt.Errorf("modulo expects 2 integers")
+	}
+	a2, ok := vv[1].(data.Int)
+	if !ok {
+		return nil, fmt.Errorf("modulo expects 2 integers")
+	}
+	return data.NewInt(a1.Val % a2.Val), nil
 }
 
 func neg(_ data.VmProxy, vv ...data.Value) (data.Value, error) {

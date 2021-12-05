@@ -50,8 +50,18 @@ extend seq {
     false,
 
   ; Accepts a sequence of sequences and
-  ; joins them together
+  ; joins them together.
   fn concat seqs:
     fold seqs [] do |acc x|:
       extend acc x,
+
+  ; Creates a list of numbers from 0 to end-1.
+  fn range end:
+    let acc = []
+    let i = 0
+    while lt? i end:
+      seq.append acc i
+      i = inc i
+    acc,
+
 }
