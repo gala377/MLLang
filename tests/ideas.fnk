@@ -50,6 +50,7 @@ scope:
 
 
 effect ExecCond
+
 scope:
   fn condition body:
     let executed = false
@@ -115,7 +116,7 @@ scope:
 
   fn any a = (a,)
 
-  match (1, 2):
+  match (1, "cokolwiek"):
     case 1 do i:
       io.printf "matched integer %v" i
     case 2 do i:

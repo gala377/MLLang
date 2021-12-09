@@ -108,4 +108,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{funkIo},
 	&funkSource{funkMultimethod},
 	&funkSource{funkIter},
+	&funkSource{funkCf},
 }
