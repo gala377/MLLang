@@ -139,10 +139,28 @@ let cf = scope:
       with Yield a -> resume:
         call $ skip (sub n 1) do -> resume none
 
+  fn foreach it body:
+    handle:
+      it!
+    with Yield a -> resume:
+      body a
+      foreach (do -> resume none) body
+
+  fn inspect it body:
+    handle:
+      it!
+    with Yield a -> resume:
+      body a
+      Yield a
+      inspect (do -> resume none) body
 
   {
+    ; match and patterns
     match, pattern, any,
+    ; condition
     condition, check, default,
-    iterate, collect, map, enumerate, filter, zip, take, skip, numbers,
+    ; iterators
+    iterate, collect, map, enumerate, filter, zip,
+    take, skip, numbers, foreach, inspect,
   }
 
