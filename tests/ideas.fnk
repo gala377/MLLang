@@ -41,13 +41,33 @@ scope:
         yield val
       call $ filter (do -> resume none) pred
 
+  fn zip it1 it2:
+    let callIt1 = none
+    let callIt2 = none
+
+    callIt1 = do it1 it2:
+      handle:
+        it1!
+      with Yield a -> resume:
+        callIt2 (do -> resume none) it2 a
+
+    callIt2 = do it1 it2 val:
+      handle:
+        it2!
+      with Yield a -> resume:
+        yield (val, a)
+        callIt1 it1 do -> resume none
+
+    do -> callIt1 it1 it2
+
   let xs = iterate $ seq.range 10
   let i1 = enumerate $ map xs do a -> mul a a
   let it = filter i1 do arg -> zero? (mod (fst arg) 2)
 
   let coll = collect [] it
   assert (seq.eq? coll [(0, 0), (2, 4), (4, 16), (6, 36), (8, 64)]) "Effect iterators failed"
-
+  coll = collect [] $ zip (iterate (`a, `b, `c)) (iterate (1, 2, 3))
+  assert (seq.eq? coll [(`a, 1), (`b, 2), (`c, 3)]) "coll mismatch"
 
 effect ExecCond
 
