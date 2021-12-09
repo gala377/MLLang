@@ -1,0 +1,11 @@
+
+
+let skip = cf.skip
+let take = cf.take
+let iterate = cf.iterate
+let collect = cf.collect
+let numbers = cf.numbers
+
+let ns = collect [] $ take 3 $ skip 3 $ numbers
+io.print ns
+assert (seq.eq? ns [3, 4, 5]) "Collections arent equal"

@@ -1,6 +1,8 @@
 
 effect CF_CheckMatch
 effect CF_CheckCond
+effect Yield
+
 
 let cf = scope:
   ; match and patterns
@@ -58,8 +60,89 @@ let cf = scope:
 
   fn default body = ExecCond body
 
+  ; iterators
+  fn iterate s = do -> foreach s Yield
+
+  fn collect acc it:
+    handle:
+      it!
+    with Yield val -> resume:
+      seq.append acc val
+      collect acc do -> resume none
+    acc
+
+  fn map it body:
+    do:
+      handle:
+        it!
+      with Yield val -> resume:
+        Yield (body val)
+        call $ map (do -> resume none) body
+
+  fn enumerate it:
+    fn loop c it:
+      handle:
+        it!
+      with Yield val -> resume:
+        Yield (c, val)
+        loop (inc c) do -> resume none
+    do -> loop 0 it
+
+  fn filter it pred = do:
+    handle:
+      it!
+    with Yield val -> resume:
+      if pred val:
+        Yield val
+      call $ filter (do -> resume none) pred
+
+  fn zip it1 it2:
+    let callIt1 = none
+    let callIt2 = none
+
+    callIt1 = do it1 it2:
+      handle:
+        it1!
+      with Yield a -> resume:
+        callIt2 (do -> resume none) it2 a
+
+    callIt2 = do it1 it2 val:
+      handle:
+        it2!
+      with Yield a -> resume:
+        Yield (val, a)
+        callIt1 it1 do -> resume none
+
+    do -> callIt1 it1 it2
+
+  fn take n it = do:
+    if zero? n:
+      return none
+    handle:
+      it!
+    with Yield a -> resume:
+      Yield a
+      call $ take (sub n 1) do -> resume none
+
+  fn numbers:
+    fn loop v:
+      Yield v
+      loop $ inc v
+    loop 0
+
+  fn skip n it:
+    if zero? n:
+      return it
+    do:
+      handle:
+       it!
+      with Yield a -> resume:
+        call $ skip (sub n 1) do -> resume none
+
+
   {
     match, pattern, any,
     condition, check, default,
+    iterate, collect, map, enumerate, filter, zip, take, skip, numbers,
   }
 
