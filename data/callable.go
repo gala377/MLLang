@@ -102,44 +102,48 @@ func (fn *NativeFunc) Equal(o Value) bool {
 	return false
 }
 
-func NewPartialApp(c Callable, vv ...Value) *PartialApp {
+func NewPartialApp(c Callable, vv ...Value) PartialApp {
 	if len(vv) >= c.Arity() {
 		panic("Can only apply partially if there are less arguments than the function needs")
 	}
-	if p, ok := c.(*PartialApp); ok {
-		p.args = append(p.args, vv...)
+	if p, ok := c.(PartialApp); ok {
+		dest := make([]Value, len(p.args), len(p.args)+len(vv))
+		copy(dest, p.args)
+		p.args = append(dest, vv...)
 		return p
 	}
-	return &PartialApp{
+	return PartialApp{
 		args: vv,
 		fn:   c,
 	}
 }
 
-func PartialApp1(c Callable, arg Value) *PartialApp {
+func PartialApp1(c Callable, arg Value) PartialApp {
 	if c.Arity() <= 1 {
 		panic("ICE: parial application on function that should be called")
 	}
-	if p, ok := c.(*PartialApp); ok {
+	if p, ok := c.(PartialApp); ok {
+		dest := make([]Value, len(p.args), len(p.args)+1)
+		copy(dest, p.args)
 		p.args = append(p.args, arg)
 		return p
 	}
-	return &PartialApp{
+	return PartialApp{
 		args: []Value{arg},
 		fn:   c,
 	}
 }
 
-func (f *PartialApp) Arity() int {
+func (f PartialApp) Arity() int {
 	return f.fn.Arity() - len(f.args)
 }
 
-func (f *PartialApp) Call(vm VmProxy, vv ...Value) (Value, Trampoline) {
+func (f PartialApp) Call(vm VmProxy, vv ...Value) (Value, Trampoline) {
 	args := append(f.args, vv...)
 	return f.fn.Call(vm, args...)
 }
 
-func (f *PartialApp) String() string {
+func (f PartialApp) String() string {
 	vals := make([]string, 0, len(f.args))
 	for _, arg := range f.args {
 		vals = append(vals, arg.String())
@@ -147,9 +151,15 @@ func (f *PartialApp) String() string {
 	return fmt.Sprintf("<Partial app %s %s>", f.fn.String(), strings.Join(vals, " "))
 }
 
-func (f *PartialApp) Equal(o Value) bool {
-	if of, ok := o.(*PartialApp); ok {
-		return f == of
+func (f PartialApp) Equal(o Value) bool {
+	if of, ok := o.(PartialApp); ok {
+		if len(f.args) != len(of.args) {
+			return false
+		}
+		if len(f.args) == 0 {
+			return f.fn.Equal(of)
+		}
+		return &f.args[1] == &of.args[1] && f.fn.Equal(of)
 	}
 	return false
 }
