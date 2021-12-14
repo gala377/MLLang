@@ -19,6 +19,10 @@ var convModule module = module{
 }
 
 func toString(_ data.VmProxy, vv ...data.Value) (data.Value, error) {
+	v, ok := vv[0].(data.String)
+	if ok {
+		return v, nil
+	}
 	return data.String{Val: vv[0].String()}, nil
 }
 

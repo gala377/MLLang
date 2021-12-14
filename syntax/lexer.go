@@ -292,7 +292,21 @@ func (l *Lexer) scanStringLit() (string, error) {
 	quote := l.ch
 	ch := l.readRune()
 	for !l.eof && ch != quote && ch != '\n' {
-		b.WriteRune(ch)
+		if ch == '\\' {
+			switch l.readRune() {
+			case 'n':
+				b.WriteRune('\n')
+			case '\\':
+				b.WriteRune('\\')
+			case 't':
+				b.WriteRune('\t')
+			default:
+				l.recover()
+				return "", fmt.Errorf("unknown escape character in string literal %v", l.ch)
+			}
+		} else {
+			b.WriteRune(ch)
+		}
 		ch = l.readRune()
 	}
 	var err error
