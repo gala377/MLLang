@@ -48,6 +48,7 @@ var preludeModule = module{
 		"record?":   &funcEntry{"record?", 1, isRecord},
 		"or":        &funcEntry{"or", 2, boolOr},
 		"and":       &funcEntry{"and", 2, boolAnd},
+		"concat":    &funcEntry{"concat", 2, strConcat},
 	},
 }
 
@@ -242,4 +243,17 @@ func boolOr(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 		return nil, errors.New("or only works on booleans")
 	}
 	return data.NewBool(ab.Val && bb.Val), nil
+}
+
+func strConcat(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	a, b := vv[0], vv[1]
+	ab, ok := a.(data.String)
+	if !ok {
+		return nil, errors.New("concat only works on strings")
+	}
+	bb, ok := b.(data.String)
+	if !ok {
+		return nil, errors.New("concat only works on strings")
+	}
+	return data.NewString(ab.Val + bb.Val), nil
 }

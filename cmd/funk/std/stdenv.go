@@ -92,6 +92,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&funcEntry{"record?", 1, isRecord},
 	&funcEntry{"or", 2, boolOr},
 	&funcEntry{"and", 2, boolAnd},
+	&funcEntry{"concat", 2, strConcat},
 	&preludeModule,
 	&ioModule,
 	&seqModule,
