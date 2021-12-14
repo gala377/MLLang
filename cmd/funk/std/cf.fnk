@@ -146,13 +146,13 @@ let cf = scope:
       body a
       foreach (do -> resume none) body
 
-  fn inspect it body:
+  fn inspect body it = do:
     handle:
       it!
     with Yield a -> resume:
       body a
       Yield a
-      inspect (do -> resume none) body
+      call $ inspect body do -> resume none
 
   {
     ; match and patterns
