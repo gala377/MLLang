@@ -28,7 +28,7 @@ func printWithSourceExact(source io.ReaderAt, srcerr SourceError) {
 	log.Println(srcerr.Error())
 }
 
-func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
+func printWithSourceLine(path string, source *bytes.Reader, srcerr SourceError) {
 	source.Seek(0, 0)
 	loc := srcerr.SourceLoc()
 	line, col := loc.Beg.Line, loc.Beg.Column
@@ -45,7 +45,7 @@ func printWithSourceLine(source *bytes.Reader, srcerr SourceError) {
 		}
 	}
 	code := strings.Join(text, "\n")
-	fmt.Printf("Error at line %d, column %d\n", line+1, col)
+	fmt.Printf("[%s] Error at line %d, column %d\n", path, line+1, col)
 	fmt.Printf("%s\n\n", code)
 	fmt.Println(srcerr.Error())
 }

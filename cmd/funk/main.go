@@ -20,8 +20,11 @@ var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virt
 var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
 var showAst = flag.Bool("dump_ast", false, "just parse the file and print the ast to stdout")
 
+var filePath = ""
+
 func main() {
 	flag.Parse()
+	parsePositionalArgs()
 	f := getFile()
 	vm.Debug = *verboseFlag
 	if !*verboseFlag {
@@ -34,12 +37,19 @@ func main() {
 		fmt.Printf("%s", ast)
 		return
 	}
-	evaluateBuffer(f)
+	evaluateBuffer(filePath, f)
 }
 
-func evaluateBuffer(buff []byte) {
+func parsePositionalArgs() {
+	if flag.NArg() == 0 {
+		panic("Expected one positional argument which is a file name")
+	}
+	filePath = flag.Arg(0)
+}
+
+func evaluateBuffer(path string, buff []byte) {
 	i := codegen.NewInterner()
-	c, err := codegen.Compile(buff, i)
+	c, err := codegen.Compile(path, buff, i)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
@@ -69,7 +79,7 @@ func printCode(c *data.Code) {
 }
 
 func vmWithStdEnv(source *bytes.Reader, interner *codegen.Interner) *vm.Vm {
-	vm := vm.NewVm(source, interner)
+	vm := vm.NewVm(filePath, source, interner)
 	for _, e := range std.StdEnv {
 		e.Inject(&vm)
 	}
@@ -77,10 +87,7 @@ func vmWithStdEnv(source *bytes.Reader, interner *codegen.Interner) *vm.Vm {
 }
 
 func getFile() []byte {
-	if flag.NArg() == 0 {
-		panic("Expected one positional argument which is a file name")
-	}
-	filename := flag.Arg(0)
+	filename := filePath
 	buffer, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Println(fmt.Errorf("'%s' file not found", filename))

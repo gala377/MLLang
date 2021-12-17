@@ -31,6 +31,7 @@ type (
 	}
 
 	funkSource struct {
+		Path   string
 		Source []byte
 	}
 )
@@ -53,18 +54,17 @@ func (m *module) Inject(vm *vm.Vm) {
 
 func (fs *funkSource) Inject(vm *vm.Vm) {
 	inter := vm.Interner()
-	c, err := codegen.Compile(fs.Source, inter)
+	c, err := codegen.Compile(fs.Path, fs.Source, inter)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	olds := vm.ReplaceSource(bytes.NewReader(fs.Source))
+	vm.AddSource(fs.Path, bytes.NewReader(fs.Source))
 	_, err = vm.Interpret(c)
 	if err != nil {
 		fmt.Print(err)
 		os.Exit(1)
 	}
-	vm.ReplaceSource(olds)
 }
 
 var StdEnv = [...]EnvironmentEntry{
@@ -101,13 +101,13 @@ var StdEnv = [...]EnvironmentEntry{
 	&httpModule,
 	&inspectModule,
 	&recordsModule,
-	&funkSource{funkPrelude},
-	&funkSource{funkConv},
-	&funkSource{funkSeq},
-	&funkSource{funkStruct},
-	&funkSource{funkRecords},
-	&funkSource{funkIo},
-	&funkSource{funkMultimethod},
-	&funkSource{funkIter},
-	&funkSource{funkCf},
+	&funkSource{"@prelude", funkPrelude},
+	&funkSource{"@conv", funkConv},
+	&funkSource{"@seq", funkSeq},
+	&funkSource{"@struct", funkStruct},
+	&funkSource{"@records", funkRecords},
+	&funkSource{"@io", funkIo},
+	&funkSource{"@multimethods", funkMultimethod},
+	&funkSource{"@iter", funkIter},
+	&funkSource{"@cf", funkCf},
 }

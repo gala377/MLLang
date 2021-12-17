@@ -65,6 +65,6 @@ func vmWithEcho(source *bytes.Reader, interner *codegen.Interner, name data.Inte
 	}
 	global := data.NewEnv()
 	global.Vals = env
-	vm := VmWithEnv(source, interner, global)
+	vm := VmWithEnv("dud", source, interner, global)
 	return &vm
 }

@@ -27,15 +27,20 @@ type (
 		stackTop int
 		globals  *data.Env
 		locals   *data.Env
-		source   *bytes.Reader
 		interner *codegen.Interner
 		gensymc  uint
+
+		// for better error messages
+		sources map[string]*bytes.Reader
 	}
 )
 
-func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
+func NewVm(path string, source *bytes.Reader, interner *codegen.Interner) Vm {
 	globals := data.NewEnv()
 	locals := data.NewEnv()
+	sources := map[string]*bytes.Reader{
+		path: source,
+	}
 	return Vm{
 		code:     nil,
 		ip:       0,
@@ -43,14 +48,14 @@ func NewVm(source *bytes.Reader, interner *codegen.Interner) Vm {
 		stackTop: 0,
 		globals:  globals,
 		locals:   locals,
-		source:   source,
 		interner: interner,
 		gensymc:  0,
+		sources:  sources,
 	}
 }
 
-func VmWithEnv(source *bytes.Reader, interner *codegen.Interner, env *data.Env) Vm {
-	vm := NewVm(source, interner)
+func VmWithEnv(path string, source *bytes.Reader, interner *codegen.Interner, env *data.Env) Vm {
+	vm := NewVm(path, source, interner)
 	vm.globals = env
 	return vm
 }
@@ -68,15 +73,8 @@ func (vm *Vm) Interner() *codegen.Interner {
 	return vm.interner
 }
 
-// todo: remove later. It's here for now so
-// that we can easily inject std env fnk source files
-// however when we introduce importing
-// it should not be neccessary.
-// Maybe code object should carry pointer to source?
-func (vm *Vm) ReplaceSource(ns *bytes.Reader) *bytes.Reader {
-	old := vm.source
-	vm.source = ns
-	return old
+func (vm *Vm) AddSource(path string, s *bytes.Reader) {
+	vm.sources[path] = s
 }
 
 func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
@@ -600,8 +598,13 @@ func (vm *Vm) bail(msg string) {
 		ip = len(vm.code.Lines) - 1
 	}
 	line := vm.code.Lines[ip] + 1
-	code := getLine(line, vm.source)
-
+	r, ok := vm.sources[vm.code.Path]
+	var code string
+	if !ok {
+		code = fmt.Sprintf("Unknown source %v", vm.code.Path)
+	} else {
+		code = getLine(line, r)
+	}
 	fmt.Printf("\n\nRuntime error at line %d\n\n", line)
 	fmt.Printf("%s\n\n", code)
 	fmt.Println(msg)
@@ -627,9 +630,11 @@ func (vm *Vm) Clone() data.VmProxy {
 		stackTop: 0,
 		globals:  vm.globals,
 		locals:   loc,
-		source:   vm.source,
 		interner: vm.interner.Clone(),
-		gensymc:  vm.gensymc,
+		// if running mulrithreaded duplicates counts
+		gensymc: vm.gensymc,
+		// not thread safe
+		sources: vm.sources,
 	}
 }
 
@@ -647,6 +652,8 @@ func (vm *Vm) RunClosure(c data.Callable, args ...data.Value) data.Value {
 			panic(fmt.Sprintf("error in RunClosure: %s", err))
 		}
 		return v
+	default:
+		vm.Panic("Unsupported return kind when running closure")
 	}
 	return data.None
 }

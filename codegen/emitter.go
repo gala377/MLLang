@@ -33,10 +33,12 @@ type Emitter struct {
 	interner *Interner
 	errors   []CompilationError
 	scope    *syntax.Scope
+	path     string
 }
 
-func NewEmitter(i *Interner) *Emitter {
+func NewEmitter(path string, i *Interner) *Emitter {
 	c := data.NewCode()
+	c.Path = path
 	e := Emitter{
 		result:   &c,
 		line:     0,
@@ -44,6 +46,7 @@ func NewEmitter(i *Interner) *Emitter {
 		errors:   make([]CompilationError, 0),
 		// todo share scope from parser
 		scope: syntax.NewScope(nil),
+		path:  path,
 	}
 	return &e
 }
@@ -378,7 +381,7 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 	e.scope.Insert(node.Name)
 	fname := data.NewSymbol(e.interner.Intern(node.Name))
 	// emit function body
-	fe := NewEmitter(e.interner)
+	fe := NewEmitter(e.path, e.interner)
 	fe.scope = e.scope.Derive()
 	fargs := make([]data.Symbol, 0, len(node.Args))
 	for _, arg := range node.Args {
@@ -461,7 +464,7 @@ func (e *Emitter) emitVariableDecl(node *ast.ValDecl) {
 }
 
 func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
-	le := NewEmitter(e.interner)
+	le := NewEmitter(e.path, e.interner)
 	le.scope = e.scope.Derive()
 	name := data.NewSymbol(nil)
 	if node.Name != "" {

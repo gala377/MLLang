@@ -5,6 +5,7 @@ type Code struct {
 	Consts []Value
 	// todo: change Lines to something like runing sum encoding or so.
 	Lines []int
+	Path  string
 }
 
 func NewCode() Code {
