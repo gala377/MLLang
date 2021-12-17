@@ -40,7 +40,7 @@ func runTest(t *testing.T, src string, echo *data.NativeFunc) {
 		}
 		t.FailNow()
 	}
-	e := codegen.NewEmitter(codegen.NewInterner())
+	e := codegen.NewEmitter("dummy", codegen.NewInterner())
 	c, errs := e.Compile(ast)
 	if len(errs) > 0 {
 		panic("Compilation errors")
