@@ -306,3 +306,10 @@ func (e *EffectDecl) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (e *LocalEffect) Equal(o Node) bool {
+	if oe, ok := o.(*LocalEffect); ok {
+		return oe.Name == e.Name
+	}
+	return false
+}

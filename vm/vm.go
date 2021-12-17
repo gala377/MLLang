@@ -360,6 +360,12 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("IEE PopHandler did not pop a handler")
 			}
 			vm.push(ret)
+		case isa.MakeEffect:
+			name, ok := vm.pop().(data.Symbol)
+			if !ok {
+				vm.bail("IEE Expected symbol on the stack to make an effect")
+			}
+			vm.push(data.NewType(name))
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))

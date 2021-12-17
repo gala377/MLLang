@@ -11,6 +11,8 @@ indirection
 Before some
 100
 1111
+Outer ask "hello?"
+ASKED 2
 @SOURCE
 
 effect None
@@ -148,3 +150,26 @@ fn nestedHandlers4:
     add 100 (k 10)
   io.print res
 nestedHandlers4!
+
+; local effects
+let m = scope:
+  ; overwrite global effect
+  effect Ask
+  fn printAsk body:
+    handle:
+      body!
+    with Ask v:
+      io.printf "ASKED %v" v
+
+  fn doAsk val:
+    Ask $ inc val
+
+  {printAsk, doAsk}
+
+handle:
+  m.printAsk:
+    Ask "hello?"
+    m.doAsk 1
+with Ask v -> k:
+  io.printf "Outer ask %v" v
+  k none

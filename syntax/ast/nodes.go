@@ -52,6 +52,11 @@ type (
 		Name string
 	}
 
+	LocalEffect struct {
+		*span.Span
+		Name string
+	}
+
 	StmtExpr struct {
 		Expr
 	}
@@ -220,6 +225,7 @@ func (n *NoneConst) exprNode()       {}
 func (a *Access) exprNode()          {}
 func (s *Symbol) exprNode()          {}
 func (h *Handle) exprNode()          {}
+func (e *LocalEffect) exprNode()     {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -242,6 +248,10 @@ func (v *ValDecl) NodeSpan() *span.Span {
 }
 
 func (e *EffectDecl) NodeSpan() *span.Span {
+	return e.Span
+}
+
+func (e *LocalEffect) NodeSpan() *span.Span {
 	return e.Span
 }
 
@@ -349,6 +359,10 @@ func (f *FuncDecl) String() string {
 
 func (e *EffectDecl) String() string {
 	return fmt.Sprintf("EffectDecl{%s}", e.Name)
+}
+
+func (e *LocalEffect) String() string {
+	return fmt.Sprintf("LocalEffect{%s}", e.Name)
 }
 
 func (b *Block) String() string {

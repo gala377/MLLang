@@ -27,11 +27,9 @@ const (
 	MakeList
 	MakeTuple
 	MakeRecord
+	MakeEffect
 	GetField
 	SetField
-	CResume
-	CCapture
-	CPrompt
 	InstallHandler
 	PopHandler
 	PerformEffect

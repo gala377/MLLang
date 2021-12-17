@@ -149,6 +149,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitSymbol(v.Val)
 	case *ast.Handle:
 		e.emitHandler(v)
+	case *ast.LocalEffect:
+		e.emitLocalEffect(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -534,6 +536,11 @@ func (e *Emitter) emitRecord(node *ast.RecordConst) {
 	binary.BigEndian.PutUint16(args, uint16(size))
 	e.emitByte(isa.MakeRecord)
 	e.emitBytes(args...)
+}
+
+func (e *Emitter) emitLocalEffect(node *ast.LocalEffect) {
+	e.emitSymbol(node.Name)
+	e.emitByte(isa.MakeEffect)
 }
 
 func (e *Emitter) emitAccess(node *ast.Access) {

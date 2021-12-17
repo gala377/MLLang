@@ -84,7 +84,19 @@ func NewParser(source io.Reader) *Parser {
 			p.scope.InsertVal(&decl)
 			return &decl, true
 		},
-		token.Effect: p.parseEffectDecl,
+		token.Effect: func() (ast.Stmt, bool) {
+			eff, ok := p.parseLocalEffectDecl()
+			if eff == nil || !ok {
+				return nil, ok
+			}
+			decl := ast.ValDecl{
+				Span: eff.Span,
+				Name: eff.Name,
+				Rhs:  eff,
+			}
+			p.scope.InsertVal(&decl)
+			return &decl, true
+		},
 	}
 	p.parseTrailingBlocks = true
 	p.scope = NewScope(nil)
@@ -971,8 +983,24 @@ func (p *Parser) parseValDecl() (ast.Stmt, bool) {
 	return &node, ok
 }
 
-func (p *Parser) parseEffectDecl() (ast.Stmt, bool) {
-	panic("Local effects unsupported")
+func (p *Parser) parseLocalEffectDecl() (*ast.LocalEffect, bool) {
+	beg := p.position()
+	if p.match(token.Effect) == nil {
+		return nil, true
+	}
+	name := p.parseIdentifier()
+	if name == nil {
+		p.error(beg, p.position(), "Expected idnetifier as an effect name")
+		return nil, false
+	}
+	span := span.NewSpan(beg, p.position())
+	if p.scope.IsGlobal() {
+		panic("ICE: expected local scope")
+	}
+	return &ast.LocalEffect{
+		Name: name.Name,
+		Span: &span,
+	}, true
 }
 
 func (p *Parser) parseReturn() (ast.Stmt, bool) {
