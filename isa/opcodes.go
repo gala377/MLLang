@@ -16,6 +16,8 @@ const (
 	// Specialised call. Has no arguments.
 	// Calls function with one argument.
 	Call1
+	TailCall0
+	TailCall1
 	Jump
 	JumpIfFalse
 	JumpBack
@@ -54,4 +56,7 @@ const (
 	// and installs the handler that the continuation
 	// has been created under
 	Resume
+	// Same as resume but only happens in tail position.
+	// Pops previous stack frame before calling a continuation.
+	TailResume
 )

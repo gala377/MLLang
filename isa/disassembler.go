@@ -15,6 +15,8 @@ var instNames = [...]string{
 	Call:           "Call",
 	Call0:          "Call0",
 	Call1:          "Call1",
+	TailCall0:      "TailCall0",
+	TailCall1:      "TailCall1",
 	Jump:           "Jump",
 	JumpBack:       "JumbpBack",
 	JumpIfFalse:    "JumpIfFalse",
@@ -40,6 +42,7 @@ var instNames = [...]string{
 	PerformEffect:  "PerformEffect",
 	PopHandler:     "PopHandler",
 	Resume:         "Resume",
+	TailResume:     "TailResume",
 	Rotate:         "Rotate",
 }
 
@@ -51,7 +54,9 @@ var instArguments = [opCount]int{
 	Constant2:      2,
 	Call:           1,
 	Call0:          0,
+	TailCall0:      0,
 	Call1:          0,
+	TailCall1:      0,
 	Jump:           2,
 	JumpBack:       2,
 	JumpIfFalse:    2,
@@ -77,6 +82,7 @@ var instArguments = [opCount]int{
 	PopHandler:     0,
 	Rotate:         0,
 	Resume:         0,
+	TailResume:     0,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string

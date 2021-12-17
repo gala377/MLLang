@@ -172,6 +172,11 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			vm.locals.Insert(s, vm.pop())
+		case isa.TailCall0:
+			// todo:
+			// for now tailcalls are no supported as
+			// they somehowe do not work with handlers
+			fallthrough
 		case isa.Call0:
 			callee, ok := vm.pop().(data.Callable)
 			if !ok {
@@ -180,7 +185,13 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if callee.Arity() != 0 {
 				vm.bail("Expected nullary callable")
 			}
-			vm.handleCall(callee.Call(vm))
+			v, t := callee.Call(vm)
+			vm.handleCall(v, t, false)
+		case isa.TailCall1:
+			// todo:
+			// for now tailcalls are no supported as
+			// they somehowe do not work with handlers
+			fallthrough
 		case isa.Call1:
 			arg := vm.pop()
 			callee, ok := vm.pop().(data.Callable)
@@ -190,7 +201,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			if callee.Arity() == 0 {
 				vm.bail("Expected non nullary callable")
 			}
-			vm.handleCall(vm.apply1(callee, arg))
+			v, t := vm.apply1(callee, arg)
+			vm.handleCall(v, t, false)
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -369,6 +381,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("IEE Expected symbol on the stack to make an effect")
 			}
 			vm.push(data.NewType(name))
+		case isa.TailResume:
+			fallthrough
 		case isa.Resume:
 			cont, ok := vm.pop().(*data.Continuation)
 			if !ok {
@@ -415,11 +429,6 @@ func (vm *Vm) pop() data.Value {
 		fmt.Printf("Popping value %s\nStack top is %d\n", v, vm.stackTop)
 	}
 	return v
-}
-
-func (vm *Vm) inspectTop() data.Value {
-	assert(vm.stackTop > 0, "Inspecting empty stack")
-	return vm.stack[vm.stackTop-1]
 }
 
 func (vm *Vm) printStack() {
@@ -470,15 +479,17 @@ func (vm *Vm) apply1(fn data.Callable, arg data.Value) (data.Value, data.Trampol
 	panic("unreachable")
 }
 
-func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline) {
+func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool) {
 	for {
 		switch tramp.Kind {
 		case data.Returned:
 			vm.push(retval)
 		case data.Call:
-			vm.push(data.Int{Val: vm.ip})
-			vm.push(vm.code)
-			vm.push(vm.locals)
+			if !tailcall {
+				vm.push(data.Int{Val: vm.ip})
+				vm.push(vm.code)
+				vm.push(vm.locals)
+			}
 			vm.ip = 0
 			vm.code = tramp.Code
 			vm.locals = tramp.Env

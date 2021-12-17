@@ -28,12 +28,13 @@ func (c CompilationError) SourceLoc() span.Span {
 }
 
 type Emitter struct {
-	result   *data.Code
-	line     int
-	interner *Interner
-	errors   []CompilationError
-	scope    *syntax.Scope
-	path     string
+	result         *data.Code
+	line           int
+	interner       *Interner
+	errors         []CompilationError
+	scope          *syntax.Scope
+	path           string
+	inTailPosition bool
 }
 
 func NewEmitter(path string, i *Interner) *Emitter {
@@ -45,8 +46,9 @@ func NewEmitter(path string, i *Interner) *Emitter {
 		interner: i,
 		errors:   make([]CompilationError, 0),
 		// todo share scope from parser
-		scope: syntax.NewScope(nil),
-		path:  path,
+		scope:          syntax.NewScope(nil),
+		path:           path,
+		inTailPosition: false,
 	}
 	return &e
 }
@@ -114,7 +116,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	e.line = int(node.NodeSpan().Beg.Line)
 	switch v := node.(type) {
 	case *ast.IfExpr:
-		e.emitIf(v)
+		e.emitIf(v, false)
 	case *ast.IntConst:
 		e.emitIntConst(v)
 	case *ast.FloatConst:
@@ -126,7 +128,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.NoneConst:
 		e.emitNone()
 	case *ast.Block:
-		e.emitBlock(v)
+		e.emitBlock(v, false)
 	case *ast.Identifier:
 		if si := e.scope.LookupLocal(v.Name); si != nil {
 			e.emitLocalLookup(v, si)
@@ -134,7 +136,7 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 			e.emitGlobalLookup(v)
 		}
 	case *ast.FuncApplication:
-		e.emitApplication(v)
+		e.emitApplication(v, false)
 	case *ast.LambdaExpr:
 		e.emitLambda(v)
 	case *ast.ListConst:
@@ -148,11 +150,11 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 	case *ast.Symbol:
 		e.emitSymbol(v.Val)
 	case *ast.Handle:
-		e.emitHandler(v)
+		e.emitHandler(v, false)
 	case *ast.LocalEffect:
 		e.emitLocalEffect(v)
 	case *ast.Resume:
-		e.emitResume(v)
+		e.emitResume(v, false)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -296,22 +298,32 @@ func (e *Emitter) emitAssignment(node *ast.Assignment) {
 	e.emitBytes(args...)
 }
 
-func (e *Emitter) emitApplication(node *ast.FuncApplication) {
+func (e *Emitter) emitApplication(node *ast.FuncApplication, tailpos bool) {
 	e.emitExpr(node.Callee)
+	call0 := isa.Call0
+	call1 := isa.Call1
+	if tailpos {
+		call0 = isa.TailCall0
+		call1 = isa.TailCall1
+	}
 	if len(node.Args) == 0 && node.Block == nil {
 		e.line = int(node.Beg.Line)
-		e.emitByte(isa.Call0)
+		e.emitByte(call0)
 		return
 	}
-	for _, a := range node.Args {
+	for i, a := range node.Args {
 		e.emitExpr(a)
 		e.line = int(node.Beg.Line)
-		e.emitByte(isa.Call1)
+		if i == len(node.Args)-1 && node.Block == nil {
+			e.emitByte(call1)
+		} else {
+			e.emitByte(isa.Call1)
+		}
 	}
 	if node.Block != nil {
 		e.emitLambda(node.Block)
 		e.line = int(node.Beg.Line)
-		e.emitByte(isa.Call1)
+		e.emitByte(call1)
 	}
 }
 
@@ -394,7 +406,7 @@ func (e *Emitter) emitFuncDeclaration(node *ast.FuncDecl) {
 		fargs = append(fargs, data.NewSymbol(s))
 	}
 	fe.emitLiftingForFuncArgs(node.Args, fargs)
-	fe.emitExpr(node.Body)
+	fe.emitExprInTailPos(node.Body)
 	// todo: implicit return might not always be needed but then
 	// we will never get there if there is an explicit one
 	fe.emitByte(isa.Return)
@@ -483,7 +495,7 @@ func (e *Emitter) emitLambda(node *ast.LambdaExpr) {
 		fargs = append(fargs, data.NewSymbol(s))
 	}
 	le.emitLiftingForFuncArgs(node.Args, fargs)
-	le.emitExpr(node.Body)
+	le.emitExprInTailPos(node.Body)
 	// todo: implicit return might not always be needed but then
 	// we will never get there if there is an explicit one
 	le.emitByte(isa.Return)
@@ -558,15 +570,19 @@ func (e *Emitter) emitAccess(node *ast.Access) {
 	e.emitBytes(args...)
 }
 
-func (e *Emitter) emitIf(node *ast.IfExpr) {
+func (e *Emitter) emitIf(node *ast.IfExpr, tailpos bool) {
 	e.emitExpr(node.Cond)
 	ifpos := e.emitJumpIfFalse()
-	e.emitBlock(node.IfBranch)
+	e.emitBlock(node.IfBranch, tailpos)
 	if node.ElseBranch != nil {
 		skipElse := e.emitJump()
 		off := e.result.Len() - ifpos
 		e.patchJump(ifpos, off)
-		e.emitExpr(node.ElseBranch)
+		if tailpos {
+			e.emitExprInTailPos(node.ElseBranch)
+		} else {
+			e.emitExpr(node.ElseBranch)
+		}
 		off = e.result.Len() - skipElse
 		e.patchJump(skipElse, off)
 		return
@@ -590,7 +606,7 @@ func (e *Emitter) emitWhile(node *ast.WhileStmt) {
 	e.patchJump(jpos, off)
 }
 
-func (e *Emitter) emitHandler(node *ast.Handle) {
+func (e *Emitter) emitHandler(node *ast.Handle, tailpos bool) {
 	for _, arm := range node.Arms {
 		typ := arm.Effect
 		e.emitExpr(typ)
@@ -632,9 +648,13 @@ func (e *Emitter) emitReturn(node *ast.Return) {
 	e.emitByte(isa.Return)
 }
 
-func (e *Emitter) emitResume(node *ast.Resume) {
+func (e *Emitter) emitResume(node *ast.Resume, tailpos bool) {
 	e.emitExpr(node.Cont)
-	e.emitByte(isa.Resume)
+	if tailpos {
+		e.emitByte(isa.TailResume)
+	} else {
+		e.emitByte(isa.Resume)
+	}
 	if node.Arg != nil {
 		e.emitExpr(node.Arg)
 	} else {
@@ -653,19 +673,40 @@ func (e *Emitter) emitStmtBlock(node *ast.Block) {
 	}
 }
 
-func (e *Emitter) emitBlock(node *ast.Block) {
+func (e *Emitter) emitBlock(node *ast.Block, tailpos bool) {
 	for _, instr := range node.Instr[:len(node.Instr)-1] {
 		e.emitStmt(instr)
 	}
 	last := node.Instr[len(node.Instr)-1]
 	switch v := last.(type) {
 	case *ast.StmtExpr:
-		e.emitExpr(v.Expr)
+		if tailpos {
+			e.emitExprInTailPos(v.Expr)
+		} else {
+			e.emitExpr(v.Expr)
+		}
 	case *ast.Return:
 		e.emitReturn(v)
 	default:
 		e.emitStmt(v)
 		e.emitByte(isa.PushNone)
+	}
+}
+
+func (e *Emitter) emitExprInTailPos(node ast.Expr) {
+	switch v := node.(type) {
+	case *ast.Resume:
+		e.emitResume(v, true)
+	case *ast.IfExpr:
+		e.emitIf(v, true)
+	case *ast.FuncApplication:
+		e.emitApplication(v, true)
+	case *ast.Handle:
+		e.emitHandler(v, true)
+	case *ast.Block:
+		e.emitBlock(v, true)
+	default:
+		e.emitExpr(node)
 	}
 }
 

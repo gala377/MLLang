@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"runtime/pprof"
 
 	"github.com/gala377/MLLang/cmd/funk/std"
 	"github.com/gala377/MLLang/codegen"
@@ -20,6 +21,7 @@ var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virt
 var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
 var showAst = flag.Bool("dump_ast", false, "just parse the file and print the ast to stdout")
 var panicOnError = flag.Bool("panic_on_error", false, "runtime error will cause panic in the interpreter")
+var profile = flag.String("profile", "", "start profiling and write data to file specified as a value of this flag")
 
 var filePath = ""
 
@@ -71,7 +73,24 @@ func evaluateBuffer(path string, buff []byte) {
 			panic(r)
 		}
 	}()
-	vm.Interpret(c)
+	if *profile != "" {
+		f, err := os.Create(*profile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		f2, err := os.Create(*profile + "heapprofile")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f2.Close()
+		pprof.StartCPUProfile(f)
+		vm.Interpret(c)
+		pprof.WriteHeapProfile(f2)
+		defer pprof.StopCPUProfile()
+	} else {
+		vm.Interpret(c)
+	}
 }
 
 func printCode(c *data.Code) {
