@@ -151,6 +151,8 @@ func (e *Emitter) emitExpr(node ast.Expr) {
 		e.emitHandler(v)
 	case *ast.LocalEffect:
 		e.emitLocalEffect(v)
+	case *ast.Resume:
+		e.emitResume(v)
 	default:
 		log.Printf("Node is %v", node)
 		e.error(node.NodeSpan(), "Node cannot be emitted. Not supported")
@@ -628,6 +630,18 @@ func (e *Emitter) emitHandler(node *ast.Handle) {
 func (e *Emitter) emitReturn(node *ast.Return) {
 	e.emitExpr(node.Val)
 	e.emitByte(isa.Return)
+}
+
+func (e *Emitter) emitResume(node *ast.Resume) {
+	e.emitExpr(node.Cont)
+	e.emitByte(isa.Resume)
+	if node.Arg != nil {
+		e.emitExpr(node.Arg)
+	} else {
+		e.emitNone()
+	}
+	e.emitByte(isa.Call1)
+	e.emitByte(isa.PopHandler)
 }
 
 // emitStmtBlock emits a list of statements.

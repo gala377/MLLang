@@ -124,6 +124,9 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.push(v)
 		case isa.Pop:
 			vm.pop()
+		case isa.Rotate:
+			top := vm.stackTop - 1
+			vm.stack[top], vm.stack[top-1] = vm.stack[top-1], vm.stack[top]
 		case isa.JumpIfFalse:
 			off := vm.readShort()
 			cond := vm.pop()
@@ -366,6 +369,12 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("IEE Expected symbol on the stack to make an effect")
 			}
 			vm.push(data.NewType(name))
+		case isa.Resume:
+			cont, ok := vm.inspectTop().(*data.Continuation)
+			if !ok {
+				vm.bail("resume expression expects a continuation to call")
+			}
+			vm.push(cont.Handler)
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
@@ -405,6 +414,11 @@ func (vm *Vm) pop() data.Value {
 		fmt.Printf("Popping value %s\nStack top is %d\n", v, vm.stackTop)
 	}
 	return v
+}
+
+func (vm *Vm) inspectTop() data.Value {
+	assert(vm.stackTop > 0, "Inspecting empty stack")
+	return vm.stack[vm.stackTop-1]
 }
 
 func (vm *Vm) printStack() {

@@ -1036,7 +1036,9 @@ func (p *Parser) parseResume() (ast.Expr, bool) {
 	if !ok {
 		return nil, false
 	}
+	span := span.NewSpan(beg, p.position())
 	return &ast.Resume{
+		Span: &span,
 		Cont: cont,
 		Arg:  arg,
 	}, true

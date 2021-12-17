@@ -39,6 +39,8 @@ var instNames = [...]string{
 	InstallHandler: "InstallHandler",
 	PerformEffect:  "PerformEffect",
 	PopHandler:     "PopHandler",
+	Resume:         "Resume",
+	Rotate:         "Rotate",
 }
 
 const opCount = len(instNames)
@@ -73,6 +75,8 @@ var instArguments = [opCount]int{
 	InstallHandler: 2,
 	PerformEffect:  0,
 	PopHandler:     0,
+	Rotate:         0,
+	Resume:         0,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string

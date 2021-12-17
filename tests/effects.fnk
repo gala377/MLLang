@@ -1,20 +1,20 @@
-@EXPECTED
-hello
-hello
-I am handling None
-indirection
-Before some
-indirection
-Before some
-no direction
-indirection
-Before some
-100
-1111
-Outer ask "hello?"
-ASKED 2
-@SOURCE
-
+; @EXPECTED
+; hello
+; hello
+; I am handling None
+; indirection
+; Before some
+; indirection
+; Before some
+; no direction
+; indirection
+; Before some
+; 100
+; 1111
+; Outer ask "hello?"
+; ASKED 2
+; @SOURCE
+; 
 effect None
 
 ; handler that performs no effects does not execute withs
@@ -173,3 +173,17 @@ handle:
 with Ask v -> k:
   io.printf "Outer ask %v" v
   k none
+
+
+scope:
+  let count = 1
+  handle:
+    Yield none
+    Yield none
+    Yield none
+    Yield none
+    Yield none
+  with Yield _ -> k:
+    count = inc count
+    resume k
+  assert (eq? count 5) "Deep handler failed"
