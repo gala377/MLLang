@@ -19,6 +19,7 @@ import (
 var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virtual machine")
 var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
 var showAst = flag.Bool("dump_ast", false, "just parse the file and print the ast to stdout")
+var panicOnError = flag.Bool("panic_on_error", false, "runtime error will cause panic in the interpreter")
 
 var filePath = ""
 
@@ -63,7 +64,9 @@ func evaluateBuffer(path string, buff []byte) {
 	defer func() {
 		if r := recover(); r != nil {
 			if msg, ok := r.(string); ok && msg == "runtime error" {
-				return
+				if !*panicOnError {
+					return
+				}
 			}
 			panic(r)
 		}

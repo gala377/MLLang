@@ -73,7 +73,7 @@ def run_tests(binary: Path, tests: list[Path]):
             test_file = test_path
             test_path = test_file.name
         try:
-            proc = subprocess.run([binary, test_path], check=True, capture_output=True)
+            proc = subprocess.run([binary, "-panic_on_error", test_path], check=True, capture_output=True)
             if test_output:
                 output = proc.stdout.splitlines()
                 output = list(map(lambda s: s.decode("utf-8"), output))
