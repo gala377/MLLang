@@ -60,6 +60,14 @@ func evaluateBuffer(path string, buff []byte) {
 	}
 	s := bytes.NewReader(buff)
 	vm := vmWithStdEnv(s, i)
+	defer func() {
+		if r := recover(); r != nil {
+			if msg, ok := r.(string); ok && msg == "runtime error" {
+				return
+			}
+			panic(r)
+		}
+	}()
 	vm.Interpret(c)
 }
 

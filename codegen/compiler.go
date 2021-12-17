@@ -28,7 +28,6 @@ func Compile(path string, source []byte, interner *Interner) (*data.Code, error)
 		}
 		return nil, fmt.Errorf("compilation errors")
 	}
-	fmt.Printf("Compiling source for %v\n", path)
 	c.Path = path
 	return c, nil
 }

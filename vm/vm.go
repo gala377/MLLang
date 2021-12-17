@@ -592,7 +592,45 @@ func (vm *Vm) getFunctionAt(i uint16) *data.Closure {
 	return &data.Closure{}
 }
 
+func (vm *Vm) printStackTrace() {
+	fmt.Println("========BACKTRACE========")
+	for i := 0; i < vm.stackTop; i++ {
+		_, ok := vm.stack[i].(*data.Env)
+		if !ok {
+			continue
+		}
+		c, ok := vm.stack[i-1].(*data.Code)
+		if !ok {
+			continue
+		}
+		ip, ok := vm.stack[i-2].(data.Int)
+		if !ok {
+			continue
+		}
+		vm.printFrame(ip.Val, c)
+	}
+	fmt.Println("=========================")
+}
+
+func (vm *Vm) printFrame(ip int, code *data.Code) {
+	if ip >= len(code.Lines) {
+		ip = len(code.Lines) - 1
+	}
+	line := code.Lines[ip] + 1
+	r, ok := vm.sources[code.Path]
+	var c string
+	if !ok {
+		c = fmt.Sprintf("Unknown source %v", code.Path)
+	} else {
+		c = getLine(line, r)
+	}
+	fmt.Printf("File %s line %d\n\n", code.Path, line)
+	fmt.Printf("%s\n", c)
+	fmt.Println("---------------------")
+}
+
 func (vm *Vm) bail(msg string) {
+	vm.printStackTrace()
 	ip := vm.ip
 	if ip >= len(vm.code.Lines) {
 		ip = len(vm.code.Lines) - 1
@@ -605,10 +643,10 @@ func (vm *Vm) bail(msg string) {
 	} else {
 		code = getLine(line, r)
 	}
-	fmt.Printf("\n\nRuntime error at line %d\n\n", line)
+	fmt.Printf("\n\nRuntime error in file %s at line %d\n\n", vm.code.Path, line)
 	fmt.Printf("%s\n\n", code)
 	fmt.Println(msg)
-	panic("\nruntime error\n")
+	panic("runtime error")
 }
 
 func (vm *Vm) Panic(msg string) {
