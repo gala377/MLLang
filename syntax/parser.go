@@ -56,6 +56,7 @@ func NewParser(source io.Reader) *Parser {
 		token.Do:     p.parseLambda,
 		token.If:     p.parseIf,
 		token.Handle: p.parseHandle,
+		token.Resume: p.parseResume,
 		token.Else: func() (ast.Expr, bool) {
 			p.error(p.position(), p.position(), "else expected only after while")
 			p.recover()
@@ -1018,6 +1019,27 @@ func (p *Parser) parseReturn() (ast.Stmt, bool) {
 		Val:  v,
 	}
 	return ret, ok
+}
+
+func (p *Parser) parseResume() (ast.Expr, bool) {
+	beg := p.position()
+	if p.match(token.Resume) == nil {
+		return nil, true
+	}
+	cont, ok := p.parseSimpleExpr()
+	if !ok {
+		p.error(beg, p.position(), "Resume expects at least a continuation to run with")
+		p.recoverWithTokens(token.NewLine)
+		return nil, false
+	}
+	arg, ok := p.parseSimpleExpr()
+	if !ok {
+		return nil, false
+	}
+	return &ast.Resume{
+		Cont: cont,
+		Arg:  arg,
+	}, true
 }
 
 func (p *Parser) parseIdentifier() *ast.Identifier {
