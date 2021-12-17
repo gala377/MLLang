@@ -313,3 +313,16 @@ func (e *LocalEffect) Equal(o Node) bool {
 	}
 	return false
 }
+
+func (r *Resume) Equal(o Node) bool {
+	if or, ok := o.(*Resume); ok {
+		if r.Arg == nil && or.Arg != nil {
+			return false
+		}
+		if r.Arg != nil && or.Arg == nil {
+			return false
+		}
+		return AstEqual(r.Cont, or.Cont) && (r.Arg == or.Arg || AstEqual(r.Arg, or.Arg))
+	}
+	return false
+}

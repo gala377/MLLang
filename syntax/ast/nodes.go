@@ -196,6 +196,13 @@ type (
 		Continuation *FuncDeclArg
 		Body         *Block
 	}
+
+	Resume struct {
+		*span.Span
+		Cont Expr
+		// optional, can be nil
+		Arg Expr
+	}
 )
 
 func (g *GlobalValDecl) declNode() {}
@@ -226,6 +233,7 @@ func (a *Access) exprNode()          {}
 func (s *Symbol) exprNode()          {}
 func (h *Handle) exprNode()          {}
 func (e *LocalEffect) exprNode()     {}
+func (r *Resume) exprNode()          {}
 
 func (l *ListConst) Values() []Expr {
 	return l.Vals
@@ -337,6 +345,10 @@ func (r *Return) NodeSpan() *span.Span {
 
 func (h *Handle) NodeSpan() *span.Span {
 	return h.Span
+}
+
+func (r *Resume) NodeSpan() *span.Span {
+	return r.Span
 }
 
 func (g *GlobalValDecl) String() string {
@@ -482,6 +494,14 @@ func (s *Symbol) String() string {
 
 func (r *Return) String() string {
 	return fmt.Sprintf("Return{%s}", r.Val)
+}
+
+func (r *Resume) String() string {
+	arg := "nil"
+	if r.Arg != nil {
+		arg = r.Arg.String()
+	}
+	return fmt.Sprintf("Resume{K: {%s}, Arg {%s}", r.Cont, arg)
 }
 
 func (h *Handle) String() string {
