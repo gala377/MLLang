@@ -1,10 +1,13 @@
-
-effect CF_CheckMatch
-effect CF_CheckCond
 effect Yield
 
 
 let cf = scope:
+  ; local effects so that they can only be handled by
+  ; match and case handlers and cannot be intercepted
+  ; by user handlers
+  effect CF_CheckMatch
+  effect CF_CheckCond
+
   ; match and patterns
   fn matchPattern pat val:
     if not $ function? pat:
