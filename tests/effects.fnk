@@ -1,20 +1,20 @@
-; @EXPECTED
-; hello
-; hello
-; I am handling None
-; indirection
-; Before some
-; indirection
-; Before some
-; no direction
-; indirection
-; Before some
-; 100
-; 1111
-; Outer ask "hello?"
-; ASKED 2
-; @SOURCE
-; 
+@EXPECTED
+hello
+hello
+I am handling None
+indirection
+Before some
+indirection
+Before some
+no direction
+indirection
+Before some
+100
+1111
+Outer ask "hello?"
+ASKED 2
+@SOURCE
+
 effect None
 
 ; handler that performs no effects does not execute withs
@@ -176,7 +176,7 @@ with Ask v -> k:
 
 
 scope:
-  let count = 1
+  let count = 0
   handle:
     Yield none
     Yield none

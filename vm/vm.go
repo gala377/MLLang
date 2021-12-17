@@ -370,11 +370,12 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			vm.push(data.NewType(name))
 		case isa.Resume:
-			cont, ok := vm.inspectTop().(*data.Continuation)
+			cont, ok := vm.pop().(*data.Continuation)
 			if !ok {
 				vm.bail("resume expression expects a continuation to call")
 			}
 			vm.push(cont.Handler)
+			vm.push(cont)
 		default:
 			instr, _ := isa.DisassembleInstr(vm.code, vm.ip-1, -1)
 			vm.bail(fmt.Sprintf("usupported command:\n%s", instr))
