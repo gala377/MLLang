@@ -52,6 +52,7 @@ const (
 	Handle
 	With
 	Effect
+	Resume
 	keywords_end
 
 	operators_beg
@@ -103,6 +104,7 @@ var tokens = [...]string{
 	With:   "with",
 	Effect: "effect",
 	Do:     "do",
+	Resume: "resume",
 
 	Assignment:  "=",
 	Exclamation: "!",
