@@ -4,8 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
-	"log"
 	"strings"
 
 	"github.com/gala377/MLLang/syntax/span"
@@ -14,18 +12,6 @@ import (
 type SourceError interface {
 	error
 	SourceLoc() span.Span
-}
-
-func printWithSourceExact(source io.ReaderAt, srcerr SourceError) {
-	loc := srcerr.SourceLoc()
-	code, err := loc.Extract(source)
-	if err != nil {
-		log.Panicf("unexpected error when extracting source code %s", err)
-	}
-	line, col := loc.Beg.Line, loc.Beg.Column
-	log.Printf("Error at line %d, column %d\n\n", line, col)
-	log.Printf("%s\n\n", code)
-	log.Println(srcerr.Error())
 }
 
 func printWithSourceLine(path string, source *bytes.Reader, srcerr SourceError) {
