@@ -30,12 +30,12 @@ let cf = scope:
   fn match arg body:
     handle:
       body!
-    with CF_CheckMatch req -> resumek:
+    with CF_CheckMatch req -> k:
       let pat = fst req
       let cbody = snd req
       let mres = matchPattern pat arg
       if none? mres:
-        match arg do -> resumek none
+        resume k
       else:
         if neq? (seq.len mres) $ inspect.arity cbody:
           panic "Arity mismatched"
@@ -69,35 +69,35 @@ let cf = scope:
   fn collect acc it:
     handle:
       it!
-    with Yield val -> resumek:
+    with Yield val -> k:
       seq.append acc val
-      collect acc do -> resumek none
+      resume k
     acc
 
   fn map it body:
     do:
       handle:
         it!
-      with Yield val -> resumek:
+      with Yield val -> k:
         Yield (body val)
-        call $ map (do -> resumek none) body
+        resume k
 
-  fn enumerate it:
-    fn loop c it:
-      handle:
-        it!
-      with Yield val -> resumek:
-        Yield (c, val)
-        loop (inc c) do -> resumek none
-    do -> loop 0 it
+  fn enumerate it = do:
+    let curr = 0
+    handle:
+      it!
+    with Yield val -> k:
+      Yield (curr, val)
+      curr = inc curr
+      resume k
 
   fn filter it pred = do:
     handle:
       it!
-    with Yield val -> resumek:
+    with Yield val -> k:
       if pred val:
         Yield val
-      call $ filter (do -> resumek none) pred
+      resume k
 
   fn zip it1 it2:
     let callIt1 = none
@@ -119,43 +119,45 @@ let cf = scope:
     do -> callIt1 it1 it2
 
   fn take n it = do:
-    if zero? n:
-      return none
     handle:
       it!
-    with Yield a -> resumek:
+    with Yield a -> k:
+      if zero? n:
+        return none
       Yield a
-      call $ take (sub n 1) do -> resumek none
+      n = dec n
+      resume k
 
   fn numbers:
-    fn loop v:
+    let v = 0
+    while true:
       Yield v
-      loop $ inc v
-    loop 0
+      v = inc v
 
-  fn skip n it:
-    if zero? n:
-      return it
-    do:
-      handle:
-       it!
-      with Yield a -> resumek:
-        call $ skip (sub n 1) do -> resumek none
+  fn skip n it = do:
+    handle:
+     it!
+    with Yield a -> k:
+      if zero? n:
+        Yield a
+      else:
+        n = dec n
+      resume k
 
   fn foreach it body:
     handle:
       it!
-    with Yield a -> resumek:
+    with Yield a -> k:
       body a
-      foreach (do -> resumek none) body
+      resume k
 
   fn inspect body it = do:
     handle:
       it!
-    with Yield a -> resumek:
+    with Yield a -> k:
       body a
       Yield a
-      call $ inspect body do -> resumek none
+      resume k
 
   {
     ; match and patterns
