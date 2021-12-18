@@ -42,7 +42,8 @@ var instNames = [...]string{
 	PerformEffect:  "PerformEffect",
 	PopHandler:     "PopHandler",
 	Resume:         "Resume",
-	TailResume:     "TailResume",
+	TailResume0:    "TailResume0",
+	TailResume1:    "TailResume1",
 	Rotate:         "Rotate",
 }
 
@@ -82,7 +83,8 @@ var instArguments = [opCount]int{
 	PopHandler:     0,
 	Rotate:         0,
 	Resume:         0,
-	TailResume:     0,
+	TailResume0:    0,
+	TailResume1:    0,
 }
 
 type additionalInfoFunc = func(*data.Code, []byte) string

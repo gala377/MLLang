@@ -58,5 +58,6 @@ const (
 	Resume
 	// Same as resume but only happens in tail position.
 	// Pops previous stack frame before calling a continuation.
-	TailResume
+	TailResume0
+	TailResume1
 )

@@ -651,17 +651,22 @@ func (e *Emitter) emitReturn(node *ast.Return) {
 func (e *Emitter) emitResume(node *ast.Resume, tailpos bool) {
 	e.emitExpr(node.Cont)
 	if tailpos {
-		e.emitByte(isa.TailResume)
+		if node.Arg == nil {
+			e.emitByte(isa.TailResume0)
+		} else {
+			e.emitExpr(node.Arg)
+			e.emitByte(isa.TailResume1)
+		}
 	} else {
 		e.emitByte(isa.Resume)
+		if node.Arg != nil {
+			e.emitExpr(node.Arg)
+		} else {
+			e.emitNone()
+		}
+		e.emitByte(isa.Call1)
+		e.emitByte(isa.PopHandler)
 	}
-	if node.Arg != nil {
-		e.emitExpr(node.Arg)
-	} else {
-		e.emitNone()
-	}
-	e.emitByte(isa.Call1)
-	e.emitByte(isa.PopHandler)
 }
 
 // emitStmtBlock emits a list of statements.

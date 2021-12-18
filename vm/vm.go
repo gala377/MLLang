@@ -98,21 +98,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				// top level return
 				return v, nil
 			}
-			env, ok := vm.pop().(*data.Env)
-			if !ok {
-				panic("IEE: on return popped value is not an env")
-			}
-			code, ok := vm.pop().(*data.Code)
-			if !ok {
-				panic("IEE: on return popped value is not a code")
-			}
-			ip, ok := vm.pop().(data.Int)
-			if !ok {
-				panic("IEE: on return popped value is not an ip")
-			}
-			vm.locals = env
-			vm.code = code
-			vm.ip = ip.Val
+			vm.ip, vm.code, vm.locals = vm.popFunctionFrame()
 			vm.push(v)
 		case isa.Constant:
 			arg := vm.readByte()
@@ -392,8 +378,24 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("IEE Expected symbol on the stack to make an effect")
 			}
 			vm.push(data.NewType(name))
-		case isa.TailResume:
-			fallthrough
+		case isa.TailResume0, isa.TailResume1:
+			var arg data.Value = data.None
+			if i == isa.TailResume1 {
+				arg = vm.pop()
+			}
+			cont, ok := vm.pop().(*data.Continuation)
+			if !ok {
+				vm.bail("resume expression expects a continuation to call")
+			}
+			ip, code, env := vm.popFunctionFrame()
+			vm.push(cont.Handler)
+			assert(code.Instrs[ip-1] == isa.PopHandler,
+				"IEE cannot tail resume. Instruction not pointing to PopHandler")
+			vm.ip = ip - 1
+			vm.code = code
+			vm.locals = env
+			v, t := cont.Call(vm, arg)
+			vm.handleCall(v, t, false)
 		case isa.Resume:
 			cont, ok := vm.pop().(*data.Continuation)
 			if !ok {
@@ -620,6 +622,22 @@ func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, ha
 		vm.bail("IEE: unsupported arity of effect handling clause")
 	}
 	panic("Unreachable")
+}
+
+func (vm *Vm) popFunctionFrame() (int, *data.Code, *data.Env) {
+	env, ok := vm.pop().(*data.Env)
+	if !ok {
+		panic("IEE: on return popped value is not an env")
+	}
+	code, ok := vm.pop().(*data.Code)
+	if !ok {
+		panic("IEE: on return popped value is not a code")
+	}
+	ip, ok := vm.pop().(data.Int)
+	if !ok {
+		panic("IEE: on return popped value is not an ip")
+	}
+	return ip.Val, code, env
 }
 
 func (vm *Vm) getSymbolAt(i uint16) data.Symbol {
