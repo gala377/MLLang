@@ -173,10 +173,15 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			s := vm.getSymbolAt(arg)
 			vm.locals.Insert(s, vm.pop())
 		case isa.TailCall0:
-			// todo:
-			// for now tailcalls are no supported as
-			// they somehowe do not work with handlers
-			fallthrough
+			callee, ok := vm.pop().(data.Callable)
+			if !ok {
+				vm.bail(fmt.Sprintf("Cannot call %s", callee))
+			}
+			if callee.Arity() != 0 {
+				vm.bail("Expected nullary callable")
+			}
+			v, t := callee.Call(vm)
+			vm.handleCall(v, t, true)
 		case isa.Call0:
 			callee, ok := vm.pop().(data.Callable)
 			if !ok {
@@ -188,10 +193,16 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			v, t := callee.Call(vm)
 			vm.handleCall(v, t, false)
 		case isa.TailCall1:
-			// todo:
-			// for now tailcalls are no supported as
-			// they somehowe do not work with handlers
-			fallthrough
+			arg := vm.pop()
+			callee, ok := vm.pop().(data.Callable)
+			if !ok {
+				vm.bail(fmt.Sprintf("Cannot apply %v", callee))
+			}
+			if callee.Arity() == 0 {
+				vm.bail("Expected non nullary callable")
+			}
+			v, t := vm.apply1(callee, arg)
+			vm.handleCall(v, t, true)
 		case isa.Call1:
 			arg := vm.pop()
 			callee, ok := vm.pop().(data.Callable)
@@ -505,10 +516,10 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 				vm.bail("IEE: expected tuple of (type, arg) when performing an effect. Not a type")
 			}
 			arg := vm.unsafeTupleGet(args, 1)
-			retval, tramp = vm.handleEffect(typ, arg)
+			retval, tramp, tailcall = vm.handleEffect(typ, arg)
 			continue
 		case data.RestoreContinuation:
-			// push current data
+			// push current frame
 			vm.push(data.Int{Val: vm.ip})
 			vm.push(vm.code)
 			vm.push(vm.locals)
@@ -527,7 +538,7 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 			// push continuation argument
 			vm.push(vm.unsafeTupleGet(args, 0))
 			// restore registers
-			vm.ip = tramp.Ip // ip or ip + 1?
+			vm.ip = tramp.Ip
 			vm.code = tramp.Code
 			vm.locals = tramp.Env
 		default:
@@ -537,7 +548,7 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 	}
 }
 
-func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Trampoline) {
+func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Trampoline, bool) {
 	for curr := vm.stackTop - 1; curr > -1; curr-- {
 		sv := vm.stack[curr]
 		if handler, ok := sv.(*data.Handler); ok {
@@ -565,7 +576,7 @@ func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Tra
 	panic("unreachable")
 }
 
-func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, handler *data.Handler) (data.Value, data.Trampoline) {
+func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, handler *data.Handler) (data.Value, data.Trampoline, bool) {
 	// first value on the stack is a handler
 	// then there is a function frame of function where the
 	// handler has been called.
@@ -593,13 +604,18 @@ func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, ha
 		panic("IEE: expected instruction pointer to be pointing to PopHandler op")
 	}
 	vm.ip++ // Skip PopHandler instruction as handler is no longer on the stack
+	// Tail calls of handlers not supported yet.
+	// We would need to know if handler is in tail position.
+	// Which we can. We just need to somehow pass it here.
 	switch h.Arity() {
 	case 1:
-		return h.Call(vm, arg)
+		v, t := h.Call(vm, arg)
+		return v, t, false
 	case 2:
 		stack = stack[4:]
 		k := data.NewContinuation(stack, handler, sip, scode, slocals)
-		return h.Call(vm, arg, k)
+		v, t := h.Call(vm, arg, k)
+		return v, t, false
 	default:
 		vm.bail("IEE: unsupported arity of effect handling clause")
 	}
