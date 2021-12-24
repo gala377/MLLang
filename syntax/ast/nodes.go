@@ -185,8 +185,9 @@ type (
 
 	Handle struct {
 		*span.Span
-		Body *Block
-		Arms []*WithClause
+		Body      *Block
+		Arms      []*WithClause
+		HasGuards bool
 	}
 
 	WithClause struct {

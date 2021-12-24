@@ -1,6 +1,8 @@
 package syntax
 
-import "github.com/gala377/MLLang/syntax/ast"
+import (
+	"github.com/gala377/MLLang/syntax/ast"
+)
 
 type (
 	RelativeScope = uint

@@ -728,6 +728,7 @@ func (p *Parser) parseHandle() (ast.Expr, bool) {
 		p.error(beg, p.position(), "handle expects a block as its body")
 		return nil, true
 	}
+	hasguards := false
 	ww := make([]*ast.WithClause, 0, 1)
 	cw, ok := p.parseWith()
 	for cw != nil {
@@ -736,13 +737,17 @@ func (p *Parser) parseHandle() (ast.Expr, bool) {
 			return nil, true
 		}
 		ww = append(ww, cw)
+		if cw.Guard != nil {
+			hasguards = true
+		}
 		cw, ok = p.parseWith()
 	}
 	span := span.NewSpan(beg, p.position())
 	return &ast.Handle{
-		Span: &span,
-		Body: body,
-		Arms: ww,
+		Span:      &span,
+		Body:      body,
+		Arms:      ww,
+		HasGuards: hasguards,
 	}, true
 }
 
@@ -772,7 +777,6 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 	} else {
 		arg.Span = argid.Span
 		arg.Name = argid.Name
-		p.scope.InsertFuncArg(arg)
 	}
 	defer p.closeScope()
 	p.scope.InsertFuncArg(arg)
@@ -787,7 +791,6 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 				Span: contid.Span,
 				Name: contid.Name,
 			}
-			p.scope.InsertFuncArg(cont)
 		}
 	}
 	var guard ast.Expr = nil
@@ -803,6 +806,14 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		} else {
 			guard = g
 		}
+	}
+	// those have to be inserted after the guard has been
+	// parsed as a guard should not resolve this as local
+	if arg != nil {
+		p.scope.InsertFuncArg(arg)
+	}
+	if cont != nil {
+		p.scope.InsertFuncArg(cont)
 	}
 	b, ok := p.parseBlock()
 	if b == nil && ok {

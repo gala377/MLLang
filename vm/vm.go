@@ -392,8 +392,11 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			ip, code, env := vm.popFunctionFrame()
 			vm.push(cont.Handler)
-			assert(code.Instrs[ip-1] == isa.PopHandler,
-				"IEE cannot tail resume. Instruction not pointing to PopHandler")
+			if code.Instrs[ip-1] != isa.PopHandler {
+				vm.bail("Cannot tail resume. Tail resumption only works if it's" +
+					" the last expression in the with clause or the function that" +
+					" tail resumes is in tail position for the with clause")
+			}
 			vm.ip = ip - 1
 			vm.code = code
 			vm.locals = env

@@ -35,6 +35,7 @@ type Emitter struct {
 	scope          *syntax.Scope
 	path           string
 	inTailPosition bool
+	counter        int
 }
 
 func NewEmitter(path string, i *Interner) *Emitter {
@@ -49,6 +50,7 @@ func NewEmitter(path string, i *Interner) *Emitter {
 		scope:          syntax.NewScope(nil),
 		path:           path,
 		inTailPosition: false,
+		counter:        0,
 	}
 	return &e
 }
@@ -607,6 +609,21 @@ func (e *Emitter) emitWhile(node *ast.WhileStmt) {
 }
 
 func (e *Emitter) emitHandler(node *ast.Handle, tailpos bool) {
+	if node.HasGuards {
+		desnode, effectvars := desugarGuards(node, e.nextCounterVal())
+		for _, eff := range effectvars {
+			if e.scope.IsGlobal() {
+				e.emitGlobalVariableDecl(&ast.GlobalValDecl{
+					Span: eff.Span,
+					Name: eff.Name,
+					Rhs:  eff.Rhs,
+				})
+			} else {
+				e.emitVariableDecl(eff)
+			}
+		}
+		node = desnode
+	}
 	for _, arm := range node.Arms {
 		typ := arm.Effect
 		e.emitExpr(typ)
@@ -651,6 +668,14 @@ func (e *Emitter) emitReturn(node *ast.Return) {
 func (e *Emitter) emitResume(node *ast.Resume, tailpos bool) {
 	e.emitExpr(node.Cont)
 	if tailpos {
+		// todo: Tail resume only works if it's called in the withclause
+		// or if it's called in a function that is tailcalled
+		// by the with clause.
+		// so clause -> tailcall -> tailcall -> tailresume works
+		// but clause ->tailcall -> call -> tailresume does not
+		// We can either try to guard against it or maybe instead
+		// of "resume" keyword we could create "tailresume" keyword to
+		// be more explicit.
 		if node.Arg == nil {
 			e.emitByte(isa.TailResume0)
 		} else {
@@ -723,4 +748,10 @@ func (e *Emitter) addSymbol(val string) (int, error) {
 		return 0, errors.New("more constants that uint16 can hold, that is not supported")
 	}
 	return index, nil
+}
+
+func (e *Emitter) nextCounterVal() int {
+	ret := e.counter
+	e.counter++
+	return ret
 }
