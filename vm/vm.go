@@ -361,6 +361,9 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				if !ok {
 					vm.bail("Handler can only switch on effect types")
 				}
+				if _, ok := arms[typ]; ok {
+					vm.bail("Handler already has an arm for the type")
+				}
 				arms[typ] = hfunc
 			}
 			handler := data.NewHandler(arms)
@@ -695,7 +698,7 @@ func (vm *Vm) printFrame(ip int, code *data.Code) {
 	fmt.Println("---------------------")
 }
 
-func (vm *Vm) bail(msg string) {
+func (vm *Vm) bail(msg string, args ...interface{}) {
 	vm.printStackTrace()
 	ip := vm.ip
 	if ip >= len(vm.code.Lines) {
@@ -710,7 +713,7 @@ func (vm *Vm) bail(msg string) {
 		code = getLine(line, r)
 	}
 	fmt.Printf("\n\nRuntime error in file %s at line %d\n\n", vm.code.Path, line)
-	fmt.Printf("%s\n\n", code)
+	fmt.Printf(code+"\n\n", args...)
 	fmt.Println(msg)
 	panic("runtime error")
 }
