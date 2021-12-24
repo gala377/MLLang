@@ -195,6 +195,7 @@ type (
 		Arg          *FuncDeclArg
 		Continuation *FuncDeclArg
 		Body         *Block
+		Guard        Expr
 	}
 
 	Resume struct {

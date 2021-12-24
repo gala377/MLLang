@@ -1073,6 +1073,35 @@ func TestParsingHandle(t *testing.T) {
 				},
 			},
 		},
+		{
+			"handle:\n 1\nwith e a if eq? a:\n 2",
+			[]an{
+				&ast.Handle{
+					Body: &ast.Block{
+						Instr: []ast.Stmt{
+							&ast.StmtExpr{Expr: &ast.IntConst{Val: 1}},
+						},
+					},
+					Arms: []*ast.WithClause{
+						{
+							Effect: &ast.Identifier{Name: "e"},
+							Arg:    &ast.FuncDeclArg{Name: "a"},
+							Guard: &ast.FuncApplication{
+								Callee: &ast.Identifier{Name: "eq?"},
+								Args: []ast.Expr{
+									&ast.Identifier{Name: "a"},
+								},
+							},
+							Body: &ast.Block{
+								Instr: []ast.Stmt{
+									&ast.StmtExpr{Expr: &ast.IntConst{Val: 2}},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
 	}
 	matchAstWithTable(t, &table)
 }

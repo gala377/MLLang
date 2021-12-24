@@ -790,6 +790,20 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 			p.scope.InsertFuncArg(cont)
 		}
 	}
+	var guard ast.Expr = nil
+	if p.match(token.If) != nil {
+		g, ok := func(p *Parser) (ast.Expr, bool) {
+			p.disallowTrailingBlocks()
+			defer p.allowTrailingBlocks()
+			return p.parseExpr()
+		}(p)
+		if g == nil || !ok {
+			p.error(beg, p.position(), "Expected an expression for the handler guard")
+			p.recoverWithTokens(token.Colon)
+		} else {
+			guard = g
+		}
+	}
 	b, ok := p.parseBlock()
 	if b == nil && ok {
 		p.error(beg, p.position(), "Expected block as with stmt's body")
@@ -804,6 +818,7 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		Arg:          arg,
 		Continuation: cont,
 		Body:         b,
+		Guard:        guard,
 	}, ok
 }
 

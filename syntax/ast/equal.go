@@ -290,6 +290,9 @@ func (h *Handle) Equal(o Node) bool {
 					return false
 				}
 			}
+			if !AstEqual(ha.Guard, oa.Guard) {
+				return false
+			}
 			if !AstEqual(ha.Body, oa.Body) {
 				log.Print("Bodies differ")
 				return false
