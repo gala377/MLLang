@@ -758,8 +758,8 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		p.bump()
 		p.bump()
 	}
-	effect := p.parseIdentifier()
-	if effect == nil {
+	effect, ok := p.parsePath()
+	if effect == nil || !ok {
 		p.error(beg, p.position(), "Expected effect to handle in with clause")
 		p.recoverWithTokens(token.Colon)
 	}
@@ -805,6 +805,41 @@ func (p *Parser) parseWith() (*ast.WithClause, bool) {
 		Continuation: cont,
 		Body:         b,
 	}, ok
+}
+
+func (p *Parser) parsePath() (ast.Expr, bool) {
+	log.Println("Parse path expression")
+	beg := p.position()
+	id := p.parseIdentifier()
+	if id == nil {
+		return nil, true
+	}
+	var node ast.Expr = id
+loop:
+	for {
+		log.Println("Checking for postfix dot operator")
+		t := p.curr
+		switch t.Typ {
+		case token.Access:
+			p.bump()
+			log.Println("It's access")
+			id := p.parseIdentifier()
+			if id == nil {
+				p.error(beg, p.position(), "expected indentifier in access expression")
+				return nil, false
+			}
+			span := span.NewSpan(beg, p.position())
+			node = &ast.Access{
+				Span:     &span,
+				Lhs:      node,
+				Property: *id,
+			}
+		default:
+			log.Printf("No postfixes, token is %s\n", token.IdToString(t.Typ))
+			break loop
+		}
+	}
+	return node, true
 }
 
 func (p *Parser) parseLambda() (ast.Expr, bool) {

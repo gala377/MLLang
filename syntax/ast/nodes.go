@@ -191,7 +191,7 @@ type (
 
 	WithClause struct {
 		*span.Span
-		Effect       *Identifier
+		Effect       Expr
 		Arg          *FuncDeclArg
 		Continuation *FuncDeclArg
 		Body         *Block
