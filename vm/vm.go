@@ -362,7 +362,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 					vm.bail("Handler can only switch on effect types")
 				}
 				if _, ok := arms[typ]; ok {
-					vm.bail("Handler already has an arm for the type")
+					vm.bail("Handler already has an arm for the type %s", typ.Name.String())
 				}
 				arms[typ] = hfunc
 			}
