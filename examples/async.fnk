@@ -41,7 +41,7 @@ let coro = scope:
 
 fn yield = coro.yield none
 
-; tasks : Queue of -> none [coro.yield]
+; tasks : Queue of ! -> none [coro.yield]
 fn dumpExecutor tasks:
   let push = Queue.push tasks
 
