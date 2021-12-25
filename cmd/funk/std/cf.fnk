@@ -159,6 +159,20 @@ let cf = scope:
       Yield a
       resume k
 
+  effect Exit
+
+  fn tagged? tag val:
+    if pair? val:
+      return eq? tag $ fst val
+    return false
+
+  fn exitblock body:
+    let tag = gensym!
+    handle:
+      body do a -> Exit (tag, a)
+    with Exit a if tagged? tag:
+      return snd a
+
   {
     ; match and patterns
     match, pattern, any,
@@ -167,5 +181,7 @@ let cf = scope:
     ; iterators
     iterate, collect, map, enumerate, filter, zip,
     take, skip, numbers, foreach, inspect,
+    ; other
+    exitblock,
   }
 

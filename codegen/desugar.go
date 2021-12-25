@@ -16,6 +16,17 @@ type ClausGroup struct {
 	Clauses []*ast.WithClause
 }
 
+// Todo: think about this.
+// This desugaring evaluates changes guards
+// into "guardExpr @arg" which makes them reevaluate
+// each time we need to check so something like.
+// fn check a:
+//   io.print "hello"
+//   true
+// will print hello each time the guard is evaluated and
+// I think that is what we want. The whole think about
+// desugaring guards is so that side effects can happen
+// like for example guard using Ask to get a value to check against.
 func desugarGuards(h *ast.Handle, effectc int) (*ast.Handle, []*ast.ValDecl) {
 	res := ast.Handle{
 		Span: h.Span,

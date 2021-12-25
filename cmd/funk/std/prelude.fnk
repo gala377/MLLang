@@ -22,6 +22,11 @@ let none? = eq? none
 
 let zero? = eq? 0
 
+fn pair? a:
+  if tuple? a:
+    return eq? 2 $ seq.len a
+  return false
+
 fn assert val msg:
   if not val:
     panic msg

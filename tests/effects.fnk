@@ -13,6 +13,8 @@ Before some
 1111
 Outer ask "hello?"
 ASKED 2
+Got it
+Got error "nothello"
 @SOURCE
 
 effect None
@@ -187,3 +189,27 @@ scope:
     count = inc count
     resume k
   assert (eq? count 5) "Deep handler failed"
+
+
+
+let module = scope:
+  effect Err
+  { err: Err }
+
+
+handle:
+  module.err "nothello"
+with module.err a:
+  io.print "Got it"
+with Yield a:
+  none
+
+
+handle:
+  module.err "nothello"
+with module.err msg if eq? "hello":
+  io.print "This message is hello"
+with module.err msg if eq? "nothello":
+  io.printf "Got error %s" msg
+with Yield _:
+  none
