@@ -1,0 +1,145 @@
+
+effect HTMLDocument
+effect HTMLBody
+effect HTMLDiv
+effect HTMLText
+effect HTMLP
+effect EndBlock
+
+effect Get
+effect Set
+
+fn sget = Get none
+fn sinc = Set $ inc sget!
+fn sdec = Set $ dec sget!
+
+fn html body = do -> HTMLDocument body
+fn body attributes body = HTMLBody {attributes, body}
+fn div attributes body = HTMLDiv {attributes, body}
+fn text t = HTMLText t
+fn p attributes body = HTMLP {attributes, body}
+
+fn wrapCont f ret:
+  if none? ret:
+    return none
+  (fst ret, do -> f $ snd ret)
+
+fn parseText parsingfn action:
+  handle:
+    wrapCont (parseText parsingfn) action!
+  with HTMLText t -> k:
+    (parsingfn t, do -> parseText parsingfn (do -> k none))
+
+fn parseP parsingfn action:
+  handle:
+    wrapCont (parseP parsingfn) action!
+  with HTMLP v -> k:
+    (parsingfn v.attributes v.body, do -> parseP parsingfn (do -> k none))
+
+fn parseDiv parsingfn action:
+  handle:
+    wrapCont (parseDiv parsingfn) action!
+  with HTMLDiv v -> k:
+    (parsingfn v.attributes v.body, do -> parseDiv parsingfn (do -> k none))
+
+fn parseDocument parsingfn action:
+  handle:
+    action!
+  with HTMLDocument b:
+    parsingfn b
+
+fn attrsToString attrs:
+  fold attrs "" do acc atr:
+    let as = map [' ', fst atr, '="', snd atr, '",'] conv.toString
+    concat acc $ fold as "" concat
+
+fn blockedParser tname atrs body:
+  fold [
+    "<",
+    tname,
+    attrsToString atrs,
+    ">\n",
+    parseBlock body,
+    indent!,
+    "</",
+    tname,
+    ">\n",
+  ] "" concat
+
+fn choice parsers:
+  fold parsers call do |f p|:
+    do action -> p do -> f action
+
+let simpleElemParser = choice [
+  parseText (flip concat "\n"),
+  parseDiv (blockedParser "div"),
+  parseP (blockedParser "p"),
+]
+
+
+fn runUntil stopeff body:
+  let run = true
+  while run:
+    handle:
+      body!
+    with stopeff _:
+      run = false
+
+fn parseBlock action:
+  let run = do -> simpleElemParser:
+    action!
+    EndBlock none
+  let res = ""
+  sinc!
+  runUntil EndBlock:
+    let r = run!
+    run = snd r
+    res = concat res $ concat indent! $ fst r
+  sdec!
+  res
+
+fn htmlAsString action:
+  withState 0:
+    handle:
+      action!
+    with HTMLDocument body:
+      blockedParser "html" {} body
+
+fn withState s body:
+  handle:
+    body!
+  with Get _ -> k:
+    withState s do -> k s
+  with Set v -> k:
+    withState v do -> k none
+
+fn indent = fold (seq.range sget!) "" do acc v -> concat acc "    "
+
+io.print $ htmlAsString $ html:
+  text "Hello on my webpage"
+  div {}:
+   text "First div"
+   text "Again first div"
+   div {id: "special div"}:
+    text "Second div"
+  text "Here is my footer"
+  div {class: "wide"}:
+    text "Hello"
+
+let greet = true
+let gc = 3
+
+io.print "With control flow"
+
+io.print $ htmlAsString $ html:
+  cf.foreach (cf.take gc cf.numbers) do i:
+    text $ concat "Hello on my webpage " $ conv.toString i
+  div {}:
+   text "First div"
+   text "Again first div"
+   div {id: "special div"}:
+    text "Second div"
+  text "Here is my footer"
+  if greet:
+    div {class: "wide"}:
+      text "Hello"
