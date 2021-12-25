@@ -43,14 +43,25 @@ fn yield = coro.yield none
 
 ; tasks : Queue of -> none [coro.yield]
 fn dumpExecutor tasks:
+  let push = Queue.push tasks
+
   while not $ Queue.empty? tasks:
-    ;io.printf "Tasks before handler %v" tasks
     handle:
       let t = Queue.pop tasks
       call t
     with coro.yield _ -> k:
-      Queue.push tasks do -> k none
-    ;io.print "after handler"
+      push do -> k none
+    with coro.spawn t -> k:
+      push t
+      resume k
+
+fn delay seconds:
+  let now = time.now!
+  while true:
+    yield!
+    let diff = sub time.now! now
+    if lt? seconds diff:
+      return
 
 scope:
   let tasks = Queue.fromSeq [
@@ -67,8 +78,11 @@ scope:
       io.print "I dont think I'll yield yet"
       yield!
       foreach (seq.range 3) do x:
-        io.printf "Second task in loop %v" x
-        yield!
+        io.printf "Second spawning taks %v" x
+        coro.spawn:
+          io.printf "I am task number %v" x
+          delay 5
+          io.printf "Spawned task %v reporting from duty" x
       io.print "Second task, I've done my job boss",
   ]
   dumpExecutor tasks
