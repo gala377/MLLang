@@ -1,0 +1,74 @@
+
+let Queue = scope:
+  fn new = {
+    size: 0,
+    beg: none,
+    end: none,
+  }
+
+  fn empty? q = zero? q.size
+
+  fn pop q:
+    if none? q.beg:
+      panic "First on empty queue"
+    let ret = q.beg.val
+    q.beg = q.beg.next
+    q.size = dec q.size
+    ret
+
+  fn push q val:
+    let node = {val, next: none}
+    if empty? q:
+      q.size = inc q.size
+      q.beg = node
+      q.end = node
+    else:
+      q.size = inc q.size
+      q.end.next = node
+      q.end = node
+
+  fn fromSeq s:
+    let q = new!
+    foreach s $ push q
+    return q
+
+  { new, empty?, pop, push, fromSeq }
+
+let coro = scope:
+  effect yield
+  effect spawn
+  { yield, spawn }
+
+fn yield = coro.yield none
+
+; tasks : Queue of -> none [coro.yield]
+fn dumpExecutor tasks:
+  while not $ Queue.empty? tasks:
+    ;io.printf "Tasks before handler %v" tasks
+    handle:
+      let t = Queue.pop tasks
+      call t
+    with coro.yield _ -> k:
+      Queue.push tasks do -> k none
+    ;io.print "after handler"
+
+scope:
+  let tasks = Queue.fromSeq [
+    do:
+      io.print "First task"
+      yield!
+      io.print "First task continued"
+      io.print "This one is not interrupted"
+      yield!
+      io.print "FT: I think I'll go home now",
+
+    do:
+      io.print "Second task"
+      io.print "I dont think I'll yield yet"
+      yield!
+      foreach (seq.range 3) do x:
+        io.printf "Second task in loop %v" x
+        yield!
+      io.print "Second task, I've done my job boss",
+  ]
+  dumpExecutor tasks
