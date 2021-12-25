@@ -1,12 +1,70 @@
-
+@EXPECTED
+got 1
+not this one
+Got 1 and something
+I expect to see this one
+hello
+calling exit
+exit1
+exit2
+@SOURCE
 
 let skip = cf.skip
 let take = cf.take
 let iterate = cf.iterate
 let collect = cf.collect
 let numbers = cf.numbers
+let match = cf.match
+let pattern = cf.pattern
+let condition = cf.condition
+let check = cf.check
+let exitblock = cf.exitblock
+let any = cf.any
+let default = cf.default
 
 let ns = collect [] $ take 3 $ skip 3 $ numbers
-io.print ns
 assert (seq.eq? ns [3, 4, 5]) "Collections arent equal"
 
+fn testMatch a:
+  match a:
+    pattern 1 do x:
+      io.print "got 1"
+    pattern (1, any) do a b:
+      io.print "Got 1 and something"
+    pattern any do x:
+      io.print "not this one"
+
+testMatch 1
+testMatch (1, 2, 3)
+testMatch (1, `anything)
+
+
+condition:
+  check (eq? 1 2):
+    io.print "Not really"
+  check true:
+    io.print "I expect to see this one"
+  default:
+    io.print "do not want to see this one"
+
+fn testexitblock exit:
+  io.print "hello"
+  (do exit:
+    io.print "calling exit"
+    exit `hello
+    io.print "this will be skipped") exit
+  io.print "this as well"
+
+assert (eq? (exitblock testexitblock) `hello) "exitblock failed"
+
+; nested exits
+let nestedexit = do -> exitblock do exit1:
+  io.print "exit1"
+  exitblock do exit2:
+    io.print "exit2"
+    exit1 1
+    io.print "after exit2"
+  io.print "after exit 1"
+
+
+assert (eq? nestedexit! 1) "exitblock failed"
