@@ -19,6 +19,7 @@ type Token struct {
 const (
 	Error Id = iota
 	Identifier
+	InfixIdentifier
 	Integer
 	Float
 	String
@@ -70,26 +71,27 @@ func IdToString(id Id) string {
 }
 
 var tokens = [...]string{
-	Error:        "ERROR",
-	Identifier:   "IDENT",
-	Integer:      "INT",
-	Float:        "FLOAT",
-	String:       "STRING",
-	Comment:      "COMMENT",
-	Colon:        ":",
-	Comma:        ",",
-	LParen:       "(",
-	RParen:       ")",
-	LBracket:     "{",
-	RBracket:     "}",
-	LSquareParen: "[",
-	RSquareParen: "]",
-	Pipe:         "|",
-	Indent:       "INDENT",
-	NewLine:      "NEWLINE",
-	Operator:     "OPERATOR",
-	Access:       ".",
-	Quote:        "`",
+	Error:           "ERROR",
+	Identifier:      "IDENT",
+	InfixIdentifier: "INFIX_IDENT",
+	Integer:         "INT",
+	Float:           "FLOAT",
+	String:          "STRING",
+	Comment:         "COMMENT",
+	Colon:           ":",
+	Comma:           ",",
+	LParen:          "(",
+	RParen:          ")",
+	LBracket:        "{",
+	RBracket:        "}",
+	LSquareParen:    "[",
+	RSquareParen:    "]",
+	Pipe:            "|",
+	Indent:          "INDENT",
+	NewLine:         "NEWLINE",
+	Operator:        "OPERATOR",
+	Access:          ".",
+	Quote:           "`",
 
 	Fn:     "fn",
 	If:     "if",

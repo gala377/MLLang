@@ -106,7 +106,7 @@ func (l *Lexer) scanNextToken() token.Token {
 	case unicode.IsSpace(ch):
 		tok.Typ = token.Indent
 		tok.Val = l.scanIndent()
-	case unicode.IsLetter(ch) || ch == '_':
+	case isValidFirstIdentifierChar(ch):
 		val := l.scanIdentifier()
 		tok.Typ = token.Lookup(val)
 		tok.Val = val
@@ -134,13 +134,22 @@ func (l *Lexer) scanNextToken() token.Token {
 			}
 			return l.scanNextToken()
 		}
+	case ch == ':':
+		nch := l.readRune()
+		if isValidFirstIdentifierChar(nch) {
+			val := l.scanIdentifier()
+			if token.Lookup(val) != token.Identifier {
+				err = fmt.Errorf("keyword as infix indentifier is illegal")
+			}
+			tok.Typ = token.InfixIdentifier
+			tok.Val = val
+		} else {
+			tok.Typ = token.Colon
+			tok.Val = token.IdToString(tok.Typ)
+		}
 	default:
 		known := true
 		switch ch {
-		case ':':
-			tok.Typ = token.Colon
-			// todo: If identifier follows immediately then
-			// its a "middle" call
 		case '(':
 			tok.Typ = token.LParen
 		case ')':
@@ -378,6 +387,10 @@ func (l *Lexer) GetMode(flag Mode) bool {
 func isControl(ch rune) bool {
 	_, ok := controlCharsSet[ch]
 	return ok
+}
+
+func isValidFirstIdentifierChar(ch rune) bool {
+	return unicode.IsLetter(ch) || ch == '_'
 }
 
 func isValidInIdentifier(ch rune) bool {

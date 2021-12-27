@@ -332,13 +332,13 @@ func (p *Parser) parseExpr() (ast.Expr, bool) {
 
 func (p *Parser) parseBinaryExpression() (ast.Expr, bool) {
 	beg := p.position()
-	fapp, ok := p.parseFunctionApp()
+	fapp, ok := p.parseInfixFunctionApp()
 	if fapp == nil || !ok {
 		return fapp, ok
 	}
 	applications := []ast.Expr{fapp}
 	for p.match(token.Dollar) != nil {
-		fapp, ok := p.parseFunctionApp()
+		fapp, ok := p.parseInfixFunctionApp()
 		if fapp == nil || !ok {
 			p.error(beg, p.position(), "expected expression after binary operator")
 			return fapp, ok
@@ -402,6 +402,47 @@ func (p *Parser) parseBlock() (*ast.Block, bool) {
 		Instr: exprs,
 	}
 	return &node, true
+}
+
+func (p *Parser) parseInfixFunctionApp() (ast.Expr, bool) {
+	log.Println("Parsing infix fn app")
+	fapp, ok := p.parseFunctionApp()
+	if fapp == nil || !ok {
+		return fapp, ok
+	}
+	for infix := p.match(token.InfixIdentifier); infix != nil; infix = p.match(token.InfixIdentifier) {
+		args := []ast.Expr{fapp}
+		arg, ok := p.parseSimpleExpr()
+		if !ok {
+			return nil, false
+		}
+		for arg != nil {
+			args = append(args, arg)
+			arg, ok = p.parseSimpleExpr()
+			if !ok {
+				return nil, false
+			}
+		}
+		block, ok := p.parseTrailingLambda()
+		if !ok {
+			return nil, ok
+		}
+		span := span.NewSpan(fapp.NodeSpan().Beg, p.position())
+		fapp = &ast.FuncApplication{
+			Span: &span,
+			Callee: &ast.Identifier{
+				Span: infix.Span,
+				Name: infix.Val,
+			},
+			Args:  args,
+			Block: block,
+		}
+		if block != nil {
+			// special case, tralining lambda ends the operator chain
+			break
+		}
+	}
+	return fapp, true
 }
 
 func (p *Parser) parseFunctionApp() (ast.Expr, bool) {
