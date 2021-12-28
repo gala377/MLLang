@@ -143,6 +143,18 @@ func (l *Lexer) scanNextToken() token.Token {
 			}
 			tok.Typ = token.InfixIdentifier
 			tok.Val = val
+		} else if nch == ':' {
+			nch = l.readRune()
+			if !isValidFirstIdentifierChar(nch) {
+				err = fmt.Errorf("expected identifier in local lookup infix call")
+				break
+			}
+			val := l.scanIdentifier()
+			if token.Lookup(val) != token.Identifier {
+				err = fmt.Errorf("keyword as infix indentifier is illegal")
+			}
+			tok.Typ = token.InfixNotModuledIdentifier
+			tok.Val = val
 		} else {
 			tok.Typ = token.Colon
 			tok.Val = token.IdToString(tok.Typ)

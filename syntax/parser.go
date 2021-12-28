@@ -410,7 +410,19 @@ func (p *Parser) parseInfixFunctionApp() (ast.Expr, bool) {
 	if fapp == nil || !ok {
 		return fapp, ok
 	}
-	for infix := p.match(token.InfixIdentifier); infix != nil; infix = p.match(token.InfixIdentifier) {
+	next := func() *token.Token {
+		t := p.match(token.InfixIdentifier)
+		if t == nil {
+			return p.match(token.InfixNotModuledIdentifier)
+		}
+		return t
+	}
+	for infix := next(); infix != nil; infix = next() {
+		// todo: when we have modules then :get will be a module
+		// lookup expression while ::get will be an infix call.
+		// So we have to remember to lift only in case of an infix
+		// call and not in case of module lookup.
+		p.tryLiftVar(infix.Val)
 		args := []ast.Expr{fapp}
 		arg, ok := p.parseSimpleExpr()
 		if !ok {

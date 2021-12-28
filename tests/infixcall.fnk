@@ -1,12 +1,12 @@
-@EXPECTED
-3
-proper here
-[1, 2, 3]
-3
-[1, 2, 10]
-[3, 4, 5]
-
-@SOURCE
+; @EXPECTED
+; 3
+; proper here
+; [1, 2, 3]
+; 3
+; [1, 2, 10]
+; [3, 4, 5]
+; 12
+; @SOURCE
 fn max a b c:
   let m = a
   if m :lt? b:
@@ -30,3 +30,10 @@ fn id x = x
 io.print $ 1 :max 3 $ id 2
 io.print $ [] :append 1 :append 2 :append $ id 10
 io.print $ [1, 2, 3] :map (add 1) :map do x -> x :inc
+
+scope:
+  let local = none
+  fn closure = 10 ::local 2
+  local = add
+  io.print closure!
+  :closure
