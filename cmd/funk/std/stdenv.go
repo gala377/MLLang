@@ -101,6 +101,7 @@ var StdEnv = [...]EnvironmentEntry{
 	&httpModule,
 	&inspectModule,
 	&recordsModule,
+	&funkSource{"@iter", funkIter},
 	&funkSource{"@prelude", funkPrelude},
 	&funkSource{"@conv", funkConv},
 	&funkSource{"@seq", funkSeq},
@@ -108,6 +109,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{"@records", funkRecords},
 	&funkSource{"@io", funkIo},
 	&funkSource{"@multimethods", funkMultimethod},
-	&funkSource{"@iter", funkIter},
 	&funkSource{"@cf", funkCf},
 }

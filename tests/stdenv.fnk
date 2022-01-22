@@ -35,7 +35,7 @@ false
 not yet called
 111
 Hello world?
-1
+
 @SOURCE
 
 let a = 1
@@ -85,10 +85,10 @@ foreach [1, 2, 3] do |x| -> io.print x
 
 io.print (sum [1, 2, 3])
 
-foreach (map [1, 2, 3] (add 1)) io.print
+[1, 2, 3] :iterate :map inc :foreach io.print
 
-io.print (map [1, 2, 3] do |x|:
-  add 10 x)
+io.print (iter.collect [] (map (iterate [1, 2, 3]) do |x|:
+  add 10 x))
 
 fn cond pred pos neg:
   if cond:
@@ -97,7 +97,7 @@ fn cond pred pos neg:
     neg!
 
 
-io.print (filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4))
+io.print $ iter.collect [] $ filter [0, 1, 2, 3, 4, 5, 6] (flip lt? 4)
 
 let fromListRec = conv.toRecord ((`a, 1), (`b, 2))
 io.print fromListRec.a
@@ -108,11 +108,11 @@ io.print (eq? `somesym (conv.toSymbol "somesym"))
 io.print (min [3, 4, 5, 8, 6, 1])
 io.print (max [3, 4, 5, 8, 6, 1])
 
-io.print (enumerate [`a, `b, `c, `d])
+io.print $ iter.collect [] $ [`a, `b, `c, `d] :iterate :enumerate
 
 io.print (neq? 1 1)
 
-io.print (zip [`a, `b, `c, `d] [1, 2, 3, 4])
+io.print $ iter.collect [] $ zip [`a, `b, `c, `d] [1, 2, 3, 4]
 
 io.print (eq? gensym! gensym!)
 let gs = gensym!
@@ -157,16 +157,6 @@ assert (not (seq.eq? [1, 2, 3] (3, 2, 1))) "not seq.equal fails"
 
 assert (seq.eq? (records.keys {a: 1, b: 2, c: 3}) (`a, `b, `c)) "record keys failed"
 assert (seq.eq? (records.vals {a: 1, b: 2, c: 3}) (1, 2, 3)) "record values failed"
-
-seq.foreach [1, 2, 3] do x:
-  if eq? x 2:
-    return `break
-  io.print x
-
-let res = seq.foreach [1, 2, 3] do x:
- if eq? x 2:
-   return (`break, `found)
-assert (eq? res `found) 'seq.foreach returned wrong value'
 
 assert (seq.and [true, true, true]) "seq.and fails"
 assert (not (seq.and [true, true, false, true])) "not seq.and fails"

@@ -1,28 +1,12 @@
 
 extend seq {
-  ; Same as prelude's foreach but can be short cuircuted
-  ; by returning `break symbol or tuple (`break, retval).
-  ; Im the former case returns none in the latter returns 'retval'
-  fn foreach s body:
-    let len = seq.len s
-    let i = 0
-    while lt? i len:
-      let ret = (body (seq.get s i))
-      if eq? ret `break:
-        return
-      else if (tuple? ret):
-        if eq? `break (fst ret):
-          return snd ret
-      i = add i 1
-    ret,
-
   ; Searchers sequence based on predicate.
   ; Returns first element matching the predicate.
   ; Returns "none" value if no element matched the predicate.
-  fn find s pred:
-    seq.foreach s do el:
+  fn find s pred = exitblock do exit:
+    foreach s do el:
       if pred el:
-        (`break, el),
+        exit el,
 
   fn empty? s = eq? (seq.len s) 0,
 
@@ -33,29 +17,30 @@ extend seq {
   eq?: do a b:
     if not (eq? (seq.len a) (seq.len b)):
       return false
-    seq.foreach (zip a b) do |vals|:
-      if not (eq? (fst vals) (snd vals)):
-        (`break, false)
-      else:
-        true,
+    exitblock do exit:
+      foreach (zip a b) do |vals|:
+        if not (eq? (fst vals) (snd vals)):
+          exit false
+      true,
 
-  ; both could be optimized to short-circuit
-  and: do s -> seq.foreach s do v:
-    if not v:
-      return (`break, false)
+  fn and s = exitblock do exit:
+    foreach s do v:
+      if not v:
+        exit false
     true,
-  or: do s -> seq.foreach s do v:
-    if v:
-      return (`break, true)
+
+  fn or s = exitblock do exit:
+    foreach s do v:
+      if v:
+        exit true
     false,
 
   ; Accepts a sequence of sequences and
   ; joins them together.
-  fn concat seqs:
-    fold seqs [] do |acc x|:
-      extend acc x,
+  fn concat seqs = iter.collect [] $ iter.chain seqs,
 
   ; Creates a list of numbers from 0 to end-1.
+  ; For lazy version look at iter.numbers.
   fn range end:
     let acc = []
     let i = 0

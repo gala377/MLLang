@@ -7,22 +7,19 @@ hello
 calling exit
 exit1
 exit2
+[1, 2, 3, 4, 5, 6, 7, 8, 9]
 @SOURCE
 
-let skip = cf.skip
-let take = cf.take
-let iterate = cf.iterate
-let collect = cf.collect
-let numbers = cf.numbers
+let collect = iter.collect
+let numbers = iter.numbers
 let match = cf.match
 let pattern = cf.pattern
 let condition = cf.condition
 let check = cf.check
-let exitblock = cf.exitblock
 let any = cf.any
 let default = cf.default
 
-let ns = collect [] $ take 3 $ skip 3 $ numbers
+let ns = collect [] $ iter.take 3 $ iter.skip 3 $ numbers
 assert (seq.eq? ns [3, 4, 5]) "Collections arent equal"
 
 fn testMatch a:
@@ -68,3 +65,6 @@ let nestedexit = do -> exitblock do exit1:
 
 
 assert (eq? nestedexit! 1) "exitblock failed"
+
+fn concat xs = collect [] $ iter.chain xs
+io.print $ concat [[1, 2, 3], [4, 5], [6, 7, 8], [9]]

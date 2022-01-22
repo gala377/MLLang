@@ -1,5 +1,5 @@
 
 extend records {
-  keys: flip map fst,
-  vals: flip map snd,
+  fn keys rec = iter.collect [] $ map rec fst,
+  fn vals rec = iter.collect [] $ map rec snd,
 }

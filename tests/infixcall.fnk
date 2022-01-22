@@ -29,7 +29,7 @@ fn id x = x
 
 io.print $ 1 :max 3 $ id 2
 io.print $ [] :append 1 :append 2 :append $ id 10
-io.print $ [1, 2, 3] :map (add 1) :map do x -> x :inc
+io.print $ iter.collect [] $ [1, 2, 3] :map (add 1) :map do x -> x :inc
 
 scope:
   let local = none

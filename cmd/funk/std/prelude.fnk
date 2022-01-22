@@ -1,6 +1,6 @@
 fn scope b = b!
 
-fn call f = f!
+let call = scope
 
 fn flip f a b = f b a
 
@@ -31,40 +31,25 @@ fn assert val msg:
   if not val:
     panic msg
 
-fn foreach s body:
-  let i = 0
-  let len = seq.len s
-  while lt? i len:
-    body (seq.get s i)
-    i = add i 1
+let foreach = iter.foreach
 
-fn fold s init body:
-  foreach s do x:
-    init = body init x
-  init
+let fold = iter.fold
+
+let map = iter.map
+
+let filter = iter.filter
+
+let enumerate = iter.enumerate
+
+let zip = iter.zip
+
+let iterate = iter.iterate
+
+fn yield a = iter.Yield a
 
 fn sum s = fold s 0 add
 
-fn map s body:
-  fold s [] do |acc x|:
-    seq.append acc (body x)
-
-fn filter s pred:
-  fold s [] do |acc x|:
-    if pred x:
-      seq.append acc x
-    acc
-
 fn extend s1 s2 = fold s2 s1 seq.append
-
-fn enumerate s:
-  snd (fold s (0, []) do |acc x|:
-    (add (fst acc) 1, seq.append (snd acc) (fst acc, x)))
-
-fn zip s1 s2:
-  assert (eq? (seq.len s1) (seq.len s2)) "only sequences of equal lenght can be zipped"
-  fold (enumerate s1) [] do |acc x|:
-    seq.append acc (snd x, seq.get s2 (fst x))
 
 fn max s:
   assert (seq.notempty? s) "sequence passed to min cannot be empty"
@@ -95,6 +80,16 @@ fn suspend comp:
       called = true
     ret
 
+fn exitblock body:
+  effect Exit
+  handle:
+    ; wrap Exit effect in a function
+    ; so it cannot be caught.
+    body do a -> Exit a
+  with Exit a:
+    return a
+
+
 extend prelude {
   scope,
   call,
@@ -114,6 +109,7 @@ extend prelude {
   sum,
   map,
   filter,
+  iterate,
   extend,
   enumerate,
   zip,
@@ -129,4 +125,5 @@ extend prelude {
   http,
   inspect,
   records,
+  exitblock,
 }

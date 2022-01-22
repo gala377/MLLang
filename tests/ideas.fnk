@@ -1,5 +1,5 @@
 ; get filter nonempty strings
-assert (seq.eq? (filter ["", "frank", "", "", "goerge"] conv.toBool) ["frank", "goerge"]) "filtering empty strings fails"
+assert (seq.eq? (iter.collect [] (filter ["", "frank", "", "", "goerge"] conv.toBool)) ["frank", "goerge"]) "filtering empty strings fails"
 
 effect Yield
 
