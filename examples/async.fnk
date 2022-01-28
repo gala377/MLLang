@@ -81,7 +81,7 @@ scope:
         io.printf "Second spawning taks %v" x
         coro.spawn:
           io.printf "I am task number %v" x
-          delay 5
+          delay $ 5 :add x
           io.printf "Spawned task %v reporting from duty" x
       io.print "Second task, I've done my job boss",
   ]
