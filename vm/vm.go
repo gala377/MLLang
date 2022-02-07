@@ -776,6 +776,14 @@ func (vm *Vm) unsafeTupleGet(t data.Tuple, i int) data.Value {
 	return v
 }
 
+func (vm *Vm) SourceLine() int {
+	return vm.code.Lines[vm.ip]
+}
+
+func (vm *Vm) FileName() string {
+	return vm.code.Path
+}
+
 func reverse(s []data.Value) []data.Value {
 	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
 		s[i], s[j] = s[j], s[i]

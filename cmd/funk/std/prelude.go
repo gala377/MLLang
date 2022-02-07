@@ -24,31 +24,32 @@ var funkIter []byte
 var preludeModule = module{
 	Name: "prelude",
 	Entries: map[string]AsValue{
-		"add":       &funcEntry{"add", 2, add},
-		"sub":       &funcEntry{"sub", 2, sub},
-		"mul":       &funcEntry{"mul", 2, mul},
-		"div":       &funcEntry{"div", 2, div},
-		"neg":       &funcEntry{"neg", 1, neg},
-		"mod":       &funcEntry{"mod", 2, modulo},
-		"lt?":       &funcEntry{"lt?", 2, lessThan},
-		"eq?":       &funcEntry{"eq?", 2, equal},
-		"not":       &funcEntry{"not", 1, not},
-		"panic":     &funcEntry{"panic", 1, vmPanic},
-		"gensym":    &funcEntry{"gensym", 0, vmGenSym},
-		"spawn":     &funcEntry{"spawn", 1, vmSpawn},
-		"int?":      &funcEntry{"int?", 1, isInt},
-		"list?":     &funcEntry{"list?", 1, isList},
-		"tuple?":    &funcEntry{"tuple?", 1, isTuple},
-		"seq?":      &funcEntry{"seq?", 1, isSeq},
-		"string?":   &funcEntry{"string?", 1, isString},
-		"symbol?":   &funcEntry{"symbol?", 1, isSymbol},
-		"function?": &funcEntry{"function?", 1, isFunction},
-		"float?":    &funcEntry{"float?", 1, isFloat},
-		"bool?":     &funcEntry{"bool?", 1, isBool},
-		"record?":   &funcEntry{"record?", 1, isRecord},
-		"or":        &funcEntry{"or", 2, boolOr},
-		"and":       &funcEntry{"and", 2, boolAnd},
-		"concat":    &funcEntry{"concat", 2, strConcat},
+		"add":            &funcEntry{"add", 2, add},
+		"sub":            &funcEntry{"sub", 2, sub},
+		"mul":            &funcEntry{"mul", 2, mul},
+		"div":            &funcEntry{"div", 2, div},
+		"neg":            &funcEntry{"neg", 1, neg},
+		"mod":            &funcEntry{"mod", 2, modulo},
+		"lt?":            &funcEntry{"lt?", 2, lessThan},
+		"eq?":            &funcEntry{"eq?", 2, equal},
+		"not":            &funcEntry{"not", 1, not},
+		"panic":          &funcEntry{"panic", 1, vmPanic},
+		"gensym":         &funcEntry{"gensym", 0, vmGenSym},
+		"spawn":          &funcEntry{"spawn", 1, vmSpawn},
+		"int?":           &funcEntry{"int?", 1, isInt},
+		"list?":          &funcEntry{"list?", 1, isList},
+		"tuple?":         &funcEntry{"tuple?", 1, isTuple},
+		"seq?":           &funcEntry{"seq?", 1, isSeq},
+		"string?":        &funcEntry{"string?", 1, isString},
+		"symbol?":        &funcEntry{"symbol?", 1, isSymbol},
+		"function?":      &funcEntry{"function?", 1, isFunction},
+		"float?":         &funcEntry{"float?", 1, isFloat},
+		"bool?":          &funcEntry{"bool?", 1, isBool},
+		"record?":        &funcEntry{"record?", 1, isRecord},
+		"or":             &funcEntry{"or", 2, boolOr},
+		"and":            &funcEntry{"and", 2, boolAnd},
+		"concat":         &funcEntry{"concat", 2, strConcat},
+		"sourceLocation": &funcEntry{"sourceLocation", 0, sourceLoc},
 	},
 }
 
@@ -256,4 +257,11 @@ func strConcat(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 		return nil, errors.New("concat only works on strings")
 	}
 	return data.NewString(ab.Val + bb.Val), nil
+}
+
+func sourceLoc(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	return data.NewTuple([]data.Value{
+		data.NewString(vm.FileName()),
+		data.NewInt(vm.SourceLine()),
+	}), nil
 }

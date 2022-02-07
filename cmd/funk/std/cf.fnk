@@ -38,7 +38,7 @@ let cf = scope:
         resume k
       else:
         if neq? (seq.len mres) $ inspect.arity cbody:
-          panic "Arity mismatched"
+          throw TypeErr "Arity mismatched"
         apply cbody mres
 
   fn any a = (a,)
@@ -54,7 +54,7 @@ let cf = scope:
       executed = true
       f!
     if not executed:
-      panic "no matching condition arm"
+      throw RuntimeErr "no matching condition arm"
     ret
 
   fn check pred body:

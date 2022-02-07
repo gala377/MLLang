@@ -8,6 +8,7 @@ calling exit
 exit1
 exit2
 [1, 2, 3, 4, 5, 6, 7, 8, 9]
+typeerr
 @SOURCE
 
 let collect = iter.collect
@@ -68,3 +69,11 @@ assert (eq? nestedexit! 1) "exitblock failed"
 
 fn concat xs = collect [] $ iter.chain xs
 io.print $ concat [[1, 2, 3], [4, 5], [6, 7, 8], [9]]
+
+handle:
+  conv.toBool do x -> x
+with error err if kind? RuntimeErr:
+  io.print "This should not happen"
+with error err if kind? TypeErr:
+  io.print "typeerr"
+  assert (err.msg :eq? "cannot convert to bool") "error msg mismatched"

@@ -8,10 +8,10 @@ let struct = scope:
 
       foreach fields do field:
         if none? (seq.find passedKeys (eq? field)):
-          panic "Not every field has been passed to type constructor"
+          throw ValueErr "Not every field has been passed to type constructor"
       foreach vals do fpair:
         if none? (seq.find fields (eq? (fst fpair))):
-          panic "Unknown field passed to type constructor"
+          throw ValueErr "Unknown field passed to type constructor"
 
       let this = scope:
         let this = vals {__type__: typeid}

@@ -15,5 +15,5 @@ extend conv {
     else if symbol? v:
       true
     else:
-     panic "cannot convert to bool",
+      throw TypeErr "cannot convert to bool",
 }

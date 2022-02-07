@@ -4,7 +4,7 @@ let methods = scope:
   fn new selector:
     let arity = inspect.arity selector
     if zero? arity:
-      panic "Multimethod's arity cannot be 0"
+      throw ValueErr "Multimethod's arity cannot be 0"
 
     let implementations = []
 
@@ -12,7 +12,7 @@ let methods = scope:
       let key = apply selector args
       let f = seq.find implementations do el -> eq? key (fst el)
       if none? f:
-        panic "no multimethod instance found"
+        throw RuntimeErr "no multimethod instance found"
       apply (snd f) args
 
     fn createNextCall args:
@@ -44,9 +44,9 @@ let methods = scope:
   fn impl meth key body:
     let m = seq.find registered_methods do m -> eq? meth (m.key)
     if none? m:
-      panic "not a multimethod"
+      throw TypeErr "not a multimethod"
     if neq? m.arity (inspect.arity body):
-      panic "method's body arity does not match"
+      throw TypeErr "method's body arity does not match"
     m.instance key body
 
   {new, impl}

@@ -26,6 +26,8 @@ type (
 		Panic(string)
 		Clone() VmProxy
 		RunClosure(Callable, ...Value) Value
+		SourceLine() int
+		FileName() string
 	}
 	NativeFunc struct {
 		fn    func(VmProxy, ...Value) (Value, error)

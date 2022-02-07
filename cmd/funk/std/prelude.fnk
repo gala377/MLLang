@@ -31,18 +31,13 @@ fn assert val msg:
   if not val:
     panic msg
 
+; iter imports
 let foreach = iter.foreach
-
 let fold = iter.fold
-
 let map = iter.map
-
 let filter = iter.filter
-
 let enumerate = iter.enumerate
-
 let zip = iter.zip
-
 let iterate = iter.iterate
 
 fn yield a = iter.Yield a
@@ -51,8 +46,18 @@ fn sum s = fold s 0 add
 
 fn extend s1 s2 = fold s2 s1 seq.append
 
+; errors import
+let error = errors.error
+let throw = errors.throw
+let throwFrom = errors.throwFrom
+let ValueErr = errors.ValueErr
+let TypeErr = errors.TypeErr
+let RuntimeErr = errors.RuntimeErr
+let kind? = errors.kind?
+
 fn max s:
-  assert (seq.notempty? s) "sequence passed to min cannot be empty"
+  if seq.empty? s:
+    throw ValueErr "sequence passed to max cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? acc x:
       x
@@ -60,7 +65,8 @@ fn max s:
       acc
 
 fn min s:
-  assert (seq.notempty? s) "sequence passed to min cannot be empty"
+  if seq.empty? s:
+    throw ValueErr "sequence passed to min cannot be empty"
   fold s (fst s) do |acc x|:
     if lt? x acc:
       x

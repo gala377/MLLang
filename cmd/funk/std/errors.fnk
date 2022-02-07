@@ -1,0 +1,20 @@
+let errors = (do:
+    effect error
+
+    fn throwFrom kind msg source = error {
+        kind, msg, source, loc: prelude.sourceLocation!,
+    }
+
+    fn throw kind msg = throwFrom kind msg none
+
+    fn kind? kind err = kind :eq? err.kind
+
+    {
+        error,
+        throw, throwFrom,
+        kind?,
+
+        ValueErr: `ValueErr,
+        TypeErr: `TypeErr,
+        RuntimeErr: `RuntimeErr,
+    })!
