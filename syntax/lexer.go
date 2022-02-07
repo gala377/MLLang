@@ -259,7 +259,7 @@ func (l *Lexer) scanNumber() (val string, isfloat bool, err error) {
 	if ch == '0' {
 		b.WriteRune(ch)
 		switch ch = l.readRune(); {
-		case unicode.IsSpace(ch) || isControl(ch):
+		case unicode.IsSpace(ch) || isControl(ch) || l.eof:
 			val = "0"
 		case ch == '.':
 			isfloat = true
