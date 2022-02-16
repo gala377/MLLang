@@ -420,11 +420,6 @@ func (vm *Vm) push(v data.Value) {
 	if Debug {
 		fmt.Printf("Pushing value %s\nStack top is %d\n", v, vm.stackTop)
 	}
-	if vm.stackTop > 155 {
-		vm.printStack()
-		vm.printStackTrace()
-		panic("STACK TOP WAS HIGHER THAN 150")
-	}
 }
 
 func (vm *Vm) pop() data.Value {
@@ -628,11 +623,6 @@ func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, ha
 			vm.printFrame(sip, scode)
 			fmt.Println("Stack frame of an effect")
 			vm.printFrame(vm.ip, vm.code)
-		}
-		if len(stack) > 100 {
-			fmt.Println("CONTINUATIN TOO BIG!!!")
-			printExternalStackTrace(vm, stack)
-			panic("Continuation too big")
 		}
 		k := data.NewContinuation(stack, handler, sip, scode, slocals)
 		v, t := h.Call(vm, arg, k)
