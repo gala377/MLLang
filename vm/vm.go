@@ -14,6 +14,7 @@ import (
 )
 
 var Debug = true
+var AllowTailCalls = false
 
 const FUNC_FRAME_SIZE = 3
 
@@ -117,7 +118,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			off := vm.readShort()
 			cond := vm.pop()
 			if Debug {
-				fmt.Printf("JumpIfFalse: jumping by %d", off)
+				fmt.Printf("JumpIfFalse: jumping by %d\n", off)
 			}
 			ab, ok := cond.(data.Bool)
 			if !ok {
@@ -128,7 +129,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			}
 			if Debug {
 				i, _ := isa.DisassembleInstr(vm.code, vm.ip, -1)
-				fmt.Printf("Instruction after jump %s", i)
+				fmt.Printf("Instruction after jump %s\n", i)
 			}
 		case isa.Jump:
 			off := vm.readShort()
@@ -158,7 +159,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			arg := vm.readShort()
 			s := vm.getSymbolAt(arg)
 			vm.locals.Insert(s, vm.pop())
-		case isa.TailCall0:
+		case isa.Call0, isa.TailCall0:
 			callee, ok := vm.pop().(data.Callable)
 			if !ok {
 				vm.bail(fmt.Sprintf("Cannot call %s", callee))
@@ -167,18 +168,8 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("Expected nullary callable")
 			}
 			v, t := callee.Call(vm)
-			vm.handleCall(v, t, true)
-		case isa.Call0:
-			callee, ok := vm.pop().(data.Callable)
-			if !ok {
-				vm.bail(fmt.Sprintf("Cannot call %s", callee))
-			}
-			if callee.Arity() != 0 {
-				vm.bail("Expected nullary callable")
-			}
-			v, t := callee.Call(vm)
-			vm.handleCall(v, t, false)
-		case isa.TailCall1:
+			vm.handleCall(v, t, i == isa.TailCall0)
+		case isa.Call1, isa.TailCall1:
 			arg := vm.pop()
 			callee, ok := vm.pop().(data.Callable)
 			if !ok {
@@ -188,18 +179,7 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 				vm.bail("Expected non nullary callable")
 			}
 			v, t := vm.apply1(callee, arg)
-			vm.handleCall(v, t, true)
-		case isa.Call1:
-			arg := vm.pop()
-			callee, ok := vm.pop().(data.Callable)
-			if !ok {
-				vm.bail(fmt.Sprintf("Cannot apply %v", callee))
-			}
-			if callee.Arity() == 0 {
-				vm.bail("Expected non nullary callable")
-			}
-			v, t := vm.apply1(callee, arg)
-			vm.handleCall(v, t, false)
+			vm.handleCall(v, t, i == isa.TailCall1)
 		case isa.Call:
 			arity := int(vm.readByte())
 			args := make([]data.Value, 0, arity)
@@ -351,13 +331,13 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			rec.SetField(name, val)
 		case isa.InstallHandler:
 			argc := vm.readShort()
-			arms := map[*data.Type]data.Callable{}
+			arms := map[data.Type]data.Callable{}
 			for i := 0; i < int(argc); i++ {
 				hfunc, ok := vm.pop().(data.Callable)
 				if !ok {
 					vm.bail("IEE: with clause handler is not a callable")
 				}
-				typ, ok := vm.pop().(*data.Type)
+				typ, ok := vm.pop().(data.Type)
 				if !ok {
 					vm.bail("Handler can only switch on effect types")
 				}
@@ -401,6 +381,9 @@ func (vm *Vm) Interpret(code *data.Code) (data.Value, error) {
 			vm.code = code
 			vm.locals = env
 			v, t := cont.Call(vm, arg)
+			// we do not tail call here as we manually popped
+			// last function frame and this is a frame under it.
+			// It should stay where it is.
 			vm.handleCall(v, t, false)
 		case isa.Resume:
 			cont, ok := vm.pop().(*data.Continuation)
@@ -436,6 +419,11 @@ func (vm *Vm) push(v data.Value) {
 	vm.stackTop++
 	if Debug {
 		fmt.Printf("Pushing value %s\nStack top is %d\n", v, vm.stackTop)
+	}
+	if vm.stackTop > 155 {
+		vm.printStack()
+		vm.printStackTrace()
+		panic("STACK TOP WAS HIGHER THAN 150")
 	}
 }
 
@@ -499,6 +487,7 @@ func (vm *Vm) apply1(fn data.Callable, arg data.Value) (data.Value, data.Trampol
 }
 
 func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool) {
+	tailcall = tailcall && AllowTailCalls
 	for {
 		switch tramp.Kind {
 		case data.Returned:
@@ -519,7 +508,7 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 			if !ok {
 				vm.bail("IEE: expected tuple of (type, arg) when performing an effect. Not a tuple")
 			}
-			typ, ok := vm.unsafeTupleGet(args, 0).(*data.Type)
+			typ, ok := vm.unsafeTupleGet(args, 0).(data.Type)
 			if !ok {
 				vm.bail("IEE: expected tuple of (type, arg) when performing an effect. Not a type")
 			}
@@ -528,9 +517,11 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 			continue
 		case data.RestoreContinuation:
 			// push current frame
-			vm.push(data.Int{Val: vm.ip})
-			vm.push(vm.code)
-			vm.push(vm.locals)
+			if !tailcall {
+				vm.push(data.Int{Val: vm.ip})
+				vm.push(vm.code)
+				vm.push(vm.locals)
+			}
 			args, ok := retval.(data.Tuple)
 			if !ok {
 				vm.bail("IEE: Expected continuation stack and argument")
@@ -544,6 +535,11 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 			vm.stack = append(vm.stack, stack...)
 			vm.stackTop = len(vm.stack)
 			// push continuation argument
+			if Debug {
+				fmt.Println("Restoring continuation")
+				fmt.Printf("Continuation stack len is %d\n", len(stack))
+				fmt.Printf("Stack top after continuaation stack has been pushed %d\n", vm.stackTop)
+			}
 			vm.push(vm.unsafeTupleGet(args, 0))
 			// restore registers
 			vm.ip = tramp.Ip
@@ -556,27 +552,31 @@ func (vm *Vm) handleCall(retval data.Value, tramp data.Trampoline, tailcall bool
 	}
 }
 
-func (vm *Vm) handleEffect(typ *data.Type, arg data.Value) (data.Value, data.Trampoline, bool) {
+func (vm *Vm) handleEffect(typ data.Type, arg data.Value) (data.Value, data.Trampoline, bool) {
 	for curr := vm.stackTop - 1; curr > -1; curr-- {
 		sv := vm.stack[curr]
 		if handler, ok := sv.(*data.Handler); ok {
-			for ty, h := range handler.Clauses {
-				if typ.Equal(ty) {
-					len := FUNC_FRAME_SIZE + 1 // handler and function frame
-					if data.HandlerCapturesContinuation(h) {
-						// does use the continuation so we need to capture whole stack
-						// instead of just handler and stack frame
-						len = vm.stackTop - curr
-					}
-					stack := make([]data.Value, len)
-					if copied := copy(stack, vm.stack[curr:]); copied != len {
-						vm.bail("IEE: Could not copy the stack")
-					}
-					// throw away other stack frames
-					vm.stack = vm.stack[:curr]
-					vm.stackTop = curr
-					return vm.runHandler(stack, h, arg, handler)
+			if h, ok := handler.Clauses[typ]; ok {
+				len := FUNC_FRAME_SIZE + 1 // handler and function frame
+				if data.HandlerCapturesContinuation(h) {
+					// does use the continuation so we need to capture whole stack
+					// instead of just handler and stack frame
+					len = vm.stackTop - curr
 				}
+				if Debug {
+					fmt.Printf("Handler for effect %s found at %d\n", typ.Name.String(), curr)
+					fmt.Printf("Stack top is %d copying %d elements\n", vm.stackTop, len)
+					fmt.Printf("Frame that performed call\n")
+					vm.printFrame(vm.ip, vm.code)
+				}
+				stack := make([]data.Value, len)
+				if copied := copy(stack, vm.stack[curr:]); copied != len {
+					vm.bail("IEE: Could not copy the stack")
+				}
+				// throw away other stack frames
+				vm.stack = vm.stack[:curr]
+				vm.stackTop = curr
+				return vm.runHandler(stack, h, arg, handler)
 			}
 		}
 	}
@@ -620,14 +620,27 @@ func (vm *Vm) runHandler(stack []data.Value, h data.Callable, arg data.Value, ha
 		v, t := h.Call(vm, arg)
 		return v, t, false
 	case 2:
+		// drop handler and handler's callee's stack frame
 		stack = stack[4:]
+		if Debug {
+			fmt.Printf("Creating continuation with stack len %d\n", len(stack))
+			fmt.Println("Stack frame of a callee")
+			vm.printFrame(sip, scode)
+			fmt.Println("Stack frame of an effect")
+			vm.printFrame(vm.ip, vm.code)
+		}
+		if len(stack) > 100 {
+			fmt.Println("CONTINUATIN TOO BIG!!!")
+			printExternalStackTrace(vm, stack)
+			panic("Continuation too big")
+		}
 		k := data.NewContinuation(stack, handler, sip, scode, slocals)
 		v, t := h.Call(vm, arg, k)
 		return v, t, false
-	default:
-		vm.bail("IEE: unsupported arity of effect handling clause")
 	}
-	panic("Unreachable")
+	vm.bail("IEE: unsupported arity of effect handling clause")
+	// unreachable
+	return nil, data.Trampoline{}, false
 }
 
 func (vm *Vm) popFunctionFrame() (int, *data.Code, *data.Env) {
@@ -676,6 +689,26 @@ func (vm *Vm) printStackTrace() {
 			continue
 		}
 		ip, ok := vm.stack[i-2].(data.Int)
+		if !ok {
+			continue
+		}
+		vm.printFrame(ip.Val, c)
+	}
+	fmt.Println("=========================")
+}
+
+func printExternalStackTrace(vm *Vm, stack []data.Value) {
+	fmt.Println("========BACKTRACE========")
+	for i := 0; i < len(stack); i++ {
+		_, ok := stack[i].(*data.Env)
+		if !ok {
+			continue
+		}
+		c, ok := stack[i-1].(*data.Code)
+		if !ok {
+			continue
+		}
+		ip, ok := stack[i-2].(data.Int)
 		if !ok {
 			continue
 		}

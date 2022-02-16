@@ -27,56 +27,84 @@ let Queue = scope:
       q.end.next = node
       q.end = node
 
+  fn pushFront q val:
+    if empty? q:
+      push q val
+    else:
+      q.size = inc q.size
+      q.beg = {
+        val, next: q.beg}
+
   fn fromSeq s:
     let q = new!
     foreach s $ push q
     return q
 
-  { new, empty?, pop, push, fromSeq }
+  { new, empty?, pop, push, pushFront, fromSeq }
 
 let coro = scope:
   effect yield
   effect spawn
-  { yield, spawn }
-
-fn yield = coro.yield none
+  { yield: do -> yield none, spawn, Yield: yield, }
 
 ; tasks : Queue of ! -> none [coro.yield]
-fn dumbExecutor tasks:
+fn simpleExecutor tasks:
   let push = Queue.push tasks
 
+  let lastSize = none
   while not $ Queue.empty? tasks:
     handle:
       let t = Queue.pop tasks
-      call t
-    with coro.yield _ -> k:
+      t!
+    with coro.Yield _ -> k:
       push do -> k none
     with coro.spawn t -> k:
+      ; pushFront is necessary here.
+      ; earlier versions used
+      ; push t
+      ; resume k
+      ; however because handler in while is not
+      ; in tail position even if while is in tail position
+      ; we would only reuse handlers frame and not executors
+      ; frame which in turn created a stack overflow.
+      Queue.pushFront tasks do -> k none
       push t
-      resume k
 
 fn delay seconds:
   let now = time.now!
   while true:
-    yield!
+    coro.yield!
     let diff = sub time.now! now
     if lt? seconds diff:
       return
+
+fn task f:
+  let future = none
+  fn await:
+    while none? future:
+      coro.yield!
+    future.res
+
+  coro.spawn:
+    let res = f!
+    future = { res }
+
+  await
 
 scope:
   let tasks = Queue.fromSeq [
     do:
       io.print "First task"
-      yield!
+      coro.yield!
       io.print "First task continued"
       io.print "This one is not interrupted"
-      yield!
+      coro.yield!
       io.print "FT: I think I'll go home now",
 
     do:
       io.print "Second task"
       io.print "I dont think I'll yield yet"
-      yield!
+      coro.yield!
       foreach (seq.range 3) do x:
         io.printf "Second spawning taks %v" x
         coro.spawn:
@@ -84,5 +112,24 @@ scope:
           delay $ 5 :add x
           io.printf "Spawned task %v reporting from duty" x
       io.print "Second task, I've done my job boss",
+
+    do:
+      io.print "Third task"
+
+      let t = task:
+        io.print "I was spawned by a third task"
+        io.print "I need to do some heavy computation"
+        delay 6
+        io.print "My heavy computation has been completed"
+        io.print "I'll return the result"
+        42
+
+      io.print "3rd task. Spawned my heavy comp in the background"
+      io.print "I'll sleep for now and then check if it's done"
+      delay 5
+      io.print "3rd task I am awake now, I'll wait for my computation"
+      assert (t! :eq? 42) "Wrong answer"
+      io.printf "My answer is %s" t!
+      io.print "I got my answer so goodbye for now",
   ]
-  dumbExecutor tasks
+  simpleExecutor tasks

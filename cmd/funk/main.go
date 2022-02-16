@@ -18,6 +18,7 @@ import (
 )
 
 var verboseFlag = flag.Bool("verbose", false, "when set shows logs from the virtual machine")
+var tailCalls = flag.Bool("tail_calls", true, "enable or disable tail call optimisation")
 var showCode = flag.Bool("dump_bytecode", false, "just compiles the file and prints it to the stdout")
 var showAst = flag.Bool("dump_ast", false, "just parse the file and print the ast to stdout")
 var panicOnError = flag.Bool("panic_on_error", false, "runtime error will cause panic in the interpreter")
@@ -30,6 +31,7 @@ func main() {
 	parsePositionalArgs()
 	f := getFile()
 	vm.Debug = *verboseFlag
+	vm.AllowTailCalls = *tailCalls
 	if !*verboseFlag {
 		log.SetOutput(ioutil.Discard)
 	}
