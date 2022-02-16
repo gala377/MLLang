@@ -687,26 +687,6 @@ func (vm *Vm) printStackTrace() {
 	fmt.Println("=========================")
 }
 
-func printExternalStackTrace(vm *Vm, stack []data.Value) {
-	fmt.Println("========BACKTRACE========")
-	for i := 0; i < len(stack); i++ {
-		_, ok := stack[i].(*data.Env)
-		if !ok {
-			continue
-		}
-		c, ok := stack[i-1].(*data.Code)
-		if !ok {
-			continue
-		}
-		ip, ok := stack[i-2].(data.Int)
-		if !ok {
-			continue
-		}
-		vm.printFrame(ip.Val, c)
-	}
-	fmt.Println("=========================")
-}
-
 func (vm *Vm) printFrame(ip int, code *data.Code) {
 	if ip >= len(code.Lines) {
 		ip = len(code.Lines) - 1
