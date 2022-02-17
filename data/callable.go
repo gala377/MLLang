@@ -109,10 +109,13 @@ func NewPartialApp(c Callable, vv ...Value) PartialApp {
 		panic("Can only apply partially if there are less arguments than the function needs")
 	}
 	if p, ok := c.(PartialApp); ok {
-		dest := make([]Value, len(p.args), len(p.args)+len(vv))
-		copy(dest, p.args)
-		p.args = append(dest, vv...)
-		return p
+		args := make([]Value, len(p.args), len(p.args)+len(vv))
+		copy(args, p.args)
+		args = append(args, vv...)
+		return PartialApp{
+			args: args,
+			fn:   p.fn,
+		}
 	}
 	return PartialApp{
 		args: vv,
@@ -125,10 +128,13 @@ func PartialApp1(c Callable, arg Value) PartialApp {
 		panic("ICE: parial application on function that should be called")
 	}
 	if p, ok := c.(PartialApp); ok {
-		dest := make([]Value, len(p.args), len(p.args)+1)
-		copy(dest, p.args)
-		p.args = append(p.args, arg)
-		return p
+		args := make([]Value, len(p.args), len(p.args)+1)
+		copy(args, p.args)
+		args = append(args, arg)
+		return PartialApp{
+			args: args,
+			fn:   p.fn,
+		}
 	}
 	return PartialApp{
 		args: []Value{arg},

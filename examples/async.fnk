@@ -27,106 +27,125 @@ let Queue = scope:
       q.end.next = node
       q.end = node
 
-  fn pushFront q val:
-    if empty? q:
-      push q val
-    else:
-      q.size = inc q.size
-      q.beg = {
-        val, next: q.beg}
-
   fn fromSeq s:
     let q = new!
     foreach s $ push q
     return q
 
-  { new, empty?, pop, push, pushFront, fromSeq }
+  {
+    ; create an empty queue
+    ; type :: {Queue}
+    new,
+    ; Chech if a queue is empty
+    ; type :: {Queue -> bool}
+    empty?,
+    ; Remove the first item from a queue
+    ; and return it
+    ; type :: a => {Queue a -> a}
+    pop,
+    ; Push an item to the end of a queue
+    ; type :: a => {Queue a -> a -> none}
+    push,
+    ; Create a new queue from a sequence.
+    ; type :: a => {Seq a -> Queue a}
+    fromSeq,
+  }
 
 let coro = scope:
   effect yield
   effect spawn
-  { yield: do -> yield none, spawn, Yield: yield, }
 
-; tasks : Queue of ! -> none [coro.yield]
+  fn delay seconds:
+    let now = time.now!
+    while true:
+      coro.yield none
+      let diff = sub time.now! now
+      if lt? seconds diff:
+        return
+
+  fn task f:
+    let future = none
+    coro.spawn:
+      let res = f!
+      future = { res }
+
+    fn awaiter:
+      while none? future:
+        coro.yield none
+      future.res
+
+    awaiter
+
+  {
+    ; yield from coroutine allowing another task to be run
+    ; type :: {none -> none}
+    yield,
+    ; spawn another coroutine onto a task queue
+    ; type :: {{ none -> none } -> none}
+    spawn,
+    ; resume coroutine after `seconds` seconds
+    ; type :: {float -> none}
+    delay,
+    ; spawn task onto a task queue but allow to
+    ; retrieve the task's result bu calling
+    ; returned `awaiter` function which will yield
+    ; until result is available
+    ; type :: a => {{none -> a} -> {a}}
+    task,
+  }
+
+; Run asynchronous tasks in the task queue until
+; none are left.
+; type :: {Queue { none -> none } -> none}
 fn simpleExecutor tasks:
   let push = Queue.push tasks
-
-  let lastSize = none
+  let pop = do -> Queue.pop tasks
   while not $ Queue.empty? tasks:
     handle:
-      let t = Queue.pop tasks
-      t!
-    with coro.Yield _ -> k:
+      (pop!)!
+    with coro.yield _ -> k:
       push do -> k none
     with coro.spawn t -> k:
-      ; pushFront is necessary here.
-      ; earlier versions used
-      ; push t
-      ; resume k
-      ; however because handler in while is not
-      ; in tail position even if while is in tail position
-      ; we would only reuse handlers frame and not executors
-      ; frame which in turn created a stack overflow.
-      Queue.pushFront tasks do -> k none
       push t
+      resume k
 
-fn delay seconds:
-  let now = time.now!
-  while true:
-    coro.yield!
-    let diff = sub time.now! now
-    if lt? seconds diff:
-      return
-
-fn task f:
-  let future = none
-  fn await:
-    while none? future:
-      coro.yield!
-    future.res
-
-  coro.spawn:
-    let res = f!
-    future = { res }
-
-  await
 
 scope:
   let tasks = Queue.fromSeq [
     do:
       io.print "First task"
-      coro.yield!
+      coro.yield none
       io.print "First task continued"
       io.print "This one is not interrupted"
-      coro.yield!
+      coro.yield none
       io.print "FT: I think I'll go home now",
 
     do:
       io.print "Second task"
       io.print "I dont think I'll yield yet"
-      coro.yield!
+      coro.yield none
       foreach (seq.range 3) do x:
         io.printf "Second spawning taks %v" x
         coro.spawn:
           io.printf "I am task number %v" x
-          delay $ 5 :add x
+          coro.delay $ 5 :add x
           io.printf "Spawned task %v reporting from duty" x
       io.print "Second task, I've done my job boss",
 
     do:
       io.print "Third task"
 
-      let t = task:
+      let t = coro.task:
         io.print "I was spawned by a third task"
         io.print "I need to do some heavy computation"
-        delay 6
+        coro.delay 6
         io.print "My heavy computation has been completed"
         io.print "I'll return the result"
         42
 
       io.print "3rd task. Spawned my heavy comp in the background"
       io.print "I'll sleep for now and then check if it's done"
-      delay 5
+      coro.delay 5
       io.print "3rd task I am awake now, I'll wait for my computation"
       assert (t! :eq? 42) "Wrong answer"
       io.printf "My answer is %s" t!
