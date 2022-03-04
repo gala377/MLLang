@@ -1,4 +1,4 @@
-let methods = scope:
+let methods = module:
   let registered_methods = []
 
   fn new selector:
@@ -49,4 +49,4 @@ let methods = scope:
       throw TypeErr "method's body arity does not match"
     m.instance key body
 
-  {new, impl}
+  export {new, impl}

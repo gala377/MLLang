@@ -1,7 +1,5 @@
-effect Yield
 
-
-let cf = scope:
+let cf = module:
   ; local effects so that they can only be handled by
   ; match and case handlers and cannot be intercepted
   ; by user handlers
@@ -63,7 +61,7 @@ let cf = scope:
 
   fn default body = ExecCond body
 
-  {
+  export {
     ; match and patterns
     match, pattern, any,
     ; condition

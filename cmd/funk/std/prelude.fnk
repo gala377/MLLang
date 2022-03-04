@@ -95,6 +95,23 @@ fn exitblock body:
   with Exit a:
     return a
 
+effect export
+
+fn module body:
+  let out = {}
+  handle:
+    body!
+  with export items -> k:
+    if not $ record? items:
+      panic "Items exported from a module should be wrapped in a record"
+    foreach items do item:
+      let name = fst item
+      if records.hasField? out name:
+        panic $ strings.fmt "Redeclaration of name %s" (name,)
+    extend out items
+    resume k
+  out
+
 
 extend prelude {
   scope,
@@ -132,4 +149,6 @@ extend prelude {
   inspect,
   records,
   exitblock,
+  export,
+  module,
 }

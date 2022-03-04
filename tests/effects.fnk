@@ -176,6 +176,7 @@ with Ask v -> k:
   io.printf "Outer ask %v" v
   k none
 
+effect Yield
 
 scope:
   let count = 0

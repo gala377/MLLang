@@ -1,5 +1,5 @@
 
-let Queue = scope:
+let Queue = module:
   fn new = {
     size: 0,
     beg: none,
@@ -32,7 +32,7 @@ let Queue = scope:
     foreach s $ push q
     return q
 
-  {
+  export {
     ; create an empty queue
     ; type :: {Queue}
     new,

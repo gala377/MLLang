@@ -131,8 +131,10 @@ let gc = 3
 
 io.print "With control flow"
 
+let take = iter.take
+
 io.print $ htmlAsString $ html:
-  cf.foreach (cf.take gc cf.numbers) do i:
+  foreach (take gc iter.numbers) do i:
     text $ concat "Hello on my webpage " $ conv.toString i
   div {}:
    text "First div"

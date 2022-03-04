@@ -719,8 +719,8 @@ func (vm *Vm) bail(msg string, args ...interface{}) {
 		code = getLine(line, r)
 	}
 	fmt.Printf("\n\nRuntime error in file %s at line %d\n\n", vm.code.Path, line)
-	fmt.Printf(code+"\n\n", args...)
-	fmt.Println(msg)
+	fmt.Println(code + "\n")
+	fmt.Printf(msg+"\n", args...)
 	panic("runtime error")
 }
 

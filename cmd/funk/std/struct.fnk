@@ -1,5 +1,5 @@
 
-let struct = scope:
+let struct = module:
   let new = do fields methods:
     let typeid = gensym!
 
@@ -27,7 +27,7 @@ let struct = scope:
       typeid,
     }
 
-  {
+  export {
     new,
     fn istype? t v = eq? t.typeid v.__type__,
   }
