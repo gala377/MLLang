@@ -1,0 +1,27 @@
+
+
+let funcs = module:
+  fn funcDecoratorImpl callNullary body:
+    fn wrapper func:
+      let arity = inspect.arity func
+      if zero? arity:
+        if callNullary:
+          return body func []
+        return do -> body func []
+
+      fn createNextCall args = do arg:
+        seq.append args arg
+        if eq? (seq.len args) arity:
+          return body func args
+        createNextCall args
+
+      createNextCall []
+    wrapper
+
+  let perfectDecorator = funcDecoratorImpl false
+  let decorator = funcDecoratorImpl true
+
+  export {
+    perfectDecorator,
+    decorator,
+  }

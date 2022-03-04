@@ -112,4 +112,5 @@ var StdEnv = [...]EnvironmentEntry{
 	&funkSource{"@io", funkIo},
 	&funkSource{"@multimethods", funkMultimethod},
 	&funkSource{"@cf", funkCf},
+	&funkSource{"@funcs", funcFuncs},
 }
