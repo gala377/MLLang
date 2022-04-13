@@ -50,6 +50,7 @@ var preludeModule = module{
 		"and":            &funcEntry{"and", 2, boolAnd},
 		"concat":         &funcEntry{"concat", 2, strConcat},
 		"sourceLocation": &funcEntry{"sourceLocation", 0, sourceLoc},
+		"loadFile":       &funcEntry{"loadFile", 1, loadFile},
 	},
 }
 
@@ -264,4 +265,12 @@ func sourceLoc(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 		data.NewString(vm.FileName()),
 		data.NewInt(vm.SourceLine()),
 	}), nil
+}
+
+func loadFile(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
+	path, ok := vv[0].(data.String)
+	if !ok {
+		return nil, errors.New("a path to loadFile should be a string")
+	}
+	return data.None, vm.LoadFile(path.Val)
 }

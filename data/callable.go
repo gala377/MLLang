@@ -26,6 +26,7 @@ type (
 		Panic(string)
 		Clone() VmProxy
 		RunClosure(Callable, ...Value) Value
+		LoadFile(string) error
 		SourceLine() int
 		FileName() string
 	}

@@ -6,6 +6,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/gala377/MLLang/codegen"
@@ -713,7 +715,7 @@ func (vm *Vm) bail(msg string, args ...interface{}) {
 	line := vm.code.Lines[ip] + 1
 	r, ok := vm.sources[vm.code.Path]
 	var code string
-	if !ok {
+	if !ok || r == nil {
 		code = fmt.Sprintf("Unknown source %v", vm.code.Path)
 	} else {
 		code = getLine(line, r)
@@ -735,6 +737,10 @@ func (vm *Vm) GenerateSymbol() data.Symbol {
 }
 
 func (vm *Vm) Clone() data.VmProxy {
+	return vm.cloneImpl()
+}
+
+func (vm *Vm) cloneImpl() *Vm {
 	loc := data.NewEnv()
 	return &Vm{
 		code:     nil,
@@ -785,6 +791,39 @@ func (vm *Vm) SourceLine() int {
 
 func (vm *Vm) FileName() string {
 	return vm.code.Path
+}
+
+func (vm *Vm) LoadFile(path string) error {
+	current := vm.FileName()
+	fullPath, err := filepath.Abs(filepath.Join(
+		filepath.Dir(current), path))
+	if err != nil {
+		vm.bail("Could not resolve path for %s. Error: %s", path, err)
+	}
+	if b, ok := vm.sources[fullPath]; ok {
+		if b == nil {
+			vm.bail("Cyclic import of %s", fullPath)
+		}
+		// already loaded, no need to load it again
+		return nil
+	}
+	vm.sources[fullPath] = nil
+	buffer, err := ioutil.ReadFile(fullPath)
+	if err != nil {
+		vm.bail("Cannot load file %s: error %s", path, err)
+	}
+
+	c, err := codegen.Compile(
+		fullPath, buffer, vm.Interner())
+	if err != nil {
+		vm.bail("Could not compile %s.\nError: %s", path, err)
+	}
+	_, err = vm.cloneImpl().Interpret(c)
+	if err != nil {
+		vm.bail("Error while evaluating %s: error: %s", path, err)
+	}
+	vm.sources[fullPath] = bytes.NewReader(buffer)
+	return nil
 }
 
 func reverse(s []data.Value) []data.Value {
