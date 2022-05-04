@@ -29,7 +29,11 @@ func format(vm data.VmProxy, vv ...data.Value) (data.Value, error) {
 	fargs := make([]interface{}, 0, argc)
 	for i := 0; i < argc; i++ {
 		arg, _ := args.Get(data.NewInt(i))
-		fargs = append(fargs, arg.String())
+		if asstr, ok := arg.(data.String); ok {
+			fargs = append(fargs, asstr.Val)
+		} else {
+			fargs = append(fargs, arg.String())
+		}
 	}
 	res := fmt.Sprintf(fmts.Val, fargs...)
 	return data.NewString(res), nil
